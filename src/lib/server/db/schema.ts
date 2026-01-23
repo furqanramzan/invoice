@@ -1,18 +1,48 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, sqliteTable, text, real } from 'drizzle-orm/sqlite-core';
 
-export const user = sqliteTable('user', {
-  id: text('id').primaryKey(),
+export const user = sqliteTable('users', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   age: integer('age'),
   username: text('username').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
 });
 
-export const session = sqliteTable('session', {
-  id: text('id').primaryKey(),
+export const session = sqliteTable('sessions', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   userId: text('user_id')
     .notNull()
     .references(() => user.id),
   expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+});
+
+export const invoices = sqliteTable('invoices', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  invoiceNumber: text('invoice_number').notNull().unique(),
+  store: text('store').notNull(),
+  date: integer('date', { mode: 'timestamp' }).notNull(),
+  total: real('total').notNull(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id),
+});
+
+export const lineItems = sqliteTable('line_items', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text('name').notNull(),
+  quantity: integer('quantity').notNull(),
+  unitPrice: real('unit_price').notNull(),
+  total: real('total').notNull(),
+  invoiceId: text('invoice_id')
+    .notNull()
+    .references(() => invoices.id),
 });
 
 export type Session = typeof session.$inferSelect;

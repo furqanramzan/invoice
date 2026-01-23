@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1769188161483,
+      "tag": "0000_add_users_and_sessions_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1769195134856,
+      "tag": "0001_add_invoices_and_line_items_table",
+      "breakpoints": true
+    }
+  ]
+}
