@@ -1,6 +1,10 @@
 import { fail } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { invoices, lineItems, products as productsSchema } from '$lib/server/db/schema';
+import {
+  invoices,
+  lineItems,
+  products as productsSchema,
+} from '$lib/server/db/schema';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { requireLogin } from '$lib/server/auth.js';
@@ -12,7 +16,13 @@ export const load = async () => {
       invoiceNumber: crypto.randomUUID(),
       store: 'sdfas',
       products: [
-        { id: crypto.randomUUID(), name: 'name', costPrice: 12, unitPrice: 12, quantity: 2 },
+        {
+          id: crypto.randomUUID(),
+          name: 'name',
+          costPrice: 12,
+          unitPrice: 12,
+          quantity: 2,
+        },
       ],
     },
     zod4(invoiceSchema),
@@ -60,7 +70,10 @@ export const actions = {
             store,
             invoiceNumber,
             date: date || new Date(),
-            total: processedProducts.reduce((acc, p) => acc + p.quantity * p.unitPrice, 0),
+            total: processedProducts.reduce(
+              (acc, p) => acc + p.quantity * p.unitPrice,
+              0,
+            ),
             userId: user.id,
           })
           .returning({ id: invoices.id });

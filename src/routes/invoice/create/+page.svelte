@@ -30,16 +30,26 @@
         unitPrice: 0,
       },
     ];
-    setTimeout(() => document.getElementById(`name-${$form.products.length - 1}`)?.focus(), 50);
+    setTimeout(
+      () =>
+        document.getElementById(`name-${$form.products.length - 1}`)?.focus(),
+      50,
+    );
   }
 
   function removeProduct(index: number) {
     $form.products = $form.products.filter((_, i) => i !== index);
   }
 
-  let total = $derived($form.products.reduce((acc, p) => acc + p.quantity * p.unitPrice, 0));
-  let totalCost = $derived($form.products.reduce((acc, p) => acc + p.quantity * p.costPrice, 0));
-  let totalProfit = $derived((((total - totalCost) / totalCost) * 100).toFixed(2));
+  let total = $derived(
+    $form.products.reduce((acc, p) => acc + p.quantity * p.unitPrice, 0),
+  );
+  let totalCost = $derived(
+    $form.products.reduce((acc, p) => acc + p.quantity * p.costPrice, 0),
+  );
+  let totalProfit = $derived(
+    (((total - totalCost) / totalCost) * 100).toFixed(2),
+  );
 
   let searchTerm: string[] = $state($form.products.map(() => ''));
   let suggestions: any[][] = $state($form.products.map(() => []));
@@ -53,8 +63,9 @@
       );
       activeSuggestionIndex[index] = -1; // Reset active index when input changes
     } else {
-      suggestions[index] = [];
+      suggestions[index] = allProducts;
     }
+    activeSuggestionIndex[index] = -1; // Reset active index when input changes
   }
 
   function selectSuggestion(index: number, product: any) {
@@ -80,12 +91,18 @@
         break;
       case 'ArrowUp':
         event.preventDefault(); // Prevent cursor movement
-        activeSuggestionIndex[index] = Math.max(activeSuggestionIndex[index] - 1, 0);
+        activeSuggestionIndex[index] = Math.max(
+          activeSuggestionIndex[index] - 1,
+          0,
+        );
         break;
       case 'Enter':
         event.preventDefault(); // Prevent form submission
         if (activeSuggestionIndex[index] !== -1) {
-          selectSuggestion(index, suggestions[index][activeSuggestionIndex[index]]);
+          selectSuggestion(
+            index,
+            suggestions[index][activeSuggestionIndex[index]],
+          );
         }
         break;
       case 'Escape':
@@ -105,7 +122,9 @@
 </script>
 
 <div class="container mx-auto space-y-4">
-  <h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">New Invoice</h1>
+  <h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
+    New Invoice
+  </h1>
   <form class="space-y-4" method="POST" use:enhance>
     <div>
       <Label for="store">Store</Label>
@@ -117,7 +136,11 @@
 
     <div>
       <Label for="invoiceNumber">Invoice Number</Label>
-      <Input id="invoiceNumber" name="invoiceNumber" bind:value={$form.invoiceNumber} />
+      <Input
+        id="invoiceNumber"
+        name="invoiceNumber"
+        bind:value={$form.invoiceNumber}
+      />
       {#if $errors.invoiceNumber}
         <p class="text-red-500">{$errors.invoiceNumber}</p>
       {/if}
@@ -139,6 +162,7 @@
       <Table.Header>
         <Table.Row>
           <Table.Head></Table.Head>
+          <Table.Head>#</Table.Head>
           <Table.Head class="w-2/5">Name</Table.Head>
           <Table.Head>Quantity</Table.Head>
           <Table.Head>Unit cost</Table.Head>
@@ -148,32 +172,41 @@
         </Table.Row>
       </Table.Header>
       <Table.Body>
-        {#each $form.products as product, i (product.id)}
+        {#each $form.products as product, index (product.id)}
           <Table.Row>
             <Table.Cell>
-              <Button variant="destructive" type="button" onclick={() => removeProduct(i)}>
+              <Button
+                variant="destructive"
+                type="button"
+                onclick={() => removeProduct(index)}
+              >
                 <Trash />
               </Button>
+            </Table.Cell>
+            <Table.Cell>
+              {index + 1}
             </Table.Cell>
             <Table.Cell>
               <div class="product-item">
                 <div class="relative">
                   <Input
-                    id="name-{i}"
-                    name="products[{i}].name"
-                    bind:value={$form.products[i].name}
-                    oninput={(e) => handleInput(i, (e.target as HTMLInputElement).value)}
-                    onfocus={(e) => handleInput(i, (e.target as HTMLInputElement).value)}
-                    onkeydown={(e) => handleKeydown(i, e)}
+                    id="name-{index}"
+                    name="products[{index}].name"
+                    bind:value={$form.products[index].name}
+                    oninput={(e) =>
+                      handleInput(index, (e.target as HTMLInputElement).value)}
+                    onfocus={(e) =>
+                      handleInput(index, (e.target as HTMLInputElement).value)}
+                    onkeydown={(e) => handleKeydown(index, e)}
                     onblur={() => (suggestions = [])}
                     autocomplete="off"
                     disabled={!!product.productId}
                   />
-                  {#if $errors.products?.[i]?.name}
-                    <p class="text-red-500">{$errors.products[i].name}</p>
+                  {#if $errors.products?.[index]?.name}
+                    <p class="text-red-500">{$errors.products[index].name}</p>
                   {/if}
 
-                  {#if suggestions[i]?.length > 0}
+                  {#if suggestions[index]?.length > 0}
                     <ul
                       class="
     absolute z-10 max-h-48 w-full overflow-y-auto rounded-md border
@@ -181,7 +214,7 @@
     dark:border-zinc-700 dark:bg-zinc-900
   "
                     >
-                      {#each suggestions[i] as suggestion, sIndex}
+                      {#each suggestions[index] as suggestion, sIndex}
                         <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                         <li
                           class="
@@ -189,12 +222,17 @@
         text-gray-900 hover:bg-gray-100
         dark:text-zinc-100 dark:hover:bg-zinc-800
       "
-                          class:bg-gray-200={sIndex === activeSuggestionIndex[i]}
-                          class:dark:bg-zinc-800={sIndex === activeSuggestionIndex[i]}
-                          onmousedown={() => selectSuggestion(i, suggestion)}
+                          class:bg-gray-200={sIndex ===
+                            activeSuggestionIndex[index]}
+                          class:dark:bg-zinc-800={sIndex ===
+                            activeSuggestionIndex[index]}
+                          onmousedown={() =>
+                            selectSuggestion(index, suggestion)}
                         >
                           {suggestion.name}
-                          <span class="text-sm text-gray-500 dark:text-zinc-400">
+                          <span
+                            class="text-sm text-gray-500 dark:text-zinc-400"
+                          >
                             ({suggestion.costPrice}) ({suggestion.unitPrice})
                           </span>
                         </li>
@@ -205,52 +243,59 @@
                 <!-- productId is hidden but part of the form submission -->
                 <input
                   type="hidden"
-                  name="products[{i}].productId"
-                  bind:value={$form.products[i].productId}
+                  name="products[{index}].productId"
+                  bind:value={$form.products[index].productId}
                 />
               </div>
             </Table.Cell>
             <Table.Cell>
               <div>
                 <Input
-                  id="quantity-{i}"
-                  name="products[{i}].quantity"
+                  id="quantity-{index}"
+                  name="products[{index}].quantity"
                   type="number"
-                  bind:value={$form.products[i].quantity}
+                  bind:value={$form.products[index].quantity}
                 />
-                {#if $errors.products?.[i]?.quantity}
-                  <p class="text-red-500">{$errors.products[i].quantity}</p>
+                {#if $errors.products?.[index]?.quantity}
+                  <p class="text-red-500">{$errors.products[index].quantity}</p>
                 {/if}
               </div>
             </Table.Cell>
             <Table.Cell>
               <div>
                 <Input
-                  id="costPrice-{i}"
-                  name="products[{i}].costPrice"
+                  id="costPrice-{index}"
+                  name="products[{index}].costPrice"
                   type="number"
-                  bind:value={$form.products[i].costPrice}
+                  bind:value={$form.products[index].costPrice}
                 />
-                {#if $errors.products?.[i]?.costPrice}
-                  <p class="text-red-500">{$errors.products[i].costPrice}</p>
+                {#if $errors.products?.[index]?.costPrice}
+                  <p class="text-red-500">
+                    {$errors.products[index].costPrice}
+                  </p>
                 {/if}
               </div>
             </Table.Cell>
             <Table.Cell>
               <div>
                 <Input
-                  id="unitPrice-{i}"
-                  name="products[{i}].unitPrice"
+                  id="unitPrice-{index}"
+                  name="products[{index}].unitPrice"
                   type="number"
-                  bind:value={$form.products[i].unitPrice}
+                  bind:value={$form.products[index].unitPrice}
                 />
-                {#if $errors.products?.[i]?.unitPrice}
-                  <p class="text-red-500">{$errors.products[i].unitPrice}</p>
+                {#if $errors.products?.[index]?.unitPrice}
+                  <p class="text-red-500">
+                    {$errors.products[index].unitPrice}
+                  </p>
                 {/if}
               </div>
             </Table.Cell>
             <Table.Cell class="w-36 text-lg">
-              {(((product.unitPrice - product.costPrice) / product.costPrice) * 100).toFixed(2)}%
+              {(
+                ((product.unitPrice - product.costPrice) / product.costPrice) *
+                100
+              ).toFixed(2)}%
             </Table.Cell>
             <Table.Cell class="w-36 text-lg">
               {product.quantity * product.unitPrice}
