@@ -38,6 +38,8 @@
   }
 
   let total = $derived($form.products.reduce((acc, p) => acc + p.quantity * p.unitPrice, 0));
+  let totalCost = $derived($form.products.reduce((acc, p) => acc + p.quantity * p.costPrice, 0));
+  let totalProfit = $derived((((total - totalCost) / totalCost) * 100).toFixed(2));
 
   let searchTerm: string[] = $state($form.products.map(() => ''));
   let suggestions: any[][] = $state($form.products.map(() => []));
@@ -141,6 +143,7 @@
           <Table.Head>Quantity</Table.Head>
           <Table.Head>Unit cost</Table.Head>
           <Table.Head>Unit price</Table.Head>
+          <Table.Head>Profit</Table.Head>
           <Table.Head>Total</Table.Head>
         </Table.Row>
       </Table.Header>
@@ -247,15 +250,20 @@
               </div>
             </Table.Cell>
             <Table.Cell class="w-36 text-lg">
+              {(((product.unitPrice - product.costPrice) / product.costPrice) * 100).toFixed(2)}%
+            </Table.Cell>
+            <Table.Cell class="w-36 text-lg">
               {product.quantity * product.unitPrice}
             </Table.Cell>
           </Table.Row>
         {/each}
       </Table.Body>
       <Table.Footer>
-        <Table.Row>
-          <Table.Cell colspan={5} class="text-end">Total</Table.Cell>
-          <Table.Cell>$2,500.00</Table.Cell>
+        <Table.Row class="text-lg">
+          <Table.Cell colspan={3} class="text-end">Total</Table.Cell>
+          <Table.Cell>{total}</Table.Cell>
+          <Table.Cell class="text-end">Profit</Table.Cell>
+          <Table.Cell>{totalProfit}%</Table.Cell>
         </Table.Row>
       </Table.Footer>
     </Table.Root>
@@ -264,7 +272,7 @@
       {#if $submitting}
         <Spinner />
       {/if}
-      Create Invoice</Button
-    >
+      Create Invoice
+    </Button>
   </form>
 </div>
