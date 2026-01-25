@@ -11,8 +11,8 @@ export const lineItemSchema = z.object({
 
 export const invoiceSchema = z.object({
   id: z.string().optional(), // Added and made optional for upsert
-  store: z.string().min(1),
+  store: z.string().nullable(),
   invoiceNumber: z.string().min(1),
-  date: z.date().optional(),
-  products: z.array(lineItemSchema).min(1),
+  date: z.iso.date(),
+  lineItems: z.array(lineItemSchema),
 });

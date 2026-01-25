@@ -41,7 +41,7 @@ export const invoices = sqliteTable('invoices', {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   invoiceNumber: text('invoice_number').notNull().unique(),
-  store: text('store').notNull(),
+  store: text('store'),
   date: integer('date', { mode: 'timestamp' }).notNull(),
   total: real('total').notNull(),
   userId: text('user_id')

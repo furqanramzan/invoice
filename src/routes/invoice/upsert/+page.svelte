@@ -10,19 +10,23 @@
   import Spinner from '$lib/components/ui/spinner/spinner.svelte';
   import * as Table from '$lib/components/ui/table/index.js';
   import type { Product } from '$lib/server/db/schema.js';
+  import ExcelJS from 'exceljs';
 
-  const { data } = $props();
+  let { data } = $props();
   const allProducts = $derived(data.products);
   const isEditing = $derived(!!data.currentInvoice); // Determine if in editing mode
 
-  const { form, errors, enhance, submitting } = superForm(data.form, {
-    dataType: 'json',
-    validators: zod4(invoiceSchema),
-  });
+  const { form, isTainted, errors, enhance, submitting } = superForm(
+    data.form,
+    {
+      dataType: 'json',
+      validators: zod4(invoiceSchema),
+    },
+  );
 
   function addProduct() {
-    $form.products = [
-      ...$form.products,
+    $form.lineItems = [
+      ...$form.lineItems,
       {
         id: crypto.randomUUID(),
         name: '',
@@ -33,20 +37,20 @@
     ];
     setTimeout(
       () =>
-        document.getElementById(`name-${$form.products.length - 1}`)?.focus(),
+        document.getElementById(`name-${$form.lineItems.length - 1}`)?.focus(),
       50,
     );
   }
 
   function removeProduct(index: number) {
-    $form.products = $form.products.filter((_, i) => i !== index);
+    $form.lineItems = $form.lineItems.filter((_, i) => i !== index);
   }
 
   let total = $derived(
-    $form.products.reduce((acc, p) => acc + p.quantity * p.unitPrice, 0),
+    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.unitPrice, 0),
   );
   let totalCost = $derived(
-    $form.products.reduce((acc, p) => acc + p.quantity * p.costPrice, 0),
+    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.costPrice, 0),
   );
   let totalProfit = $derived(
     totalCost === 0
@@ -54,9 +58,9 @@
       : (((total - totalCost) / totalCost) * 100).toFixed(2),
   );
 
-  let searchTerm: string[] = $state($form.products.map(() => ''));
-  let suggestions: Product[][] = $state($form.products.map(() => []));
-  let activeSuggestionIndex: number[] = $state($form.products.map(() => -1)); // -1 means no suggestion is active
+  let searchTerm: string[] = $state($form.lineItems.map(() => ''));
+  let suggestions: Product[][] = $state($form.lineItems.map(() => []));
+  let activeSuggestionIndex: number[] = $state($form.lineItems.map(() => -1)); // -1 means no suggestion is active
 
   function handleInput(index: number, value: string) {
     searchTerm[index] = value;
@@ -72,10 +76,10 @@
   }
 
   function selectSuggestion(index: number, product: Product) {
-    $form.products[index].name = product.name;
-    $form.products[index].costPrice = product.costPrice;
-    $form.products[index].unitPrice = product.unitPrice;
-    $form.products[index].productId = product.id;
+    $form.lineItems[index].name = product.name;
+    $form.lineItems[index].costPrice = product.costPrice;
+    $form.lineItems[index].unitPrice = product.unitPrice;
+    $form.lineItems[index].productId = product.id;
     searchTerm[index] = '';
     suggestions[index] = [];
     activeSuggestionIndex[index] = -1; // Reset active index
@@ -118,10 +122,109 @@
 
   // Reactive block to reset search state when products array changes (e.g., product added/removed)
   $effect(() => {
-    searchTerm = $form.products.map(() => '');
-    suggestions = $form.products.map(() => []);
-    activeSuggestionIndex = $form.products.map(() => -1);
+    searchTerm = $form.lineItems.map(() => '');
+    suggestions = $form.lineItems.map(() => []);
+    activeSuggestionIndex = $form.lineItems.map(() => -1);
   });
+
+  async function exportData() {
+    if (isTainted()) {
+      alert(
+        'Please save the form before exporting, or try again after it saves.',
+      );
+      return;
+    }
+
+    // Prepare invoice data
+    const invoiceData = {
+      store: $form.store,
+      invoiceNumber: $form.invoiceNumber,
+      products: $form.lineItems.map((p) => ({
+        name: p.name,
+        quantity: p.quantity,
+        unitPrice: p.unitPrice,
+        totalPrice: p.quantity * p.unitPrice,
+      })),
+    };
+
+    // Calculate total
+    const total = invoiceData.products.reduce(
+      (sum, p) => sum + p.totalPrice,
+      0,
+    );
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Invoice');
+
+    // Add invoice header information (Columns C)
+    worksheet.getCell('C1').value = 'Invoice #:';
+    worksheet.getCell('C1').font = { bold: true };
+    worksheet.getCell('D1').value = invoiceData.invoiceNumber;
+
+    worksheet.getCell('C2').value = 'Date:';
+    worksheet.getCell('C2').font = { bold: true };
+    worksheet.getCell('D2').value = $form.date;
+
+    worksheet.getCell('C3').value = 'Store:';
+    worksheet.getCell('C3').font = { bold: true };
+    worksheet.getCell('D3').value = invoiceData.store;
+
+    // Add product table headers (Row 6)
+    worksheet.getCell('A6').value = 'Product Name';
+    worksheet.getCell('A6').font = { bold: true };
+    worksheet.getCell('B6').value = 'Quantity';
+    worksheet.getCell('B6').font = { bold: true };
+    worksheet.getCell('C6').value = 'Unit Price';
+    worksheet.getCell('C6').font = { bold: true };
+    worksheet.getCell('D6').value = 'Total Price';
+    worksheet.getCell('D6').font = { bold: true };
+
+    // Add product data (starting from Row 7)
+    if (invoiceData.products.length > 0) {
+      invoiceData.products.forEach((p, index) => {
+        const rowNum = 7 + index;
+        worksheet.getCell(`A${rowNum}`).value = p.name;
+        worksheet.getCell(`B${rowNum}`).value = p.quantity;
+        worksheet.getCell(`C${rowNum}`).value = p.unitPrice;
+        worksheet.getCell(`C${rowNum}`).numFmt = '#,##0.00';
+        worksheet.getCell(`D${rowNum}`).value = p.totalPrice;
+        worksheet.getCell(`D${rowNum}`).numFmt = '#,##0.00';
+      });
+    }
+
+    // Add total row
+    const lastRow = 6 + invoiceData.products.length;
+    worksheet.getCell(`C${lastRow + 2}`).value = 'Total:';
+    worksheet.getCell(`C${lastRow + 2}`).font = { bold: true };
+    worksheet.getCell(`D${lastRow + 2}`).value = total;
+    worksheet.getCell(`D${lastRow + 2}`).font = { bold: true };
+    worksheet.getCell(`D${lastRow + 2}`).numFmt = '#,##0.00';
+
+    // Set column widths for better readability
+    worksheet.getColumn(1).width = 30; // Product Name
+    worksheet.getColumn(2).width = 12; // Quantity
+    worksheet.getColumn(3).width = 15; // Unit Price
+    worksheet.getColumn(4).width = 15; // Total Price
+    worksheet.getColumn(5).width = 12; // Column E (empty, for spacing)
+    worksheet.getColumn(6).width = 12; // Column F (empty, for spacing)
+    worksheet.getColumn(7).width = 20; // Column G (for store/invoice info)
+
+    // Freeze the header row (row 6) so it stays visible when scrolling
+    worksheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 6 }];
+
+    // Write to file
+    const filename = `${invoiceData.invoiceNumber}_${$form.date}.xlsx`;
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
 </script>
 
 <div class="container mx-auto space-y-4">
@@ -152,13 +255,13 @@
       {/if}
     </div>
 
-    <!-- <div> -->
-    <!--   <Label for="date">Date</Label> -->
-    <!--   <Input id="date" name="date" type="date" bind:value={$form.date} /> -->
-    <!--   {#if $errors.date} -->
-    <!--     <p class="text-red-500">{$errors.date}</p> -->
-    <!--   {/if} -->
-    <!-- </div> -->
+    <div>
+      <Label for="date">Date</Label>
+      <Input id="date" name="date" type="date" bind:value={$form.date} />
+      {#if $errors.date}
+        <p class="text-red-500">{$errors.date}</p>
+      {/if}
+    </div>
 
     <div class="flex items-center gap-2">
       <Button type="button" onclick={addProduct}><Plus /></Button>
@@ -178,7 +281,7 @@
         </Table.Row>
       </Table.Header>
       <Table.Body>
-        {#each $form.products as product, index (product.id)}
+        {#each $form.lineItems as product, index (product.id)}
           <Table.Row>
             <Table.Cell>
               <Button
@@ -198,7 +301,7 @@
                   <Input
                     id="name-{index}"
                     name="products[{index}].name"
-                    bind:value={$form.products[index].name}
+                    bind:value={$form.lineItems[index].name}
                     oninput={(e) =>
                       handleInput(index, (e.target as HTMLInputElement).value)}
                     onfocus={(e) =>
@@ -208,8 +311,8 @@
                     autocomplete="off"
                     disabled={!!product.productId}
                   />
-                  {#if $errors.products?.[index]?.name}
-                    <p class="text-red-500">{$errors.products[index].name}</p>
+                  {#if $errors.lineItems?.[index]?.name}
+                    <p class="text-red-500">{$errors.lineItems[index].name}</p>
                   {/if}
 
                   {#if suggestions[index]?.length > 0}
@@ -250,7 +353,7 @@
                 <input
                   type="hidden"
                   name="products[{index}].productId"
-                  bind:value={$form.products[index].productId}
+                  bind:value={$form.lineItems[index].productId}
                 />
               </div>
             </Table.Cell>
@@ -260,10 +363,12 @@
                   id="quantity-{index}"
                   name="products[{index}].quantity"
                   type="number"
-                  bind:value={$form.products[index].quantity}
+                  bind:value={$form.lineItems[index].quantity}
                 />
-                {#if $errors.products?.[index]?.quantity}
-                  <p class="text-red-500">{$errors.products[index].quantity}</p>
+                {#if $errors.lineItems?.[index]?.quantity}
+                  <p class="text-red-500">
+                    {$errors.lineItems[index].quantity}
+                  </p>
                 {/if}
               </div>
             </Table.Cell>
@@ -273,11 +378,11 @@
                   id="costPrice-{index}"
                   name="products[{index}].costPrice"
                   type="number"
-                  bind:value={$form.products[index].costPrice}
+                  bind:value={$form.lineItems[index].costPrice}
                 />
-                {#if $errors.products?.[index]?.costPrice}
+                {#if $errors.lineItems?.[index]?.costPrice}
                   <p class="text-red-500">
-                    {$errors.products[index].costPrice}
+                    {$errors.lineItems[index].costPrice}
                   </p>
                 {/if}
               </div>
@@ -288,11 +393,11 @@
                   id="unitPrice-{index}"
                   name="products[{index}].unitPrice"
                   type="number"
-                  bind:value={$form.products[index].unitPrice}
+                  bind:value={$form.lineItems[index].unitPrice}
                 />
-                {#if $errors.products?.[index]?.unitPrice}
+                {#if $errors.lineItems?.[index]?.unitPrice}
                   <p class="text-red-500">
-                    {$errors.products[index].unitPrice}
+                    {$errors.lineItems[index].unitPrice}
                   </p>
                 {/if}
               </div>
@@ -324,11 +429,14 @@
       </Table.Footer>
     </Table.Root>
 
-    <Button disabled={$submitting} type="submit">
-      {#if $submitting}
-        <Spinner />
-      {/if}
-      {isEditing ? 'Update Invoice' : 'Create Invoice'}
-    </Button>
+    <div class="flex gap-2">
+      <Button disabled={$submitting} type="submit">
+        {#if $submitting}
+          <Spinner />
+        {/if}
+        {isEditing ? 'Update Invoice' : 'Create Invoice'}
+      </Button>
+      <Button type="button" onclick={() => exportData()}>Export to XLSX</Button>
+    </div>
   </form>
 </div>
