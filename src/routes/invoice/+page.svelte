@@ -8,9 +8,12 @@
   import Spinner from '$lib/components/ui/spinner/spinner.svelte';
   import { resolve } from '$app/paths'; // Import resolve
   import { Badge } from '$lib/components/ui/badge/index.js';
+  import { Pagination } from '$lib/components/ui/pagination'; // New import
+  import { cn } from '$lib/utils'; // New import
 
   const { data } = $props();
 
+  // svelte-ignore state_referenced_locally
   const { enhance, submitting } = superForm(data.form);
 </script>
 
@@ -19,35 +22,37 @@
     <h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
       Invoices
     </h1>
-    <Button href={resolve('/invoice/upsert')}>
-      <Plus /> New Invoice
+    <Button href={resolve('/invoice/upsert')} class="flex items-center gap-2">
+      <Plus class="h-4 w-4" /> Add New Invoice
     </Button>
   </div>
 
   {#if data.invoices.length === 0}
     <p>No invoices yet. Create one!</p>
   {:else}
-    <Table.Root class="border">
+    <Table.Root class={cn('border', data.invoices.length === 0 && 'hidden')}>
       <Table.Header>
         <Table.Row>
-          <Table.Head>Invoice Number</Table.Head>
-          <Table.Head>Store</Table.Head>
-          <Table.Head>Date</Table.Head>
-          <Table.Head>Total</Table.Head>
-          <Table.Head>Status</Table.Head>
-          <Table.Head>Actions</Table.Head>
+          <Table.Head class="p-4 text-nowrap">Invoice Number</Table.Head>
+          <Table.Head class="p-4 text-nowrap">Store</Table.Head>
+          <Table.Head class="p-4 text-nowrap">Date</Table.Head>
+          <Table.Head class="p-4 text-nowrap">Total</Table.Head>
+          <Table.Head class="p-4 text-nowrap">Status</Table.Head>
+          <Table.Head class="p-4 text-nowrap">Actions</Table.Head>
         </Table.Row>
       </Table.Header>
       <Table.Body>
         {#each data.invoices as invoice (invoice.id)}
           <Table.Row>
-            <Table.Cell>{invoice.invoiceNumber}</Table.Cell>
-            <Table.Cell>{invoice.store}</Table.Cell>
-            <Table.Cell
+            <Table.Cell class="p-4 text-nowrap"
+              >{invoice.invoiceNumber}</Table.Cell
+            >
+            <Table.Cell class="p-4 text-nowrap">{invoice.store}</Table.Cell>
+            <Table.Cell class="p-4 text-nowrap"
               >{new Date(invoice.date).toLocaleDateString()}</Table.Cell
             >
-            <Table.Cell>{invoice.total}</Table.Cell>
-            <Table.Cell>
+            <Table.Cell class="p-4 text-nowrap">{invoice.total}</Table.Cell>
+            <Table.Cell class="p-4 text-nowrap">
               {#if invoice.status === 'processing'}
                 <Badge class="bg-yellow-500">{invoice.status}</Badge>
               {:else if invoice.status === 'delivered'}
@@ -58,7 +63,7 @@
                 <Badge>{invoice.status}</Badge>
               {/if}
             </Table.Cell>
-            <Table.Cell class="flex space-x-2">
+            <Table.Cell class="flex flex-shrink-0 space-x-2 p-4 text-nowrap">
               <Button
                 href={resolve(`/invoice/upsert`) + `?id=${invoice.id}`}
                 variant="outline"
@@ -87,15 +92,13 @@
       </Table.Body>
     </Table.Root>
 
-    <div class="flex justify-center space-x-2">
-      {#each Array(data.totalPages) as _, i (i)}
-        <Button
-          variant={data.currentPage === i + 1 ? 'default' : 'outline'}
-          href={resolve(`/invoice`) + `?page=${i + 1}`}
-        >
-          {i + 1}
-        </Button>
-      {/each}
-    </div>
+    <!-- Use the new Pagination component -->
+    {#if data.totalPages > 1}
+      <Pagination
+        currentPage={data.currentPage}
+        totalPages={data.totalPages}
+        basePath="/invoice"
+      />
+    {/if}
   {/if}
 </div>

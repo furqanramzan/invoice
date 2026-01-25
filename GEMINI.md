@@ -31,3 +31,4 @@ After completing the code, ask the user if they want a playground link. Only cal
 > For form, always use SvelteKit Superforms.
 > Never execute dev command for testing, it's already in progress.
 > Never commit git changes.
+> Add // svelte-ignore state_referenced_locally, whenever state_referenced_locally occur.

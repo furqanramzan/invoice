@@ -20,4 +20,6 @@
     <DarkMode />
   </div>
 </nav>
-{@render children()}
+<div class="my-5">
+  {@render children()}
+</div>

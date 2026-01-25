@@ -20,6 +20,7 @@
   const isReturned = $derived(data.currentInvoice?.status === 'returned'); // Check if invoice is returned
   const isImmutable = $derived(isDelivered || isReturned); // Check if invoice is in an immutable state
 
+  // svelte-ignore state_referenced_locally
   const { form, isTainted, tainted, errors, enhance, submitting } = superForm(
     data.form,
     {
@@ -240,7 +241,7 @@
       <input type="hidden" name="id" bind:value={$form.id} />
     {/if}
     <div>
-      <Label for="store">Store</Label>
+      <Label for="store" class="mb-1">Store</Label>
       <Input
         id="store"
         name="store"
@@ -253,7 +254,7 @@
     </div>
 
     <div>
-      <Label for="invoiceNumber">Invoice Number</Label>
+      <Label for="invoiceNumber" class="mb-1">Invoice Number</Label>
       <Input
         id="invoiceNumber"
         name="invoiceNumber"
@@ -266,7 +267,7 @@
     </div>
 
     <div>
-      <Label for="date">Date</Label>
+      <Label for="date" class="mb-1">Date</Label>
       <Input
         id="date"
         name="date"
@@ -280,7 +281,7 @@
     </div>
 
     <div>
-      <Label for="status">Status</Label>
+      <Label for="status" class="mb-1">Status</Label>
       <RadioGroup.Root class="flex gap-2" bind:value={$form.status}>
         <div class="flex items-center space-x-2">
           <RadioGroup.Item value="draft" id="status-draft" />
@@ -306,41 +307,41 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <Button type="button" onclick={addProduct} disabled={isImmutable}
-        ><Plus /></Button
-      >
-      <h2>Products</h2>
+      <Button type="button" onclick={addProduct} disabled={isImmutable}>
+        <Plus /> Add Product
+      </Button>
+      <h2 class="text-lg font-semibold">Products</h2>
     </div>
     <Table.Root class="border">
       <Table.Header>
         <Table.Row>
-          <Table.Head></Table.Head>
-          <Table.Head>#</Table.Head>
-          <Table.Head class="w-2/5">Name</Table.Head>
-          <Table.Head>Quantity</Table.Head>
-          <Table.Head>Unit cost</Table.Head>
-          <Table.Head>Unit price</Table.Head>
-          <Table.Head>Profit</Table.Head>
-          <Table.Head>Total</Table.Head>
+          <Table.Head class="p-4 text-nowrap"></Table.Head>
+          <Table.Head class="p-4 text-nowrap">#</Table.Head>
+          <Table.Head class="w-2/5 p-4 text-nowrap">Name</Table.Head>
+          <Table.Head class="p-4 text-nowrap">Quantity</Table.Head>
+          <Table.Head class="p-4 text-nowrap">Unit cost</Table.Head>
+          <Table.Head class="p-4 text-nowrap">Unit price</Table.Head>
+          <Table.Head class="p-4 text-nowrap">Profit</Table.Head>
+          <Table.Head class="p-4 text-nowrap">Total</Table.Head>
         </Table.Row>
       </Table.Header>
       <Table.Body>
         {#each $form.lineItems as product, index (product.id)}
           <Table.Row>
-            <Table.Cell>
+            <Table.Cell class="p-4 text-nowrap">
               <Button
                 variant="destructive"
                 type="button"
                 onclick={() => removeProduct(index)}
                 disabled={isImmutable}
               >
-                <Trash />
+                <Trash class="h-4 w-4" />
               </Button>
             </Table.Cell>
-            <Table.Cell>
+            <Table.Cell class="p-4 text-nowrap">
               {index + 1}
             </Table.Cell>
-            <Table.Cell>
+            <Table.Cell class="p-4 text-nowrap">
               <div class="product-item">
                 <div class="relative">
                   <Input
@@ -402,7 +403,7 @@
                 />
               </div>
             </Table.Cell>
-            <Table.Cell>
+            <Table.Cell class="p-4 text-nowrap">
               <div>
                 <Input
                   id="quantity-{index}"
@@ -418,7 +419,7 @@
                 {/if}
               </div>
             </Table.Cell>
-            <Table.Cell>
+            <Table.Cell class="p-4 text-nowrap">
               <div>
                 <Input
                   id="costPrice-{index}"
@@ -434,7 +435,7 @@
                 {/if}
               </div>
             </Table.Cell>
-            <Table.Cell>
+            <Table.Cell class="p-4 text-nowrap">
               <div>
                 <Input
                   id="unitPrice-{index}"
@@ -450,7 +451,7 @@
                 {/if}
               </div>
             </Table.Cell>
-            <Table.Cell class="w-36 text-lg">
+            <Table.Cell class="w-36 p-4 text-lg text-nowrap">
               {#if product.costPrice > 0}
                 {(
                   ((product.unitPrice - product.costPrice) /
@@ -461,21 +462,19 @@
                 0.00%
               {/if}
             </Table.Cell>
-            <Table.Cell class="w-36 text-lg">
+            <Table.Cell class="w-36 p-4 text-lg text-nowrap">
               {product.quantity * product.unitPrice}
             </Table.Cell>
           </Table.Row>
         {/each}
       </Table.Body>
-      <Table.Footer>
-        <Table.Row class="text-lg">
-          <Table.Cell colspan={5} class="text-end">Total</Table.Cell>
-          <Table.Cell>{total}</Table.Cell>
-          <Table.Cell class="text-end">Profit</Table.Cell>
-          <Table.Cell>{totalProfit}%</Table.Cell>
-        </Table.Row>
-      </Table.Footer>
     </Table.Root>
+
+    <!-- Display total and profit outside the table for better prominence -->
+    <div class="flex justify-end gap-4 text-lg font-bold">
+      <div>Profit: {totalProfit}%</div>
+      <div>Total: {total}</div>
+    </div>
 
     <div class="flex gap-2">
       <Button
