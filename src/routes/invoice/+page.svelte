@@ -7,6 +7,7 @@
   import Pencil from '@lucide/svelte/icons/pencil';
   import Spinner from '$lib/components/ui/spinner/spinner.svelte';
   import { resolve } from '$app/paths'; // Import resolve
+  import { Badge } from '$lib/components/ui/badge/index.js';
 
   const { data } = $props();
 
@@ -33,6 +34,7 @@
           <Table.Head>Store</Table.Head>
           <Table.Head>Date</Table.Head>
           <Table.Head>Total</Table.Head>
+          <Table.Head>Status</Table.Head>
           <Table.Head>Actions</Table.Head>
         </Table.Row>
       </Table.Header>
@@ -45,6 +47,17 @@
               >{new Date(invoice.date).toLocaleDateString()}</Table.Cell
             >
             <Table.Cell>{invoice.total}</Table.Cell>
+            <Table.Cell>
+              {#if invoice.status === 'processing'}
+                <Badge class="bg-yellow-500">{invoice.status}</Badge>
+              {:else if invoice.status === 'delivered'}
+                <Badge class="bg-green-500">{invoice.status}</Badge>
+              {:else if invoice.status === 'retured'}
+                <Badge class="bg-red-500">{invoice.status}</Badge>
+              {:else}
+                <Badge>{invoice.status}</Badge>
+              {/if}
+            </Table.Cell>
             <Table.Cell class="flex space-x-2">
               <Button
                 href={resolve(`/invoice/upsert`) + `?id=${invoice.id}`}

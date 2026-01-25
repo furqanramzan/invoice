@@ -14,9 +14,6 @@ importers:
       '@libsql/client':
         specifier: ^0.15.15
         version: 0.15.15
-      '@lucide/svelte':
-        specifier: ^0.563.1
-        version: 0.563.1(svelte@5.48.0)
       '@node-rs/argon2':
         specifier: ^2.0.2
         version: 2.0.2
@@ -48,7 +45,7 @@ importers:
         specifier: ^0.31.8
         version: 0.31.8
       drizzle-orm:
-        specifier: ^0.45.0
+        specifier: ^0.45.1
         version: 0.45.1(@libsql/client@0.15.15)
       exceljs:
         specifier: ^4.4.0
@@ -96,6 +93,9 @@ importers:
       '@eslint/js':
         specifier: ^9.39.1
         version: 9.39.2
+      '@lucide/svelte':
+        specifier: ^0.561.0
+        version: 0.561.0(svelte@5.48.0)
       '@types/node':
         specifier: ^24
         version: 24.10.9
@@ -782,8 +782,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@lucide/svelte@0.563.1':
-    resolution: {integrity: sha512-Kt+MbnE5D9RsuI/csmf7M+HWxALe57x3A0DhQ8pPnnUpneh7zuldrYjlT+veWtk+tVnp5doQtaAAxLujzIlhBw==}
+  '@lucide/svelte@0.561.0':
+    resolution: {integrity: sha512-vofKV2UFVrKE6I4ewKJ3dfCXSV6iP6nWVmiM83MLjsU91EeJcEg7LoWUABLp/aOTxj1HQNbJD1f3g3L0JQgH9A==}
     peerDependencies:
       svelte: ^5
 
@@ -3226,7 +3226,7 @@ snapshots:
   '@libsql/win32-x64-msvc@0.5.22':
     optional: true
 
-  '@lucide/svelte@0.563.1(svelte@5.48.0)':
+  '@lucide/svelte@0.561.0(svelte@5.48.0)':
     dependencies:
       svelte: 5.48.0
 

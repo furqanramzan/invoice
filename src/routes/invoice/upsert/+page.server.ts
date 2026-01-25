@@ -8,7 +8,7 @@ import {
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { requireLogin } from '$lib/server/auth.js';
-import { invoiceSchema } from './validations';
+import { invoiceSchema, type InvoiceStatus } from './validations';
 import { eq } from 'drizzle-orm';
 import { toISODateString } from '$lib/utils.js';
 
@@ -38,6 +38,7 @@ export const load = async ({ url }) => {
     currentInvoice
       ? {
           ...currentInvoice,
+          status: currentInvoice.status as unknown as InvoiceStatus,
           date: toISODateString(currentInvoice.date),
           lineItems: currentInvoice.lineItems.map((lineItem) => ({
             ...lineItem,
@@ -47,6 +48,7 @@ export const load = async ({ url }) => {
       : {
           invoiceNumber: crypto.randomUUID(),
           date: toISODateString(new Date()),
+          status: 'draft',
         },
     zod4(invoiceSchema),
   );
@@ -64,10 +66,46 @@ export const actions = {
       return fail(400, { form });
     }
 
-    const { id, store, invoiceNumber, date, lineItems: products } = form.data;
+    const {
+      id,
+      store,
+      invoiceNumber,
+      date,
+      lineItems: products,
+      status,
+    } = form.data;
 
     try {
       await db.transaction(async (tx) => {
+        // Fetch the current invoice from the database if editing
+        let existingInvoice = null;
+        if (id) {
+          existingInvoice = await tx.query.invoices.findFirst({
+            where: eq(invoices.id, id),
+          });
+        }
+
+        if (
+          existingInvoice &&
+          (existingInvoice.status === 'delivered' ||
+            existingInvoice.status === 'returned')
+        ) {
+          // If the status is changing, update only the status.
+          if (status !== existingInvoice.status && id) {
+            await tx
+              .update(invoices)
+              .set({ status: status })
+              .where(eq(invoices.id, id));
+            return { form }; // Only status was updated
+          } else {
+            // If the status is not changing, and the invoice is delivered or returned,
+            // no other fields should be modifiable. Reject the submission.
+            form.message =
+              'Cannot modify a delivered or returned invoice except for its status.';
+            return fail(400, { form });
+          }
+        }
+
         const processedProducts = await Promise.all(
           products.map(async (p) => {
             if (!p.productId) {
@@ -102,6 +140,7 @@ export const actions = {
               date: new Date(date),
               total,
               userId: user.id,
+              status,
             })
             .where(eq(invoices.id, id));
 
@@ -117,6 +156,7 @@ export const actions = {
               date: new Date(date),
               total,
               userId: user.id,
+              status, // Include status in insert
             })
             .returning({ id: invoices.id });
           form.data.id = newInvoice.id; // Assign new ID to form data for line items

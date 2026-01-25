@@ -11,12 +11,16 @@
   import * as Table from '$lib/components/ui/table/index.js';
   import type { Product } from '$lib/server/db/schema.js';
   import ExcelJS from 'exceljs';
+  import * as RadioGroup from '$lib/components/ui/radio-group'; // Import RadioGroup components
 
   let { data } = $props();
   const allProducts = $derived(data.products);
   const isEditing = $derived(!!data.currentInvoice); // Determine if in editing mode
+  const isDelivered = $derived(data.currentInvoice?.status === 'delivered'); // Check if invoice is delivered
+  const isReturned = $derived(data.currentInvoice?.status === 'returned'); // Check if invoice is returned
+  const isImmutable = $derived(isDelivered || isReturned); // Check if invoice is in an immutable state
 
-  const { form, isTainted, errors, enhance, submitting } = superForm(
+  const { form, isTainted, tainted, errors, enhance, submitting } = superForm(
     data.form,
     {
       dataType: 'json',
@@ -128,7 +132,7 @@
   });
 
   async function exportData() {
-    if (isTainted()) {
+    if (isTainted($tainted)) {
       alert(
         'Please save the form before exporting, or try again after it saves.',
       );
@@ -237,7 +241,12 @@
     {/if}
     <div>
       <Label for="store">Store</Label>
-      <Input id="store" name="store" bind:value={$form.store} />
+      <Input
+        id="store"
+        name="store"
+        bind:value={$form.store}
+        disabled={isImmutable}
+      />
       {#if $errors.store}
         <p class="text-red-500">{$errors.store}</p>
       {/if}
@@ -249,6 +258,7 @@
         id="invoiceNumber"
         name="invoiceNumber"
         bind:value={$form.invoiceNumber}
+        disabled={isImmutable}
       />
       {#if $errors.invoiceNumber}
         <p class="text-red-500">{$errors.invoiceNumber}</p>
@@ -257,14 +267,48 @@
 
     <div>
       <Label for="date">Date</Label>
-      <Input id="date" name="date" type="date" bind:value={$form.date} />
+      <Input
+        id="date"
+        name="date"
+        type="date"
+        bind:value={$form.date}
+        disabled={isImmutable}
+      />
       {#if $errors.date}
         <p class="text-red-500">{$errors.date}</p>
       {/if}
     </div>
 
+    <div>
+      <Label for="status">Status</Label>
+      <RadioGroup.Root class="flex gap-2" bind:value={$form.status}>
+        <div class="flex items-center space-x-2">
+          <RadioGroup.Item value="draft" id="status-draft" />
+          <Label for="status-draft">Draft</Label>
+        </div>
+        <div class="flex items-center space-x-2">
+          <RadioGroup.Item value="processing" id="status-processing" />
+          <Label for="status-processing">Processing</Label>
+        </div>
+        <div class="flex items-center space-x-2">
+          <RadioGroup.Item value="delivered" id="status-delivered" />
+          <Label for="status-delivered">Delivered</Label>
+        </div>
+        <div class="flex items-center space-x-2">
+          <RadioGroup.Item value="returned" id="status-returned" />
+          <Label for="status-returned">Returned</Label>
+        </div>
+      </RadioGroup.Root>
+      <input type="hidden" name="status" bind:value={$form.status} />
+      {#if $errors.status}
+        <p class="text-red-500">{$errors.status}</p>
+      {/if}
+    </div>
+
     <div class="flex items-center gap-2">
-      <Button type="button" onclick={addProduct}><Plus /></Button>
+      <Button type="button" onclick={addProduct} disabled={isImmutable}
+        ><Plus /></Button
+      >
       <h2>Products</h2>
     </div>
     <Table.Root class="border">
@@ -288,6 +332,7 @@
                 variant="destructive"
                 type="button"
                 onclick={() => removeProduct(index)}
+                disabled={isImmutable}
               >
                 <Trash />
               </Button>
@@ -309,13 +354,13 @@
                     onkeydown={(e) => handleKeydown(index, e)}
                     onblur={() => (suggestions = [])}
                     autocomplete="off"
-                    disabled={!!product.productId}
+                    disabled={!!product.productId || isDelivered}
                   />
                   {#if $errors.lineItems?.[index]?.name}
                     <p class="text-red-500">{$errors.lineItems[index].name}</p>
                   {/if}
 
-                  {#if suggestions[index]?.length > 0}
+                  {#if suggestions[index]?.length > 0 && !isDelivered}
                     <ul
                       class="
     absolute z-10 max-h-48 w-full overflow-y-auto rounded-md border
@@ -364,6 +409,7 @@
                   name="products[{index}].quantity"
                   type="number"
                   bind:value={$form.lineItems[index].quantity}
+                  disabled={isImmutable}
                 />
                 {#if $errors.lineItems?.[index]?.quantity}
                   <p class="text-red-500">
@@ -379,6 +425,7 @@
                   name="products[{index}].costPrice"
                   type="number"
                   bind:value={$form.lineItems[index].costPrice}
+                  disabled={isImmutable}
                 />
                 {#if $errors.lineItems?.[index]?.costPrice}
                   <p class="text-red-500">
@@ -394,6 +441,7 @@
                   name="products[{index}].unitPrice"
                   type="number"
                   bind:value={$form.lineItems[index].unitPrice}
+                  disabled={isImmutable}
                 />
                 {#if $errors.lineItems?.[index]?.unitPrice}
                   <p class="text-red-500">
@@ -421,7 +469,7 @@
       </Table.Body>
       <Table.Footer>
         <Table.Row class="text-lg">
-          <Table.Cell colspan={3} class="text-end">Total</Table.Cell>
+          <Table.Cell colspan={5} class="text-end">Total</Table.Cell>
           <Table.Cell>{total}</Table.Cell>
           <Table.Cell class="text-end">Profit</Table.Cell>
           <Table.Cell>{totalProfit}%</Table.Cell>
@@ -430,13 +478,20 @@
     </Table.Root>
 
     <div class="flex gap-2">
-      <Button disabled={$submitting} type="submit">
+      <Button
+        disabled={$submitting || isDelivered || !isTainted($tainted)}
+        type="submit"
+      >
         {#if $submitting}
           <Spinner />
         {/if}
         {isEditing ? 'Update Invoice' : 'Create Invoice'}
       </Button>
-      <Button type="button" onclick={() => exportData()}>Export to XLSX</Button>
+      <Button
+        type="button"
+        onclick={() => exportData()}
+        disabled={isTainted($tainted)}>Export to XLSX</Button
+      >
     </div>
   </form>
 </div>

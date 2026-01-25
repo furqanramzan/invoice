@@ -47,6 +47,7 @@ export const invoices = sqliteTable('invoices', {
   userId: text('user_id')
     .notNull()
     .references(() => user.id),
+  status: text('status').notNull().default('draft'),
 });
 
 export const invoicesRelations = relations(invoices, ({ many }) => ({

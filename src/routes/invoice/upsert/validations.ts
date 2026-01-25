@@ -8,11 +8,15 @@ export const lineItemSchema = z.object({
   costPrice: z.number().gt(0),
   unitPrice: z.number().gt(0),
 });
-
+const invoiceStatus = z
+  .enum(['draft', 'processing', 'delivered', 'returned'])
+  .default('draft');
+export type InvoiceStatus = z.infer<typeof invoiceStatus>;
 export const invoiceSchema = z.object({
   id: z.string().optional(), // Added and made optional for upsert
   store: z.string().nullable(),
   invoiceNumber: z.string().min(1),
   date: z.iso.date(),
   lineItems: z.array(lineItemSchema),
+  status: invoiceStatus,
 });
