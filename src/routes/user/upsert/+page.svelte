@@ -17,58 +17,54 @@
   });
 </script>
 
-<div class="container mx-auto space-y-4">
-  <h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
-    {isEditing ? 'Edit User' : 'New User'}
-  </h1>
-  <form class="space-y-4" method="POST" use:enhance>
-    {#if isEditing}
-      <input type="hidden" name="id" bind:value={$form.id} />
+<h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
+  {isEditing ? 'Edit User' : 'New User'}
+</h1>
+<form class="space-y-4" method="POST" use:enhance>
+  {#if isEditing}
+    <input type="hidden" name="id" bind:value={$form.id} />
+  {/if}
+
+  <div>
+    <Label for="name" class="mb-1">Name</Label>
+    <Input id="name" name="name" bind:value={$form.name} />
+    {#if $errors.name}
+      <p class="text-red-500">{$errors.name}</p>
     {/if}
+  </div>
 
-    <div>
-      <Label for="name" class="mb-1">Name</Label>
-      <Input id="name" name="name" bind:value={$form.name} />
-      {#if $errors.name}
-        <p class="text-red-500">{$errors.name}</p>
+  <div>
+    <Label for="email" class="mb-1">Email</Label>
+    <Input id="email" name="email" bind:value={$form.email} />
+    {#if $errors.email}
+      <p class="text-red-500">{$errors.email}</p>
+    {/if}
+  </div>
+
+  <div>
+    <Label for="password" class="mb-1">
+      Password
+      {#if isEditing}
+        <span class="text-sm text-gray-500">(Leave blank to keep current)</span>
       {/if}
-    </div>
+    </Label>
+    <Input
+      id="password"
+      name="password"
+      type="password"
+      bind:value={$form.password}
+    />
+    {#if $errors.password}
+      <p class="text-red-500">{$errors.password}</p>
+    {/if}
+  </div>
 
-    <div>
-      <Label for="email" class="mb-1">Email</Label>
-      <Input id="email" name="email" bind:value={$form.email} />
-      {#if $errors.email}
-        <p class="text-red-500">{$errors.email}</p>
+  <div class="flex gap-2">
+    <Button disabled={$submitting} type="submit">
+      {#if $submitting}
+        <Spinner />
       {/if}
-    </div>
-
-    <div>
-      <Label for="password" class="mb-1">
-        Password
-        {#if isEditing}
-          <span class="text-sm text-gray-500"
-            >(Leave blank to keep current)</span
-          >
-        {/if}
-      </Label>
-      <Input
-        id="password"
-        name="password"
-        type="password"
-        bind:value={$form.password}
-      />
-      {#if $errors.password}
-        <p class="text-red-500">{$errors.password}</p>
-      {/if}
-    </div>
-
-    <div class="flex gap-2">
-      <Button disabled={$submitting} type="submit">
-        {#if $submitting}
-          <Spinner />
-        {/if}
-        {isEditing ? 'Update User' : 'Create User'}
-      </Button>
-    </div>
-  </form>
-</div>
+      {isEditing ? 'Update User' : 'Create User'}
+    </Button>
+  </div>
+</form>

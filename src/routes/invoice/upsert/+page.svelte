@@ -232,265 +232,259 @@
   }
 </script>
 
-<div class="container mx-auto space-y-4">
-  <h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
-    {isEditing ? 'Edit Invoice' : 'New Invoice'}
-  </h1>
-  <form class="space-y-4" method="POST" use:enhance>
-    {#if isEditing}
-      <input type="hidden" name="id" bind:value={$form.id} />
+<h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
+  {isEditing ? 'Edit Invoice' : 'New Invoice'}
+</h1>
+<form class="space-y-4" method="POST" use:enhance>
+  {#if isEditing}
+    <input type="hidden" name="id" bind:value={$form.id} />
+  {/if}
+  <div>
+    <Label for="store" class="mb-1">Store</Label>
+    <Input
+      id="store"
+      name="store"
+      bind:value={$form.store}
+      disabled={isImmutable}
+    />
+    {#if $errors.store}
+      <p class="text-red-500">{$errors.store}</p>
     {/if}
-    <div>
-      <Label for="store" class="mb-1">Store</Label>
-      <Input
-        id="store"
-        name="store"
-        bind:value={$form.store}
-        disabled={isImmutable}
-      />
-      {#if $errors.store}
-        <p class="text-red-500">{$errors.store}</p>
-      {/if}
-    </div>
+  </div>
 
-    <div>
-      <Label for="invoiceNumber" class="mb-1">Invoice Number</Label>
-      <Input
-        id="invoiceNumber"
-        name="invoiceNumber"
-        bind:value={$form.invoiceNumber}
-        disabled={isImmutable}
-      />
-      {#if $errors.invoiceNumber}
-        <p class="text-red-500">{$errors.invoiceNumber}</p>
-      {/if}
-    </div>
+  <div>
+    <Label for="invoiceNumber" class="mb-1">Invoice Number</Label>
+    <Input
+      id="invoiceNumber"
+      name="invoiceNumber"
+      bind:value={$form.invoiceNumber}
+      disabled={isImmutable}
+    />
+    {#if $errors.invoiceNumber}
+      <p class="text-red-500">{$errors.invoiceNumber}</p>
+    {/if}
+  </div>
 
-    <div>
-      <Label for="date" class="mb-1">Date</Label>
-      <Input
-        id="date"
-        name="date"
-        type="date"
-        bind:value={$form.date}
-        disabled={isImmutable}
-      />
-      {#if $errors.date}
-        <p class="text-red-500">{$errors.date}</p>
-      {/if}
-    </div>
+  <div>
+    <Label for="date" class="mb-1">Date</Label>
+    <Input
+      id="date"
+      name="date"
+      type="date"
+      bind:value={$form.date}
+      disabled={isImmutable}
+    />
+    {#if $errors.date}
+      <p class="text-red-500">{$errors.date}</p>
+    {/if}
+  </div>
 
-    <div>
-      <Label for="status" class="mb-1">Status</Label>
-      <RadioGroup.Root class="flex gap-2" bind:value={$form.status}>
-        <div class="flex items-center space-x-2">
-          <RadioGroup.Item value="draft" id="status-draft" />
-          <Label for="status-draft">Draft</Label>
-        </div>
-        <div class="flex items-center space-x-2">
-          <RadioGroup.Item value="processing" id="status-processing" />
-          <Label for="status-processing">Processing</Label>
-        </div>
-        <div class="flex items-center space-x-2">
-          <RadioGroup.Item value="delivered" id="status-delivered" />
-          <Label for="status-delivered">Delivered</Label>
-        </div>
-        <div class="flex items-center space-x-2">
-          <RadioGroup.Item value="returned" id="status-returned" />
-          <Label for="status-returned">Returned</Label>
-        </div>
-      </RadioGroup.Root>
-      <input type="hidden" name="status" bind:value={$form.status} />
-      {#if $errors.status}
-        <p class="text-red-500">{$errors.status}</p>
-      {/if}
-    </div>
+  <div>
+    <Label for="status" class="mb-1">Status</Label>
+    <RadioGroup.Root class="flex gap-2" bind:value={$form.status}>
+      <div class="flex items-center space-x-2">
+        <RadioGroup.Item value="draft" id="status-draft" />
+        <Label for="status-draft">Draft</Label>
+      </div>
+      <div class="flex items-center space-x-2">
+        <RadioGroup.Item value="processing" id="status-processing" />
+        <Label for="status-processing">Processing</Label>
+      </div>
+      <div class="flex items-center space-x-2">
+        <RadioGroup.Item value="delivered" id="status-delivered" />
+        <Label for="status-delivered">Delivered</Label>
+      </div>
+      <div class="flex items-center space-x-2">
+        <RadioGroup.Item value="returned" id="status-returned" />
+        <Label for="status-returned">Returned</Label>
+      </div>
+    </RadioGroup.Root>
+    <input type="hidden" name="status" bind:value={$form.status} />
+    {#if $errors.status}
+      <p class="text-red-500">{$errors.status}</p>
+    {/if}
+  </div>
 
-    <div class="flex items-center gap-2">
-      <Button type="button" onclick={addProduct} disabled={isImmutable}>
-        <Plus />
-      </Button>
-      <h2 class="text-lg font-semibold">Products</h2>
-    </div>
-    <Table.Root class="border">
-      <Table.Header>
+  <div class="flex items-center gap-2">
+    <Button type="button" onclick={addProduct} disabled={isImmutable}>
+      <Plus />
+    </Button>
+    <h2 class="text-lg font-semibold">Products</h2>
+  </div>
+  <Table.Root class="border">
+    <Table.Header>
+      <Table.Row>
+        <Table.Head class="p-4 text-nowrap"></Table.Head>
+        <Table.Head class="p-4 text-nowrap">#</Table.Head>
+        <Table.Head class="w-2/5 p-4 text-nowrap">Name</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Quantity</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Unit cost</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Unit price</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Profit</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Total</Table.Head>
+      </Table.Row>
+    </Table.Header>
+    <Table.Body>
+      {#each $form.lineItems as product, index (product.id)}
         <Table.Row>
-          <Table.Head class="p-4 text-nowrap"></Table.Head>
-          <Table.Head class="p-4 text-nowrap">#</Table.Head>
-          <Table.Head class="w-2/5 p-4 text-nowrap">Name</Table.Head>
-          <Table.Head class="p-4 text-nowrap">Quantity</Table.Head>
-          <Table.Head class="p-4 text-nowrap">Unit cost</Table.Head>
-          <Table.Head class="p-4 text-nowrap">Unit price</Table.Head>
-          <Table.Head class="p-4 text-nowrap">Profit</Table.Head>
-          <Table.Head class="p-4 text-nowrap">Total</Table.Head>
-        </Table.Row>
-      </Table.Header>
-      <Table.Body>
-        {#each $form.lineItems as product, index (product.id)}
-          <Table.Row>
-            <Table.Cell class="p-4 text-nowrap">
-              <Button
-                variant="destructive"
-                type="button"
-                onclick={() => removeProduct(index)}
-                disabled={isImmutable}
-              >
-                <Trash class="h-4 w-4" />
-              </Button>
-            </Table.Cell>
-            <Table.Cell class="p-4 text-nowrap">
-              {index + 1}
-            </Table.Cell>
-            <Table.Cell class="p-4 text-nowrap">
-              <div class="product-item">
-                <div class="relative">
-                  <Input
-                    id="name-{index}"
-                    name="products[{index}].name"
-                    bind:value={$form.lineItems[index].name}
-                    oninput={(e) =>
-                      handleInput(index, (e.target as HTMLInputElement).value)}
-                    onfocus={(e) =>
-                      handleInput(index, (e.target as HTMLInputElement).value)}
-                    onkeydown={(e) => handleKeydown(index, e)}
-                    onblur={() => (suggestions = [])}
-                    autocomplete="off"
-                    disabled={!!product.productId || isDelivered}
-                  />
-                  {#if $errors.lineItems?.[index]?.name}
-                    <p class="text-red-500">{$errors.lineItems[index].name}</p>
-                  {/if}
+          <Table.Cell class="p-4 text-nowrap">
+            <Button
+              variant="destructive"
+              type="button"
+              onclick={() => removeProduct(index)}
+              disabled={isImmutable}
+            >
+              <Trash class="h-4 w-4" />
+            </Button>
+          </Table.Cell>
+          <Table.Cell class="p-4 text-nowrap">
+            {index + 1}
+          </Table.Cell>
+          <Table.Cell class="p-4 text-nowrap">
+            <div class="product-item">
+              <div class="relative">
+                <Input
+                  id="name-{index}"
+                  name="products[{index}].name"
+                  bind:value={$form.lineItems[index].name}
+                  oninput={(e) =>
+                    handleInput(index, (e.target as HTMLInputElement).value)}
+                  onfocus={(e) =>
+                    handleInput(index, (e.target as HTMLInputElement).value)}
+                  onkeydown={(e) => handleKeydown(index, e)}
+                  onblur={() => (suggestions = [])}
+                  autocomplete="off"
+                  disabled={!!product.productId || isDelivered}
+                />
+                {#if $errors.lineItems?.[index]?.name}
+                  <p class="text-red-500">{$errors.lineItems[index].name}</p>
+                {/if}
 
-                  {#if suggestions[index]?.length > 0 && !isDelivered}
-                    <ul
-                      class="
+                {#if suggestions[index]?.length > 0 && !isDelivered}
+                  <ul
+                    class="
     absolute z-10 max-h-48 w-full overflow-y-auto rounded-md border
     border-gray-300 bg-white shadow-lg
     dark:border-zinc-700 dark:bg-zinc-900
   "
-                    >
-                      {#each suggestions[index] as suggestion, sIndex (sIndex)}
-                        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-                        <li
-                          class="
+                  >
+                    {#each suggestions[index] as suggestion, sIndex (sIndex)}
+                      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+                      <li
+                        class="
         cursor-pointer px-4 py-2
         text-gray-900 hover:bg-gray-100
         dark:text-zinc-100 dark:hover:bg-zinc-800
       "
-                          class:bg-gray-200={sIndex ===
-                            activeSuggestionIndex[index]}
-                          class:dark:bg-zinc-800={sIndex ===
-                            activeSuggestionIndex[index]}
-                          onmousedown={() =>
-                            selectSuggestion(index, suggestion)}
-                        >
-                          {suggestion.name}
-                          <span
-                            class="text-sm text-gray-500 dark:text-zinc-400"
-                          >
-                            ({suggestion.costPrice}) ({suggestion.unitPrice})
-                          </span>
-                        </li>
-                      {/each}
-                    </ul>
-                  {/if}
-                </div>
-                <!-- productId is hidden but part of the form submission -->
-                <input
-                  type="hidden"
-                  name="products[{index}].productId"
-                  bind:value={$form.lineItems[index].productId}
-                />
-              </div>
-            </Table.Cell>
-            <Table.Cell class="p-4 text-nowrap">
-              <div>
-                <Input
-                  id="quantity-{index}"
-                  name="products[{index}].quantity"
-                  type="number"
-                  bind:value={$form.lineItems[index].quantity}
-                  disabled={isImmutable}
-                />
-                {#if $errors.lineItems?.[index]?.quantity}
-                  <p class="text-red-500">
-                    {$errors.lineItems[index].quantity}
-                  </p>
+                        class:bg-gray-200={sIndex ===
+                          activeSuggestionIndex[index]}
+                        class:dark:bg-zinc-800={sIndex ===
+                          activeSuggestionIndex[index]}
+                        onmousedown={() => selectSuggestion(index, suggestion)}
+                      >
+                        {suggestion.name}
+                        <span class="text-sm text-gray-500 dark:text-zinc-400">
+                          ({suggestion.costPrice}) ({suggestion.unitPrice})
+                        </span>
+                      </li>
+                    {/each}
+                  </ul>
                 {/if}
               </div>
-            </Table.Cell>
-            <Table.Cell class="p-4 text-nowrap">
-              <div>
-                <Input
-                  id="costPrice-{index}"
-                  name="products[{index}].costPrice"
-                  type="number"
-                  bind:value={$form.lineItems[index].costPrice}
-                  disabled={isImmutable}
-                />
-                {#if $errors.lineItems?.[index]?.costPrice}
-                  <p class="text-red-500">
-                    {$errors.lineItems[index].costPrice}
-                  </p>
-                {/if}
-              </div>
-            </Table.Cell>
-            <Table.Cell class="p-4 text-nowrap">
-              <div>
-                <Input
-                  id="unitPrice-{index}"
-                  name="products[{index}].unitPrice"
-                  type="number"
-                  bind:value={$form.lineItems[index].unitPrice}
-                  disabled={isImmutable}
-                />
-                {#if $errors.lineItems?.[index]?.unitPrice}
-                  <p class="text-red-500">
-                    {$errors.lineItems[index].unitPrice}
-                  </p>
-                {/if}
-              </div>
-            </Table.Cell>
-            <Table.Cell class="w-36 p-4 text-lg text-nowrap">
-              {#if product.costPrice > 0}
-                {(
-                  ((product.unitPrice - product.costPrice) /
-                    product.costPrice) *
-                  100
-                ).toFixed(2)}%
-              {:else}
-                0.00%
+              <!-- productId is hidden but part of the form submission -->
+              <input
+                type="hidden"
+                name="products[{index}].productId"
+                bind:value={$form.lineItems[index].productId}
+              />
+            </div>
+          </Table.Cell>
+          <Table.Cell class="p-4 text-nowrap">
+            <div>
+              <Input
+                id="quantity-{index}"
+                name="products[{index}].quantity"
+                type="number"
+                bind:value={$form.lineItems[index].quantity}
+                disabled={isImmutable}
+              />
+              {#if $errors.lineItems?.[index]?.quantity}
+                <p class="text-red-500">
+                  {$errors.lineItems[index].quantity}
+                </p>
               {/if}
-            </Table.Cell>
-            <Table.Cell class="w-36 p-4 text-lg text-nowrap">
-              {product.quantity * product.unitPrice}
-            </Table.Cell>
-          </Table.Row>
-        {/each}
-      </Table.Body>
-    </Table.Root>
+            </div>
+          </Table.Cell>
+          <Table.Cell class="p-4 text-nowrap">
+            <div>
+              <Input
+                id="costPrice-{index}"
+                name="products[{index}].costPrice"
+                type="number"
+                bind:value={$form.lineItems[index].costPrice}
+                disabled={isImmutable}
+              />
+              {#if $errors.lineItems?.[index]?.costPrice}
+                <p class="text-red-500">
+                  {$errors.lineItems[index].costPrice}
+                </p>
+              {/if}
+            </div>
+          </Table.Cell>
+          <Table.Cell class="p-4 text-nowrap">
+            <div>
+              <Input
+                id="unitPrice-{index}"
+                name="products[{index}].unitPrice"
+                type="number"
+                bind:value={$form.lineItems[index].unitPrice}
+                disabled={isImmutable}
+              />
+              {#if $errors.lineItems?.[index]?.unitPrice}
+                <p class="text-red-500">
+                  {$errors.lineItems[index].unitPrice}
+                </p>
+              {/if}
+            </div>
+          </Table.Cell>
+          <Table.Cell class="w-36 p-4 text-lg text-nowrap">
+            {#if product.costPrice > 0}
+              {(
+                ((product.unitPrice - product.costPrice) / product.costPrice) *
+                100
+              ).toFixed(2)}%
+            {:else}
+              0.00%
+            {/if}
+          </Table.Cell>
+          <Table.Cell class="w-36 p-4 text-lg text-nowrap">
+            {product.quantity * product.unitPrice}
+          </Table.Cell>
+        </Table.Row>
+      {/each}
+    </Table.Body>
+  </Table.Root>
 
-    <!-- Display total and profit outside the table for better prominence -->
-    <div class="flex justify-end gap-4 text-lg font-bold">
-      <div>Profit: {totalProfit}%</div>
-      <div>Total: {total}</div>
-    </div>
+  <!-- Display total and profit outside the table for better prominence -->
+  <div class="flex justify-end gap-4 text-lg font-bold">
+    <div>Profit: {totalProfit}%</div>
+    <div>Total: {total}</div>
+  </div>
 
-    <div class="flex gap-2">
-      <Button
-        disabled={$submitting || isDelivered || !isTainted($tainted)}
-        type="submit"
-      >
-        {#if $submitting}
-          <Spinner />
-        {/if}
-        {isEditing ? 'Update Invoice' : 'Create Invoice'}
-      </Button>
-      <Button
-        type="button"
-        onclick={() => exportData()}
-        disabled={isTainted($tainted)}>Export to XLSX</Button
-      >
-    </div>
-  </form>
-</div>
+  <div class="flex gap-2">
+    <Button
+      disabled={$submitting || isDelivered || !isTainted($tainted)}
+      type="submit"
+    >
+      {#if $submitting}
+        <Spinner />
+      {/if}
+      {isEditing ? 'Update Invoice' : 'Create Invoice'}
+    </Button>
+    <Button
+      type="button"
+      onclick={() => exportData()}
+      disabled={isTainted($tainted)}>Export to XLSX</Button
+    >
+  </div>
+</form>

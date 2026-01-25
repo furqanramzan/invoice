@@ -24,6 +24,6 @@
     <DarkMode />
   </div>
 </nav>
-<div class="my-5">
+<div class="mx-auto my-5 max-w-7xl space-y-4">
   {@render children()}
 </div>
