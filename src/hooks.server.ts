@@ -39,7 +39,10 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 };
 
 function guestRoutes(event: RequestEvent) {
-  return event.url.pathname === '/';
+  return (
+    event.url.pathname === '/' ||
+    ['/register'].some((url) => event.url.pathname.startsWith(url))
+  );
 }
 
 export const handle: Handle = handleAuth;

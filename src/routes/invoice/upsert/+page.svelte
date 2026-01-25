@@ -308,7 +308,7 @@
 
     <div class="flex items-center gap-2">
       <Button type="button" onclick={addProduct} disabled={isImmutable}>
-        <Plus /> Add Product
+        <Plus />
       </Button>
       <h2 class="text-lg font-semibold">Products</h2>
     </div>
