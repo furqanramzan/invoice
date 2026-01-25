@@ -4,6 +4,7 @@
   import { ModeWatcher } from 'mode-watcher';
   import DarkMode from '$lib/components/dark-mode.svelte';
   import { resolve } from '$app/paths';
+  import { enhance } from '$app/forms';
 
   let { children } = $props();
 </script>
@@ -17,6 +18,9 @@
   <div class="flex items-center space-x-4">
     <a href={resolve('/invoice')} class="text-sm">Invoices</a>
     <a href={resolve('/invoice/upsert')} class="text-sm">Create Invoice</a>
+    <form method="post" action="/logout" class="text-sm" use:enhance>
+      <button>Sign out</button>
+    </form>
     <DarkMode />
   </div>
 </nav>

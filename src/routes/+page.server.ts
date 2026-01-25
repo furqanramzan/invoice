@@ -5,14 +5,8 @@ import { eq } from 'drizzle-orm';
 import * as auth from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
-import type { Actions, PageServerLoad } from './$types';
-
-export const load: PageServerLoad = async (event) => {
-  if (event.locals.user) {
-    return redirect(302, '/demo/lucia');
-  }
-  return {};
-};
+import type { Actions } from './$types';
+import { resolve } from '$app/paths';
 
 export const actions: Actions = {
   login: async (event) => {
@@ -56,7 +50,7 @@ export const actions: Actions = {
     const session = await auth.createSession(sessionToken, existingUser.id);
     auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-    return redirect(302, '/demo/lucia');
+    return redirect(302, resolve('/invoice'));
   },
   register: async (event) => {
     const formData = await event.request.formData();

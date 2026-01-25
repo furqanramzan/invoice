@@ -7,14 +7,13 @@ import {
 } from '$lib/server/db/schema';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { requireLogin } from '$lib/server/auth.js';
 import { invoiceSchema, type InvoiceStatus } from './validations';
 import { eq } from 'drizzle-orm';
 import { toISODateString } from '$lib/utils.js';
+import { resolve } from '$app/paths';
+import { getUser } from '$lib/server/auth.js';
 
 export const load = async ({ url }) => {
-  requireLogin();
-
   const id = url.searchParams.get('id');
   let currentInvoice = null;
 
@@ -31,7 +30,7 @@ export const load = async ({ url }) => {
     });
 
     if (!currentInvoice) {
-      throw redirect(302, '/invoice');
+      return redirect(302, resolve('/invoice'));
     }
   }
   const form = await superValidate(
@@ -60,7 +59,7 @@ export const load = async ({ url }) => {
 
 export const actions = {
   default: async (event) => {
-    const user = requireLogin();
+    const user = getUser();
     const form = await superValidate(event.request, zod4(invoiceSchema));
     if (!form.valid) {
       return fail(400, { form });
@@ -182,7 +181,7 @@ export const actions = {
     }
 
     if (!id) {
-      throw redirect(303, `/invoice/upsert?id=${form.data.id}`);
+      return redirect(302, resolve('/invoice/upsert') + `?id=${form.data.id}`);
     }
     return { form };
   },

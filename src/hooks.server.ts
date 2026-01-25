@@ -1,5 +1,6 @@
-import type { Handle } from '@sveltejs/kit';
+import { redirect, type Handle, type RequestEvent } from '@sveltejs/kit';
 import * as auth from '$lib/server/auth';
+import { resolve as resolvePath } from '$app/paths';
 
 const handleAuth: Handle = async ({ event, resolve }) => {
   const sessionToken = event.cookies.get(auth.sessionCookieName);
@@ -8,7 +9,15 @@ const handleAuth: Handle = async ({ event, resolve }) => {
     event.locals.user = null;
     event.locals.session = null;
 
+    if (!guestRoutes(event)) {
+      return redirect(302, resolvePath('/'));
+    }
+
     return resolve(event);
+  }
+
+  if (guestRoutes(event)) {
+    return redirect(302, resolvePath('/invoice'));
   }
 
   const { session, user } = await auth.validateSessionToken(sessionToken);
@@ -22,7 +31,15 @@ const handleAuth: Handle = async ({ event, resolve }) => {
   event.locals.user = user;
   event.locals.session = session;
 
+  if (!guestRoutes(event) && !event.locals.user) {
+    return redirect(302, resolvePath('/'));
+  }
+
   return resolve(event);
 };
+
+function guestRoutes(event: RequestEvent) {
+  return event.url.pathname === '/';
+}
 
 export const handle: Handle = handleAuth;

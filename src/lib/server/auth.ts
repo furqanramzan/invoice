@@ -88,7 +88,7 @@ export function deleteSessionTokenCookie(event: RequestEvent) {
   });
 }
 
-export function requireLogin() {
+export function getUser() {
   const { locals } = getRequestEvent();
 
   if (!locals.user) {

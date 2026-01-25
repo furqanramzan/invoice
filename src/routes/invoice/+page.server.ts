@@ -1,15 +1,12 @@
 import { db } from '$lib/server/db';
 import { invoices, lineItems } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { requireLogin } from '$lib/server/auth.js';
 import { itemSchema } from '$lib/validations.js';
 import { fail, message, superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { sleep } from '$lib/utils.js';
 
 export async function load(event) {
-  requireLogin();
-
   const form = await superValidate(zod4(itemSchema));
 
   const page = Number(event.url.searchParams.get('page')) || 1;

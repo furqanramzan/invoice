@@ -57,13 +57,13 @@
                 <Badge class="bg-yellow-500">{invoice.status}</Badge>
               {:else if invoice.status === 'delivered'}
                 <Badge class="bg-green-500">{invoice.status}</Badge>
-              {:else if invoice.status === 'retured'}
-                <Badge class="bg-red-500">{invoice.status}</Badge>
+              {:else if invoice.status === 'returned'}
+                <Badge class="bg-red-500 text-white">{invoice.status}</Badge>
               {:else}
-                <Badge>{invoice.status}</Badge>
+                <Badge variant="outline">{invoice.status}</Badge>
               {/if}
             </Table.Cell>
-            <Table.Cell class="flex flex-shrink-0 space-x-2 p-4 text-nowrap">
+            <Table.Cell class="flex shrink-0 space-x-2 p-4 text-nowrap">
               <Button
                 href={resolve(`/invoice/upsert`) + `?id=${invoice.id}`}
                 variant="outline"
