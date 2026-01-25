@@ -15,3 +15,6 @@ export const invoiceSchema = z.object({
   date: z.date().optional(),
   products: z.array(lineItemSchema).min(1),
 });
+export const itemSchema = z.object({
+  id: z.uuidv4(),
+});

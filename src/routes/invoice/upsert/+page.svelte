@@ -1,18 +1,19 @@
 <script lang="ts">
   import Plus from '@lucide/svelte/icons/plus';
   import Trash from '@lucide/svelte/icons/trash';
-  import Circle from '@lucide/svelte/icons/circle';
   import { superForm } from 'sveltekit-superforms';
   import { zod4 } from 'sveltekit-superforms/adapters';
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { Label } from '$lib/components/ui/label';
-  import { invoiceSchema } from './validations.js';
+  import { invoiceSchema } from './validations.js'; // Corrected import path
   import Spinner from '$lib/components/ui/spinner/spinner.svelte';
   import * as Table from '$lib/components/ui/table/index.js';
+  import type { Product } from '$lib/server/db/schema.js';
 
   const { data } = $props();
   const allProducts = $derived(data.products);
+  const isEditing = $derived(!!data.currentInvoice); // Determine if in editing mode
 
   const { form, errors, enhance, submitting } = superForm(data.form, {
     dataType: 'json',
@@ -48,11 +49,13 @@
     $form.products.reduce((acc, p) => acc + p.quantity * p.costPrice, 0),
   );
   let totalProfit = $derived(
-    (((total - totalCost) / totalCost) * 100).toFixed(2),
+    totalCost === 0
+      ? '0.00'
+      : (((total - totalCost) / totalCost) * 100).toFixed(2),
   );
 
   let searchTerm: string[] = $state($form.products.map(() => ''));
-  let suggestions: any[][] = $state($form.products.map(() => []));
+  let suggestions: Product[][] = $state($form.products.map(() => []));
   let activeSuggestionIndex: number[] = $state($form.products.map(() => -1)); // -1 means no suggestion is active
 
   function handleInput(index: number, value: string) {
@@ -68,7 +71,7 @@
     activeSuggestionIndex[index] = -1; // Reset active index when input changes
   }
 
-  function selectSuggestion(index: number, product: any) {
+  function selectSuggestion(index: number, product: Product) {
     $form.products[index].name = product.name;
     $form.products[index].costPrice = product.costPrice;
     $form.products[index].unitPrice = product.unitPrice;
@@ -123,9 +126,12 @@
 
 <div class="container mx-auto space-y-4">
   <h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
-    New Invoice
+    {isEditing ? 'Edit Invoice' : 'New Invoice'}
   </h1>
   <form class="space-y-4" method="POST" use:enhance>
+    {#if isEditing}
+      <input type="hidden" name="id" bind:value={$form.id} />
+    {/if}
     <div>
       <Label for="store">Store</Label>
       <Input id="store" name="store" bind:value={$form.store} />
@@ -214,7 +220,7 @@
     dark:border-zinc-700 dark:bg-zinc-900
   "
                     >
-                      {#each suggestions[index] as suggestion, sIndex}
+                      {#each suggestions[index] as suggestion, sIndex (sIndex)}
                         <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                         <li
                           class="
@@ -292,10 +298,15 @@
               </div>
             </Table.Cell>
             <Table.Cell class="w-36 text-lg">
-              {(
-                ((product.unitPrice - product.costPrice) / product.costPrice) *
-                100
-              ).toFixed(2)}%
+              {#if product.costPrice > 0}
+                {(
+                  ((product.unitPrice - product.costPrice) /
+                    product.costPrice) *
+                  100
+                ).toFixed(2)}%
+              {:else}
+                0.00%
+              {/if}
             </Table.Cell>
             <Table.Cell class="w-36 text-lg">
               {product.quantity * product.unitPrice}
@@ -317,7 +328,7 @@
       {#if $submitting}
         <Spinner />
       {/if}
-      Create Invoice
+      {isEditing ? 'Update Invoice' : 'Create Invoice'}
     </Button>
   </form>
 </div>

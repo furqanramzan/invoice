@@ -15,7 +15,8 @@
     <a href={resolve('/')} class="text-lg font-bold">Invoice App</a>
   </div>
   <div class="flex items-center space-x-4">
-    <a href={resolve('/invoice/create')} class="text-sm">Create Invoice</a>
+    <a href={resolve('/invoice')} class="text-sm">Invoices</a>
+    <a href={resolve('/invoice/upsert')} class="text-sm">Create Invoice</a>
     <DarkMode />
   </div>
 </nav>

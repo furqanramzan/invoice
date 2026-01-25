@@ -1,10 +1,5 @@
-import {
-  integer,
-  sqliteTable,
-  text,
-  real,
-  uniqueIndex,
-} from 'drizzle-orm/sqlite-core';
+import { integer, sqliteTable, text, real } from 'drizzle-orm/sqlite-core';
+import { relations } from 'drizzle-orm';
 
 export const user = sqliteTable('users', {
   id: text('id')
@@ -37,6 +32,10 @@ export const products = sqliteTable('products', {
     .references(() => user.id),
 });
 
+export const productsRelations = relations(products, ({ many }) => ({
+  lineItems: many(lineItems),
+}));
+
 export const invoices = sqliteTable('invoices', {
   id: text('id')
     .primaryKey()
@@ -49,6 +48,10 @@ export const invoices = sqliteTable('invoices', {
     .notNull()
     .references(() => user.id),
 });
+
+export const invoicesRelations = relations(invoices, ({ many }) => ({
+  lineItems: many(lineItems),
+}));
 
 export const lineItems = sqliteTable('line_items', {
   id: text('id')
@@ -66,6 +69,17 @@ export const lineItems = sqliteTable('line_items', {
     .references(() => products.id),
 });
 
-export type Session = typeof session.$inferSelect;
+export const lineItemsRelations = relations(lineItems, ({ one }) => ({
+  invoice: one(invoices, {
+    fields: [lineItems.invoiceId],
+    references: [invoices.id],
+  }),
+  product: one(products, {
+    fields: [lineItems.productId],
+    references: [products.id],
+  }),
+}));
 
+export type Session = typeof session.$inferSelect;
 export type User = typeof user.$inferSelect;
+export type Product = typeof products.$inferSelect;
