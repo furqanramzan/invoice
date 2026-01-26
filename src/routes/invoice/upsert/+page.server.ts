@@ -138,14 +138,13 @@ export const actions = {
         );
 
         if (id) {
-          // Update existing invoice
           await tx
             .update(invoices)
             .set({
               store,
               invoiceNumber,
               date: new Date(date),
-              total, // total is already in cents
+              total,
               userId: user.id,
               status,
             })
@@ -161,9 +160,9 @@ export const actions = {
               store,
               invoiceNumber,
               date: new Date(date),
-              total, // total is already in cents
+              total,
               userId: user.id,
-              status, // Include status in insert
+              status,
             })
             .returning({ id: invoices.id });
           form.data.id = newInvoice.id; // Assign new ID to form data for line items
@@ -174,9 +173,8 @@ export const actions = {
             processedProducts.map((p) => ({
               productId: p.productId!,
               quantity: p.quantity,
-              costPrice: Math.round(p.costPrice * 100), // Convert dollars to cents
-              unitPrice: Math.round(p.unitPrice * 100), // Convert dollars to cents
-              total: Math.round(p.quantity * p.unitPrice * 100), // Convert dollars to cents
+              costPrice: Math.round(p.costPrice * 100),
+              unitPrice: Math.round(p.unitPrice * 100),
               invoiceId: form.data.id!,
             })),
           );

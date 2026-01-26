@@ -28,12 +28,16 @@ export async function load(event) {
     })
   ).map((invoice) => ({
     ...invoice,
-    total: invoice.total / 100, // Convert cents to dollars
-    lineItems: invoice.lineItems.map((lineItem) => ({
-      ...lineItem,
-      costPrice: lineItem.costPrice / 100, // Convert cents to dollars
-      unitPrice: lineItem.unitPrice / 100, // Convert cents to dollars
-    })),
+    total: invoice.total / 100,
+    lineItems: invoice.lineItems.map((lineItem) => {
+      const unitPrice = lineItem.unitPrice / 100;
+      return {
+        ...lineItem,
+        costPrice: lineItem.costPrice / 100,
+        unitPrice: unitPrice,
+        total: lineItem.quantity * unitPrice,
+      };
+    }),
   }));
 
   const totalInvoices = await db.select().from(invoices);

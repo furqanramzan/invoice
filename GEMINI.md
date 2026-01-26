@@ -33,3 +33,4 @@ After completing the code, ask the user if they want a playground link. Only cal
 > Never commit git changes.
 > Add // svelte-ignore state_referenced_locally, whenever state_referenced_locally occur.
 > Always just update code and don't execute any commands like pushing database changes or checking lint.
+> Don't add to much comments. Only when it's super important.

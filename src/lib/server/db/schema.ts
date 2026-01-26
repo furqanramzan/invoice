@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text, real } from 'drizzle-orm/sqlite-core';
+import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
 
 export const user = sqliteTable('users', {
@@ -27,9 +27,7 @@ export const products = sqliteTable('products', {
   name: text('name').notNull(),
   costPrice: integer('cost_price').notNull(),
   unitPrice: integer('unit_price').notNull(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => user.id),
+  userId: text('user_id').references(() => user.id),
 });
 
 export const productsRelations = relations(products, ({ many }) => ({
@@ -40,13 +38,13 @@ export const invoices = sqliteTable('invoices', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id),
   invoiceNumber: text('invoice_number').notNull().unique(),
   store: text('store'),
   date: integer('date', { mode: 'timestamp' }).notNull(),
   total: integer('total').notNull(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => user.id),
   status: text('status').notNull().default('draft'),
 });
 
@@ -58,16 +56,15 @@ export const lineItems = sqliteTable('line_items', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  quantity: integer('quantity').notNull(),
-  costPrice: integer('cost_price').notNull(),
-  unitPrice: integer('unit_price').notNull(),
-  total: integer('total').notNull(),
   invoiceId: text('invoice_id')
     .notNull()
     .references(() => invoices.id),
   productId: text('product_id')
     .notNull()
     .references(() => products.id),
+  quantity: integer('quantity').notNull(),
+  costPrice: integer('cost_price').notNull(),
+  unitPrice: integer('unit_price').notNull(),
 });
 
 export const lineItemsRelations = relations(lineItems, ({ one }) => ({
