@@ -1,33 +1,33 @@
 <script lang="ts">
   import Plus from '@lucide/svelte/icons/plus';
   import Trash from '@lucide/svelte/icons/trash';
-  import { superForm } from 'sveltekit-superforms';
-  import { zod4 } from 'sveltekit-superforms/adapters';
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { Label } from '$lib/components/ui/label';
-  import { invoiceSchema } from './validations.js'; // Corrected import path
-  import Spinner from '$lib/components/ui/spinner/spinner.svelte';
+  import { invoiceSchema } from './utils.js';
   import * as Table from '$lib/components/ui/table/index.js';
   import type { Product } from '$lib/server/db/schema.js';
   import ExcelJS from 'exceljs';
-  import * as RadioGroup from '$lib/components/ui/radio-group'; // Import RadioGroup components
+  import * as RadioGroup from '$lib/components/ui/radio-group';
+  import { route, title } from './utils.js';
+  import Heading from '$lib/components/heading.svelte';
+  import { getSuperForm } from '$lib/superforms.js';
+  import HiddenField from '$lib/components/hidden-field.svelte';
+  import TextField from '$lib/components/text-field.svelte';
+  import { formatCents } from '$lib/utils.js';
 
   let { data } = $props();
   const allProducts = $derived(data.products);
-  const isEditing = $derived(!!data.currentInvoice); // Determine if in editing mode
-  const isDelivered = $derived(data.currentInvoice?.status === 'delivered'); // Check if invoice is delivered
-  const isReturned = $derived(data.currentInvoice?.status === 'returned'); // Check if invoice is returned
-  const isImmutable = $derived(isDelivered || isReturned); // Check if invoice is in an immutable state
+  const isEditing = $derived(!!data.currentInvoice);
+  const isDelivered = $derived(data.currentInvoice?.status === 'delivered');
+  const isReturned = $derived(data.currentInvoice?.status === 'returned');
+  const isImmutable = $derived(isDelivered || isReturned);
 
   // svelte-ignore state_referenced_locally
-  const { form, isTainted, tainted, errors, enhance, submitting } = superForm(
-    data.form,
-    {
-      dataType: 'json',
-      validators: zod4(invoiceSchema),
-    },
-  );
+  const superform = getSuperForm(invoiceSchema, data.form, {
+    dataType: 'json',
+  });
+  const { form, isTainted, tainted, errors, enhance, submitting } = superform;
 
   function addProduct() {
     $form.lineItems = [
@@ -82,8 +82,8 @@
 
   function selectSuggestion(index: number, product: Product) {
     $form.lineItems[index].name = product.name;
-    $form.lineItems[index].costPrice = product.costPrice;
-    $form.lineItems[index].unitPrice = product.unitPrice;
+    $form.lineItems[index].costPrice = product.costPrice / 100;
+    $form.lineItems[index].unitPrice = product.unitPrice / 100;
     $form.lineItems[index].productId = product.id;
     searchTerm[index] = '';
     suggestions[index] = [];
@@ -162,7 +162,7 @@
     const worksheet = workbook.addWorksheet('Invoice');
 
     // Add invoice header information (Columns C)
-    worksheet.getCell('C1').value = 'Invoice #:';
+    worksheet.getCell('C1').value = `${title.singular} #:`;
     worksheet.getCell('C1').font = { bold: true };
     worksheet.getCell('D1').value = invoiceData.invoiceNumber;
 
@@ -232,38 +232,23 @@
   }
 </script>
 
-<h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
-  {isEditing ? 'Edit Invoice' : 'New Invoice'}
-</h1>
+<Heading
+  title={(isEditing ? 'Edit ' : 'New ') + title.singular}
+  link={{ route: route.list, title: `List ${title.plural}` }}
+/>
+
 <form class="space-y-4" method="POST" use:enhance>
   {#if isEditing}
-    <input type="hidden" name="id" bind:value={$form.id} />
+    <HiddenField {superform} field="id" />
   {/if}
-  <div>
-    <Label for="store" class="mb-1">Store</Label>
-    <Input
-      id="store"
-      name="store"
-      bind:value={$form.store}
-      disabled={isImmutable}
-    />
-    {#if $errors.store}
-      <p class="text-red-500">{$errors.store}</p>
-    {/if}
-  </div>
 
-  <div>
-    <Label for="invoiceNumber" class="mb-1">Invoice Number</Label>
-    <Input
-      id="invoiceNumber"
-      name="invoiceNumber"
-      bind:value={$form.invoiceNumber}
-      disabled={isImmutable}
-    />
-    {#if $errors.invoiceNumber}
-      <p class="text-red-500">{$errors.invoiceNumber}</p>
-    {/if}
-  </div>
+  <TextField {superform} disabled={isImmutable} field="store" />
+  <TextField
+    disabled={isImmutable}
+    {superform}
+    field="invoiceNumber"
+    label="{title.singular} Number"
+  />
 
   <div>
     <Label for="date" class="mb-1">Date</Label>
@@ -384,7 +369,9 @@
                       >
                         {suggestion.name}
                         <span class="text-sm text-gray-500 dark:text-zinc-400">
-                          ({suggestion.costPrice}) ({suggestion.unitPrice})
+                          ({formatCents(suggestion.costPrice)}) ({formatCents(
+                            suggestion.unitPrice,
+                          )})
                         </span>
                       </li>
                     {/each}
@@ -460,7 +447,7 @@
           <Table.Cell class="w-36 p-4 text-lg text-nowrap">
             {(product.quantity * product.unitPrice).toLocaleString('en-US', {
               style: 'currency',
-              currency: 'USD',
+              currency: 'PKR',
             })}
           </Table.Cell>
         </Table.Row>
@@ -474,7 +461,7 @@
     <div>
       Total: {total.toLocaleString('en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'PKR',
       })}
     </div>
   </div>
@@ -484,10 +471,7 @@
       disabled={$submitting || isDelivered || !isTainted($tainted)}
       type="submit"
     >
-      {#if $submitting}
-        <Spinner />
-      {/if}
-      {isEditing ? 'Update Invoice' : 'Create Invoice'}
+      {isEditing ? `Update ${title.singular}` : `Create ${title.singular}`}
     </Button>
     <Button
       type="button"

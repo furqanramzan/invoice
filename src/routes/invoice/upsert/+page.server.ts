@@ -1,20 +1,22 @@
-import { fail, redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import {
   invoices,
   lineItems,
   products as productsSchema,
 } from '$lib/server/db/schema';
-import { superValidate } from 'sveltekit-superforms';
-import { zod4 } from 'sveltekit-superforms/adapters';
-import { invoiceSchema, type InvoiceStatus } from './validations';
+import { invoiceSchema, route, title, type InvoiceStatus } from './utils';
 import { eq } from 'drizzle-orm';
 import { toISODateString } from '$lib/utils.js';
-import { resolve } from '$app/paths';
 import { getUser } from '$lib/server/auth.js';
+import {
+  initForm,
+  validateAction,
+  redirectTo,
+  sendMessage,
+} from '$lib/superforms';
 
-export const load = async ({ url }) => {
-  const id = url.searchParams.get('id');
+export const load = async (event) => {
+  const id = event.url.searchParams.get('id');
   let currentInvoice = null;
 
   if (id) {
@@ -30,10 +32,11 @@ export const load = async ({ url }) => {
     });
 
     if (!currentInvoice) {
-      return redirect(302, resolve('/invoice'));
+      return redirectTo(route.list, event, `${title.singular} not exists!`);
     }
   }
-  const form = await superValidate(
+  const form = await initForm(
+    invoiceSchema,
     currentInvoice
       ? {
           ...currentInvoice,
@@ -51,7 +54,6 @@ export const load = async ({ url }) => {
           date: toISODateString(new Date()),
           status: 'draft',
         },
-    zod4(invoiceSchema),
   );
 
   const products = await db.query.products.findMany();
@@ -61,134 +63,117 @@ export const load = async ({ url }) => {
 
 export const actions = {
   default: async (event) => {
+    const form = await validateAction(event, invoiceSchema);
+    if (!form.valid) return form.error;
+
     const user = getUser();
-    const form = await superValidate(event.request, zod4(invoiceSchema));
-    if (!form.valid) {
-      return fail(400, { form });
-    }
 
-    const {
-      id,
-      store,
-      invoiceNumber,
-      date,
-      lineItems: products,
-      status,
-    } = form.data;
+    const { id, lineItems: products, ...invoiceData } = form.data;
 
-    try {
-      await db.transaction(async (tx) => {
-        // Fetch the current invoice from the database if editing
-        let existingInvoice = null;
-        if (id) {
-          existingInvoice = await tx.query.invoices.findFirst({
-            where: eq(invoices.id, id),
-          });
-        }
+    await db.transaction(async (tx) => {
+      // Fetch the current invoice from the database if editing
+      let existingInvoice = null;
+      if (id) {
+        existingInvoice = await tx.query.invoices.findFirst({
+          where: eq(invoices.id, id),
+          columns: { status: true },
+        });
+      }
 
-        if (
-          existingInvoice &&
-          (existingInvoice.status === 'delivered' ||
-            existingInvoice.status === 'returned')
-        ) {
-          // If the status is changing, update only the status.
-          if (status !== existingInvoice.status && id) {
-            await tx
-              .update(invoices)
-              .set({ status: status })
-              .where(eq(invoices.id, id));
-            return { form }; // Only status was updated
-          } else {
-            // If the status is not changing, and the invoice is delivered or returned,
-            // no other fields should be modifiable. Reject the submission.
-            form.message =
-              'Cannot modify a delivered or returned invoice except for its status.';
-            return fail(400, { form });
-          }
-        }
-
-        const processedProducts = await Promise.all(
-          products.map(async (p) => {
-            const productData = {
-              name: p.name,
-              costPrice: Math.round(p.costPrice * 100),
-              unitPrice: Math.round(p.unitPrice * 100),
-              userId: user.id,
-            };
-            const [upsertedProduct] = await tx
-              .insert(productsSchema)
-              .values({
-                id: p.productId || crypto.randomUUID(),
-                ...productData,
-              })
-              .onConflictDoUpdate({
-                target: productsSchema.id,
-                set: productData,
-              })
-              .returning({ id: productsSchema.id });
-            return { ...p, productId: upsertedProduct.id };
-          }),
-        );
-
-        const total = Math.round(
-          processedProducts.reduce(
-            (acc, p) => acc + p.quantity * p.unitPrice,
-            0,
-          ) * 100,
-        );
-
-        if (id) {
+      if (
+        existingInvoice &&
+        (existingInvoice.status === 'delivered' ||
+          existingInvoice.status === 'returned')
+      ) {
+        // If the status is changing, update only the status.
+        if (invoiceData.status !== existingInvoice.status && id) {
           await tx
             .update(invoices)
-            .set({
-              store,
-              invoiceNumber,
-              date: new Date(date),
-              total,
-              userId: user.id,
-              status,
-            })
+            .set({ status: invoiceData.status })
             .where(eq(invoices.id, id));
+          return { form };
+        }
+        // If the status is not changing, and the invoice is delivered or returned,
+        // no other fields should be modifiable. Reject the submission.
+        return sendMessage(
+          form,
+          `Cannot modify a delivered or returned invoice!`,
+          'error',
+        );
+      }
 
-          // Delete existing line items for this invoice
-          await tx.delete(lineItems).where(eq(lineItems.invoiceId, id));
-        } else {
-          // Insert new invoice
-          const [newInvoice] = await tx
-            .insert(invoices)
+      const processedProducts = await Promise.all(
+        products.map(async (p) => {
+          const productData = {
+            ...p,
+            userId: user.id,
+            costPrice: Math.round(p.costPrice * 100),
+            unitPrice: Math.round(p.unitPrice * 100),
+          };
+          const [upsertedProduct] = await tx
+            .insert(productsSchema)
             .values({
-              store,
-              invoiceNumber,
-              date: new Date(date),
-              total,
-              userId: user.id,
-              status,
+              id: p.productId || crypto.randomUUID(),
+              ...productData,
             })
-            .returning({ id: invoices.id });
-          form.data.id = newInvoice.id; // Assign new ID to form data for line items
-        }
+            .onConflictDoUpdate({
+              target: productsSchema.id,
+              set: productData,
+            })
+            .returning({ id: productsSchema.id });
+          return { ...p, productId: upsertedProduct.id };
+        }),
+      );
 
-        if (products.length) {
-          await tx.insert(lineItems).values(
-            processedProducts.map((p) => ({
-              productId: p.productId!,
-              quantity: p.quantity,
-              costPrice: Math.round(p.costPrice * 100),
-              unitPrice: Math.round(p.unitPrice * 100),
-              invoiceId: form.data.id!,
-            })),
-          );
-        }
-      });
-    } catch (e) {
-      console.error(e);
-      form.message = 'Could not save invoice.';
-      return fail(500, { form });
-    }
+      const total = Math.round(
+        processedProducts.reduce(
+          (acc, p) => acc + p.quantity * p.unitPrice,
+          0,
+        ) * 100,
+      );
 
+      const data = {
+        ...invoiceData,
+        total,
+        date: new Date(invoiceData.date),
+        userId: user.id,
+      };
+      if (id) {
+        await tx.update(invoices).set(data).where(eq(invoices.id, id));
+
+        // Delete existing line items for this invoice
+        await tx.delete(lineItems).where(eq(lineItems.invoiceId, id));
+      } else {
+        const [newInvoice] = await tx
+          .insert(invoices)
+          .values(data)
+          .returning({ id: invoices.id });
+        form.data.id = newInvoice.id; // Assign new ID to form data for line items
+      }
+
+      if (products.length) {
+        await tx.insert(lineItems).values(
+          processedProducts.map((p) => ({
+            productId: p.productId!,
+            quantity: p.quantity,
+            costPrice: Math.round(p.costPrice * 100),
+            unitPrice: Math.round(p.unitPrice * 100),
+            invoiceId: form.data.id!,
+          })),
+        );
+      }
+    });
+
+    // If create then redirect to edit page
     if (!id) {
-      return redirect(302, resolve('/invoice/upsert') + `?id=${form.data.id}`);
+      return redirectTo(
+        // @ts-expect-error it's not string
+        route.upsert + `?id=${form.data.id}`,
+        event,
+        `${title.singular} created!`,
+      );
     }
-    return { form };
+
+    return sendMessage(form, `${title.plural} updated!`);
   },
 };

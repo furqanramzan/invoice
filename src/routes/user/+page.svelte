@@ -1,28 +1,21 @@
 <script lang="ts">
-  // import { superForm } from 'sveltekit-superforms';
   import * as Table from '$lib/components/ui/table';
   import { Button } from '$lib/components/ui/button';
-  import Plus from '@lucide/svelte/icons/plus';
   import Pencil from '@lucide/svelte/icons/pencil';
-  // import Trash from '@lucide/svelte/icons/trash';
-  // import Spinner from '$lib/components/ui/spinner/spinner.svelte';
-  import { resolve } from '$app/paths';
   import { Pagination } from '$lib/components/ui/pagination';
   import { cn } from '$lib/utils';
+  import { route, title } from './upsert/utils.js';
+  import Heading from '$lib/components/heading.svelte';
 
   const { data } = $props();
 
   // const { enhance, submitting } = superForm(data.form);
 </script>
 
-<div class="flex items-center justify-between">
-  <h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
-    Users
-  </h1>
-  <Button href={resolve('/user/upsert')} class="flex items-center gap-2">
-    <Plus class="h-4 w-4" /> Add New User
-  </Button>
-</div>
+<Heading
+  title={title.plural}
+  link={{ route: route.upsert, title: `Add ${title.singular}` }}
+/>
 
 {#if data.users.length === 0}
   <p>No users yet. Create one!</p>
@@ -42,7 +35,7 @@
           <Table.Cell class="p-4 text-nowrap">{user.name}</Table.Cell>
           <Table.Cell class="flex shrink-0 space-x-2 p-4 text-nowrap">
             <Button
-              href={resolve(`/user/upsert`) + `?id=${user.id}`}
+              href={route.upsert + `?id=${user.id}`}
               variant="outline"
               size="icon"
             >
@@ -73,7 +66,7 @@
     <Pagination
       currentPage={data.currentPage}
       totalPages={data.totalPages}
-      basePath="/user"
+      basePath={route.list}
     />
   {/if}
 {/if}

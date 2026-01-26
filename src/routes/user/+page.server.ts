@@ -1,33 +1,26 @@
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
-import { superValidate } from 'sveltekit-superforms';
-import { zod4 } from 'sveltekit-superforms/adapters';
-import { userSchema } from './upsert/validations';
+import { getPaginationData } from '$lib/utils';
 
 export async function load(event) {
-  const form = await superValidate(zod4(userSchema));
-
-  const page = Number(event.url.searchParams.get('page')) || 1;
-  const limit = 10;
-  const offset = (page - 1) * limit;
-
-  const allUsers = await db.query.user.findMany({
-    limit,
-    offset,
-    columns: {
-      id: true,
-      email: true,
-      name: true,
-    },
-  });
-
-  const totalUsers = await db.select().from(table.user);
+  const { page, offset, limit } = getPaginationData(event);
+  const [users, total] = await Promise.all([
+    db.query.user.findMany({
+      limit,
+      offset,
+      columns: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    }),
+    db.select().from(table.user),
+  ]);
 
   return {
-    form,
-    users: allUsers,
+    users: users,
     currentPage: page,
-    totalPages: Math.ceil(totalUsers.length / limit),
+    totalPages: Math.ceil(total.length / limit),
   };
 }
 

@@ -1,70 +1,36 @@
 <script lang="ts">
-  import { superForm } from 'sveltekit-superforms';
-  import { zod4 } from 'sveltekit-superforms/adapters';
-  import { Button } from '$lib/components/ui/button';
-  import { Input } from '$lib/components/ui/input';
-  import { Label } from '$lib/components/ui/label';
-  import { userSchema } from './validations';
-  import Spinner from '$lib/components/ui/spinner/spinner.svelte';
+  import { registerSchema } from '$lib/validations.js';
+  import { getSuperForm } from '$lib/superforms.js';
+  import Heading from '$lib/components/heading.svelte';
+  import { route, title } from './utils.js';
+  import Form from '$lib/components/form.svelte';
+  import HiddenField from '$lib/components/hidden-field.svelte';
+  import TextField from '$lib/components/text-field.svelte';
+  import EmailField from '$lib/components/email-field.svelte';
+  import PasswordField from '$lib/components/password-field.svelte';
 
   let { data } = $props();
 
   const isEditing = $derived(!!data.currentUser);
 
   // svelte-ignore state_referenced_locally
-  const { form, errors, enhance, submitting } = superForm(data.form, {
-    validators: zod4(userSchema),
-  });
+  const superform = getSuperForm(registerSchema, data.form);
 </script>
 
-<h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
-  {isEditing ? 'Edit User' : 'New User'}
-</h1>
-<form class="space-y-4" method="POST" use:enhance>
+<Heading
+  title={(isEditing ? 'Edit ' : 'New ') + title.singular}
+  link={{ route: route.list, title: `List ${title.plural}` }}
+/>
+
+<Form
+  {superform}
+  buttonText={(isEditing ? 'Update ' : 'Create ') + title.singular}
+>
   {#if isEditing}
-    <input type="hidden" name="id" bind:value={$form.id} />
+    <HiddenField {superform} field="id" />
   {/if}
 
-  <div>
-    <Label for="name" class="mb-1">Name</Label>
-    <Input id="name" name="name" bind:value={$form.name} />
-    {#if $errors.name}
-      <p class="text-red-500">{$errors.name}</p>
-    {/if}
-  </div>
-
-  <div>
-    <Label for="email" class="mb-1">Email</Label>
-    <Input id="email" name="email" bind:value={$form.email} />
-    {#if $errors.email}
-      <p class="text-red-500">{$errors.email}</p>
-    {/if}
-  </div>
-
-  <div>
-    <Label for="password" class="mb-1">
-      Password
-      {#if isEditing}
-        <span class="text-sm text-gray-500">(Leave blank to keep current)</span>
-      {/if}
-    </Label>
-    <Input
-      id="password"
-      name="password"
-      type="password"
-      bind:value={$form.password}
-    />
-    {#if $errors.password}
-      <p class="text-red-500">{$errors.password}</p>
-    {/if}
-  </div>
-
-  <div class="flex gap-2">
-    <Button disabled={$submitting} type="submit">
-      {#if $submitting}
-        <Spinner />
-      {/if}
-      {isEditing ? 'Update User' : 'Create User'}
-    </Button>
-  </div>
-</form>
+  <TextField {superform} field="name" />
+  <EmailField {superform} field="email" />
+  <PasswordField {superform} field="password" password="new" />
+</Form>

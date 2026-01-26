@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1769357476808,
-      "tag": "0000_add_user_and_invoice_tables",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1769405092233,
-      "tag": "0001_convert_money_to_cents",
+      "when": 1769458887920,
+      "tag": "0000_add_users_products_invoices_and_line_items_table",
       "breakpoints": true
     }
   ]

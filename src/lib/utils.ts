@@ -1,3 +1,5 @@
+import type { resolve } from '$app/paths';
+import type { RequestEvent } from '@sveltejs/kit';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -22,4 +24,28 @@ export function sleep(ms: number) {
 
 export function toISODateString(date: Date) {
   return new Date(date).toISOString().split('T')[0];
+}
+
+export type Route = ReturnType<typeof resolve>;
+
+export function getPaginationData(event: RequestEvent) {
+  const page = Number(event.url.searchParams.get('page')) || 1;
+  const limit = 10;
+  const offset = (page - 1) * limit;
+  return { page, limit, offset };
+}
+
+export function formatCents(amount: number) {
+  return (amount / 100).toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'PKR',
+  });
+}
+
+export function convertCents(amount: number) {
+  return amount / 100;
+}
+
+export function convertToCents(amount: number) {
+  return Math.round(amount * 100);
 }

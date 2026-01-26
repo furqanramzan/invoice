@@ -1,4 +1,12 @@
 import z from 'zod';
+import { resolve } from '$app/paths';
+
+export const title = { singular: 'Invoice', plural: 'Invoices' };
+
+export const route = {
+  list: resolve('/invoice'),
+  upsert: resolve('/invoice/upsert'),
+};
 
 export const lineItemSchema = z.object({
   id: z.string().optional(), // Made optional for upsert

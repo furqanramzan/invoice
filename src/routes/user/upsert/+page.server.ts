@@ -1,12 +1,17 @@
-import { fail, redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms';
-import { zod4 } from 'sveltekit-superforms/adapters';
-import { userSchema } from './validations';
+import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { resolve } from '$app/paths';
 import { saveUser } from '$lib/server/user';
+import { registerSchema } from '$lib/validations.js';
+import {
+  initForm,
+  redirectTo,
+  sendMessage,
+  validateAction,
+} from '$lib/superforms';
+import { route, title } from './utils.js';
 
 export const load = async ({ url }) => {
   const id = url.searchParams.get('id');
@@ -22,14 +27,14 @@ export const load = async ({ url }) => {
     }
   }
 
-  const form = await superValidate(
+  const form = await initForm(
+    registerSchema,
     currentUser
       ? {
           ...currentUser,
           password: undefined, // Never pre-fill password
         }
       : undefined,
-    zod4(userSchema),
   );
 
   return { form, currentUser };
@@ -37,29 +42,18 @@ export const load = async ({ url }) => {
 
 export const actions = {
   default: async (event) => {
-    const form = await superValidate(event.request, zod4(userSchema));
+    const form = await validateAction(event, registerSchema);
+    if (!form.valid) return form.error;
 
-    if (!form.valid) {
-      return fail(400, { form });
+    const userId = await saveUser(form.data);
+    if (typeof userId === 'string') {
+      return sendMessage(form, userId, 'error');
     }
 
-    const { id, name, email, password } = form.data;
-
-    const result = await saveUser({
-      id,
-      name,
-      email,
-      password,
-      form,
-    });
-
-    if (typeof result !== 'string' && result !== undefined) {
-      return result; // Return the fail response from saveUser
-    }
-
-    if (!id) {
-      return redirect(302, resolve('/user')); // Redirect to user list after creation
-    }
-    return { form };
+    return redirectTo(
+      route.list,
+      event,
+      `${title.singular} ${form.data.id ? 'updated' : 'created'}!`,
+    );
   },
 };

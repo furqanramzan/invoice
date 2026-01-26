@@ -1,5 +1,5 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 
 export const user = sqliteTable('users', {
   id: text('id')
@@ -8,6 +8,9 @@ export const user = sqliteTable('users', {
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
+    .notNull(),
 });
 
 export const session = sqliteTable('sessions', {
@@ -24,10 +27,13 @@ export const products = sqliteTable('products', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').references(() => user.id),
   name: text('name').notNull(),
   costPrice: integer('cost_price').notNull(),
   unitPrice: integer('unit_price').notNull(),
-  userId: text('user_id').references(() => user.id),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
+    .notNull(),
 });
 
 export const productsRelations = relations(products, ({ many }) => ({
@@ -42,10 +48,13 @@ export const invoices = sqliteTable('invoices', {
     .notNull()
     .references(() => user.id),
   invoiceNumber: text('invoice_number').notNull().unique(),
-  store: text('store'),
   date: integer('date', { mode: 'timestamp' }).notNull(),
-  total: integer('total').notNull(),
   status: text('status').notNull().default('draft'),
+  store: text('store'),
+  total: integer('total').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
+    .notNull(),
 });
 
 export const invoicesRelations = relations(invoices, ({ many }) => ({
@@ -65,6 +74,9 @@ export const lineItems = sqliteTable('line_items', {
   quantity: integer('quantity').notNull(),
   costPrice: integer('cost_price').notNull(),
   unitPrice: integer('unit_price').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
+    .notNull(),
 });
 
 export const lineItemsRelations = relations(lineItems, ({ one }) => ({
