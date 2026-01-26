@@ -5,8 +5,8 @@ export const lineItemSchema = z.object({
   productId: z.string().optional(),
   name: z.string().min(1),
   quantity: z.number().int().gt(0),
-  costPrice: z.number().gt(0),
-  unitPrice: z.number().gt(0),
+  costPrice: z.number().min(0),
+  unitPrice: z.number().min(0),
 });
 const invoiceStatus = z
   .enum(['draft', 'processing', 'delivered', 'returned'])

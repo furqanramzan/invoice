@@ -8,6 +8,13 @@
       "when": 1769357476808,
       "tag": "0000_add_user_and_invoice_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1769405092233,
+      "tag": "0001_convert_money_to_cents",
+      "breakpoints": true
     }
   ]
 }

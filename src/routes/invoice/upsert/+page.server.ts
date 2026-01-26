@@ -42,6 +42,8 @@ export const load = async ({ url }) => {
           lineItems: currentInvoice.lineItems.map((lineItem) => ({
             ...lineItem,
             name: lineItem.product.name,
+            costPrice: lineItem.costPrice / 100,
+            unitPrice: lineItem.unitPrice / 100,
           })),
         }
       : {
@@ -107,26 +109,32 @@ export const actions = {
 
         const processedProducts = await Promise.all(
           products.map(async (p) => {
-            if (!p.productId) {
-              // New product, create it
-              const [newProduct] = await tx
-                .insert(productsSchema)
-                .values({
-                  name: p.name,
-                  costPrice: p.costPrice,
-                  unitPrice: p.unitPrice,
-                  userId: user.id,
-                })
-                .returning({ id: productsSchema.id });
-              return { ...p, productId: newProduct.id };
-            }
-            return p;
+            const productData = {
+              name: p.name,
+              costPrice: Math.round(p.costPrice * 100),
+              unitPrice: Math.round(p.unitPrice * 100),
+              userId: user.id,
+            };
+            const [upsertedProduct] = await tx
+              .insert(productsSchema)
+              .values({
+                id: p.productId || crypto.randomUUID(),
+                ...productData,
+              })
+              .onConflictDoUpdate({
+                target: productsSchema.id,
+                set: productData,
+              })
+              .returning({ id: productsSchema.id });
+            return { ...p, productId: upsertedProduct.id };
           }),
         );
 
-        const total = processedProducts.reduce(
-          (acc, p) => acc + p.quantity * p.unitPrice,
-          0,
+        const total = Math.round(
+          processedProducts.reduce(
+            (acc, p) => acc + p.quantity * p.unitPrice,
+            0,
+          ) * 100,
         );
 
         if (id) {
@@ -137,7 +145,7 @@ export const actions = {
               store,
               invoiceNumber,
               date: new Date(date),
-              total,
+              total, // total is already in cents
               userId: user.id,
               status,
             })
@@ -153,7 +161,7 @@ export const actions = {
               store,
               invoiceNumber,
               date: new Date(date),
-              total,
+              total, // total is already in cents
               userId: user.id,
               status, // Include status in insert
             })
@@ -166,9 +174,9 @@ export const actions = {
             processedProducts.map((p) => ({
               productId: p.productId!,
               quantity: p.quantity,
-              costPrice: p.costPrice,
-              unitPrice: p.unitPrice,
-              total: p.quantity * p.unitPrice,
+              costPrice: Math.round(p.costPrice * 100), // Convert dollars to cents
+              unitPrice: Math.round(p.unitPrice * 100), // Convert dollars to cents
+              total: Math.round(p.quantity * p.unitPrice * 100), // Convert dollars to cents
               invoiceId: form.data.id!,
             })),
           );

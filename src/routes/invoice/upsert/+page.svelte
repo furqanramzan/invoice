@@ -458,7 +458,10 @@
             {/if}
           </Table.Cell>
           <Table.Cell class="w-36 p-4 text-lg text-nowrap">
-            {product.quantity * product.unitPrice}
+            {(product.quantity * product.unitPrice).toLocaleString('en-US', {
+              style: 'currency',
+              currency: 'USD',
+            })}
           </Table.Cell>
         </Table.Row>
       {/each}
@@ -468,7 +471,12 @@
   <!-- Display total and profit outside the table for better prominence -->
   <div class="flex justify-end gap-4 text-lg font-bold">
     <div>Profit: {totalProfit}%</div>
-    <div>Total: {total}</div>
+    <div>
+      Total: {total.toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      })}
+    </div>
   </div>
 
   <div class="flex gap-2">

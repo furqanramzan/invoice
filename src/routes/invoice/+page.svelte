@@ -50,7 +50,12 @@
           <Table.Cell class="p-4 text-nowrap"
             >{new Date(invoice.date).toLocaleDateString()}</Table.Cell
           >
-          <Table.Cell class="p-4 text-nowrap">{invoice.total}</Table.Cell>
+          <Table.Cell class="p-4 text-nowrap"
+            >{invoice.total.toLocaleString('en-US', {
+              style: 'currency',
+              currency: 'USD',
+            })}</Table.Cell
+          >
           <Table.Cell class="p-4 text-nowrap">
             {#if invoice.status === 'processing'}
               <Badge class="bg-yellow-500">{invoice.status}</Badge>

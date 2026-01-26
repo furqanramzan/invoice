@@ -25,8 +25,8 @@ export const products = sqliteTable('products', {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   name: text('name').notNull(),
-  costPrice: real('cost_price').notNull(),
-  unitPrice: real('unit_price').notNull(),
+  costPrice: integer('cost_price').notNull(),
+  unitPrice: integer('unit_price').notNull(),
   userId: text('user_id')
     .notNull()
     .references(() => user.id),
@@ -43,7 +43,7 @@ export const invoices = sqliteTable('invoices', {
   invoiceNumber: text('invoice_number').notNull().unique(),
   store: text('store'),
   date: integer('date', { mode: 'timestamp' }).notNull(),
-  total: real('total').notNull(),
+  total: integer('total').notNull(),
   userId: text('user_id')
     .notNull()
     .references(() => user.id),
@@ -59,9 +59,9 @@ export const lineItems = sqliteTable('line_items', {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   quantity: integer('quantity').notNull(),
-  costPrice: real('cost_price').notNull(),
-  unitPrice: real('unit_price').notNull(),
-  total: real('total').notNull(),
+  costPrice: integer('cost_price').notNull(),
+  unitPrice: integer('unit_price').notNull(),
+  total: integer('total').notNull(),
   invoiceId: text('invoice_id')
     .notNull()
     .references(() => invoices.id),

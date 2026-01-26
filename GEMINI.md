@@ -32,3 +32,4 @@ After completing the code, ask the user if they want a playground link. Only cal
 > Never execute dev command for testing, it's already in progress.
 > Never commit git changes.
 > Add // svelte-ignore state_referenced_locally, whenever state_referenced_locally occur.
+> Always just update code and don't execute any commands like pushing database changes or checking lint.

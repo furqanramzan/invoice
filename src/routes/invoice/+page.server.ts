@@ -13,18 +13,28 @@ export async function load(event) {
   const limit = 10;
   const offset = (page - 1) * limit;
 
-  const allInvoices = await db.query.invoices.findMany({
-    limit,
-    offset,
-    with: {
-      lineItems: {
-        with: {
-          product: true,
+  const allInvoices = (
+    await db.query.invoices.findMany({
+      limit,
+      offset,
+      with: {
+        lineItems: {
+          with: {
+            product: true,
+          },
         },
       },
-    },
-    orderBy: (invoices, { desc }) => [desc(invoices.date)],
-  });
+      orderBy: (invoices, { desc }) => [desc(invoices.date)],
+    })
+  ).map((invoice) => ({
+    ...invoice,
+    total: invoice.total / 100, // Convert cents to dollars
+    lineItems: invoice.lineItems.map((lineItem) => ({
+      ...lineItem,
+      costPrice: lineItem.costPrice / 100, // Convert cents to dollars
+      unitPrice: lineItem.unitPrice / 100, // Convert cents to dollars
+    })),
+  }));
 
   const totalInvoices = await db.select().from(invoices);
 
