@@ -1,4 +1,6 @@
 <script lang="ts">
+  import jsPDF from 'jspdf';
+  import autoTable from 'jspdf-autotable';
   import Plus from '@lucide/svelte/icons/plus';
   import Trash from '@lucide/svelte/icons/trash';
   import { Button } from '$lib/components/ui/button';
@@ -7,14 +9,13 @@
   import { invoiceSchema } from './utils.js';
   import * as Table from '$lib/components/ui/table/index.js';
   import type { Product } from '$lib/server/db/schema.js';
-  import ExcelJS from 'exceljs';
   import * as RadioGroup from '$lib/components/ui/radio-group';
   import { route, title } from './utils.js';
   import Heading from '$lib/components/heading.svelte';
   import { getSuperForm } from '$lib/superforms.js';
   import HiddenField from '$lib/components/hidden-field.svelte';
   import TextField from '$lib/components/text-field.svelte';
-  import { formatCents } from '$lib/utils.js';
+  import { formatAmount, formatCents } from '$lib/utils.js';
 
   let { data } = $props();
   const allProducts = $derived(data.products);
@@ -144,6 +145,7 @@
     const invoiceData = {
       store: $form.store,
       invoiceNumber: $form.invoiceNumber,
+      date: $form.date,
       products: $form.lineItems.map((p) => ({
         name: p.name,
         quantity: p.quantity,
@@ -152,83 +154,65 @@
       })),
     };
 
-    // Calculate total
     const total = invoiceData.products.reduce(
       (sum, p) => sum + p.totalPrice,
       0,
     );
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Invoice');
+    const doc = new jsPDF();
 
-    // Add invoice header information (Columns C)
-    worksheet.getCell('C1').value = `${title.singular} #:`;
-    worksheet.getCell('C1').font = { bold: true };
-    worksheet.getCell('D1').value = invoiceData.invoiceNumber;
+    doc.setFontSize(12);
 
-    worksheet.getCell('C2').value = 'Date:';
-    worksheet.getCell('C2').font = { bold: true };
-    worksheet.getCell('D2').value = $form.date;
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${title.singular} #:`, 120, 20);
+    doc.setFont('helvetica', 'normal');
+    doc.text(String(invoiceData.invoiceNumber), 160, 20);
 
-    worksheet.getCell('C3').value = 'Store:';
-    worksheet.getCell('C3').font = { bold: true };
-    worksheet.getCell('D3').value = invoiceData.store;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Date:', 120, 28);
+    doc.setFont('helvetica', 'normal');
+    doc.text(String(invoiceData.date), 160, 28);
 
-    // Add product table headers (Row 6)
-    worksheet.getCell('A6').value = 'Product Name';
-    worksheet.getCell('A6').font = { bold: true };
-    worksheet.getCell('B6').value = 'Quantity';
-    worksheet.getCell('B6').font = { bold: true };
-    worksheet.getCell('C6').value = 'Unit Price';
-    worksheet.getCell('C6').font = { bold: true };
-    worksheet.getCell('D6').value = 'Total Price';
-    worksheet.getCell('D6').font = { bold: true };
+    doc.setFont('helvetica', 'bold');
+    doc.text('Store:', 120, 36);
+    doc.setFont('helvetica', 'normal');
+    doc.text(String(invoiceData.store), 160, 36);
 
-    // Add product data (starting from Row 7)
-    if (invoiceData.products.length > 0) {
-      invoiceData.products.forEach((p, index) => {
-        const rowNum = 7 + index;
-        worksheet.getCell(`A${rowNum}`).value = p.name;
-        worksheet.getCell(`B${rowNum}`).value = p.quantity;
-        worksheet.getCell(`C${rowNum}`).value = p.unitPrice;
-        worksheet.getCell(`C${rowNum}`).numFmt = '#,##0.00';
-        worksheet.getCell(`D${rowNum}`).value = p.totalPrice;
-        worksheet.getCell(`D${rowNum}`).numFmt = '#,##0.00';
-      });
-    }
-
-    // Add total row
-    const lastRow = 6 + invoiceData.products.length;
-    worksheet.getCell(`C${lastRow + 2}`).value = 'Total:';
-    worksheet.getCell(`C${lastRow + 2}`).font = { bold: true };
-    worksheet.getCell(`D${lastRow + 2}`).value = total;
-    worksheet.getCell(`D${lastRow + 2}`).font = { bold: true };
-    worksheet.getCell(`D${lastRow + 2}`).numFmt = '#,##0.00';
-
-    // Set column widths for better readability
-    worksheet.getColumn(1).width = 30; // Product Name
-    worksheet.getColumn(2).width = 12; // Quantity
-    worksheet.getColumn(3).width = 15; // Unit Price
-    worksheet.getColumn(4).width = 15; // Total Price
-    worksheet.getColumn(5).width = 12; // Column E (empty, for spacing)
-    worksheet.getColumn(6).width = 12; // Column F (empty, for spacing)
-    worksheet.getColumn(7).width = 20; // Column G (for store/invoice info)
-
-    // Freeze the header row (row 6) so it stays visible when scrolling
-    worksheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 6 }];
-
-    // Write to file
-    const filename = `${invoiceData.invoiceNumber}_${$form.date}.xlsx`;
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    autoTable(doc, {
+      startY: 50,
+      margin: { left: 15, right: 15 },
+      tableWidth: 'auto',
+      head: [['Product Name', 'Quantity', 'Unit Price', 'Total Price']],
+      body: invoiceData.products.map((p) => [
+        p.name,
+        p.quantity,
+        formatAmount(p.unitPrice),
+        formatAmount(p.totalPrice),
+      ]),
+      styles: {
+        fontSize: 10,
+        cellPadding: 4,
+      },
+      headStyles: {
+        fillColor: [240, 240, 240],
+        textColor: 0,
+        fontStyle: 'bold',
+      },
+      columnStyles: {
+        0: { cellWidth: 'auto' }, // Product Name
+        1: { cellWidth: 25, halign: 'right' },
+        2: { cellWidth: 35, halign: 'right' },
+        3: { cellWidth: 35, halign: 'right' },
+      },
     });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    window.URL.revokeObjectURL(url);
+
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total:', 130, finalY);
+    doc.text(formatAmount(total), 190, finalY, { align: 'right' });
+
+    const filename = `${invoiceData.invoiceNumber}_${invoiceData.date}.pdf`;
+    doc.save(filename);
   }
 </script>
 
@@ -476,7 +460,7 @@
     <Button
       type="button"
       onclick={() => exportData()}
-      disabled={isTainted($tainted)}>Export to XLSX</Button
+      disabled={isTainted($tainted)}>Export to PDF</Button
     >
   </div>
 </form>

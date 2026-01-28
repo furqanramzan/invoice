@@ -42,6 +42,13 @@ export function formatCents(amount: number) {
   });
 }
 
+export function formatAmount(amount: number) {
+  return amount.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'PKR',
+  });
+}
+
 export function convertCents(amount: number) {
   return amount / 100;
 }
