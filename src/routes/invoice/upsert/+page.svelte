@@ -5,11 +5,9 @@
   import Trash from '@lucide/svelte/icons/trash';
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
-  import { Label } from '$lib/components/ui/label';
   import { invoiceSchema } from './utils.js';
   import * as Table from '$lib/components/ui/table/index.js';
   import type { Product } from '$lib/server/db/schema.js';
-  import * as RadioGroup from '$lib/components/ui/radio-group';
   import { route, title } from './utils.js';
   import Heading from '$lib/components/heading.svelte';
   import { getSuperForm } from '$lib/superforms.js';
@@ -17,6 +15,8 @@
   import TextField from '$lib/components/text-field.svelte';
   import { formatAmount, formatCents } from '$lib/utils.js';
   import DateField from '$lib/components/date-field.svelte';
+  import RadioField from '$lib/components/radio-field.svelte';
+  import NumberField from '$lib/components/number-field.svelte';
 
   let { data } = $props();
   const allProducts = $derived(data.products);
@@ -235,32 +235,16 @@
   />
   <TextField {superform} disabled={isImmutable} field="store" />
   <DateField {superform} field="date" />
-
-  <div>
-    <Label for="status" class="mb-1">Status</Label>
-    <RadioGroup.Root class="flex gap-2" bind:value={$form.status}>
-      <div class="flex items-center space-x-2">
-        <RadioGroup.Item value="draft" id="status-draft" />
-        <Label for="status-draft">Draft</Label>
-      </div>
-      <div class="flex items-center space-x-2">
-        <RadioGroup.Item value="processing" id="status-processing" />
-        <Label for="status-processing">Processing</Label>
-      </div>
-      <div class="flex items-center space-x-2">
-        <RadioGroup.Item value="delivered" id="status-delivered" />
-        <Label for="status-delivered">Delivered</Label>
-      </div>
-      <div class="flex items-center space-x-2">
-        <RadioGroup.Item value="returned" id="status-returned" />
-        <Label for="status-returned">Returned</Label>
-      </div>
-    </RadioGroup.Root>
-    <input type="hidden" name="status" bind:value={$form.status} />
-    {#if $errors.status}
-      <p class="text-red-500">{$errors.status}</p>
-    {/if}
-  </div>
+  <RadioField
+    {superform}
+    field="status"
+    options={[
+      { value: 'draft' },
+      { value: 'processing' },
+      { value: 'delivered' },
+      { value: 'returned' },
+    ]}
+  />
 
   <div class="flex items-center gap-2">
     <Button type="button" onclick={addProduct} disabled={isImmutable}>
@@ -359,52 +343,25 @@
             </div>
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            <div>
-              <Input
-                id="quantity-{index}"
-                name="products[{index}].quantity"
-                type="number"
-                bind:value={$form.lineItems[index].quantity}
-                disabled={isImmutable}
-              />
-              {#if $errors.lineItems?.[index]?.quantity}
-                <p class="text-red-500">
-                  {$errors.lineItems[index].quantity}
-                </p>
-              {/if}
-            </div>
+            <NumberField
+              {superform}
+              field="lineItems[{index}].quantity"
+              hideLabel
+            />
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            <div>
-              <Input
-                id="costPrice-{index}"
-                name="products[{index}].costPrice"
-                type="number"
-                bind:value={$form.lineItems[index].costPrice}
-                disabled={isImmutable}
-              />
-              {#if $errors.lineItems?.[index]?.costPrice}
-                <p class="text-red-500">
-                  {$errors.lineItems[index].costPrice}
-                </p>
-              {/if}
-            </div>
+            <NumberField
+              {superform}
+              field="lineItems[{index}].costPrice"
+              hideLabel
+            />
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            <div>
-              <Input
-                id="unitPrice-{index}"
-                name="products[{index}].unitPrice"
-                type="number"
-                bind:value={$form.lineItems[index].unitPrice}
-                disabled={isImmutable}
-              />
-              {#if $errors.lineItems?.[index]?.unitPrice}
-                <p class="text-red-500">
-                  {$errors.lineItems[index].unitPrice}
-                </p>
-              {/if}
-            </div>
+            <NumberField
+              {superform}
+              field="lineItems[{index}].unitPrice"
+              hideLabel
+            />
           </Table.Cell>
           <Table.Cell class="w-36 p-4 text-lg text-nowrap">
             {#if product.costPrice > 0}

@@ -6,20 +6,32 @@
     formFieldProxy,
     type SuperForm,
     type FormPathLeaves,
+    type FormFieldProxy,
   } from 'sveltekit-superforms';
 
   type Props = {
     superform: SuperForm<T>;
-    field: FormPathLeaves<T>;
+    field: FormPathLeaves<T, string | number>;
     label?: string;
+    hideLabel?: boolean;
     placeholder?: string;
     disabled?: boolean;
   };
 
-  let { superform, field, label, placeholder, disabled }: Props = $props();
+  let {
+    superform,
+    field,
+    label,
+    placeholder,
+    disabled,
+    hideLabel = false,
+  }: Props = $props();
 
   // svelte-ignore state_referenced_locally
-  const { value, errors, constraints } = formFieldProxy(superform, field);
+  const { value, errors, constraints } = formFieldProxy(
+    superform,
+    field,
+  ) satisfies FormFieldProxy<string | number>;
 
   let labelText = $derived(label || titleCase(field));
   let placeholderText = $derived(
@@ -28,7 +40,9 @@
 </script>
 
 <div class="space-y-1">
-  <Label id={field}>{labelText}</Label>
+  {#if !hideLabel}
+    <Label id={field}>{labelText}</Label>
+  {/if}
   <Input
     {disabled}
     id={field}
