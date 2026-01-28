@@ -3,6 +3,7 @@
   import autoTable from 'jspdf-autotable';
   import Plus from '@lucide/svelte/icons/plus';
   import Trash from '@lucide/svelte/icons/trash';
+  import Eye from '@lucide/svelte/icons/eye';
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { invoiceSchema } from './utils.js';
@@ -17,6 +18,7 @@
   import DateField from '$lib/components/date-field.svelte';
   import RadioField from '$lib/components/radio-field.svelte';
   import NumberField from '$lib/components/number-field.svelte';
+  import MultiFileField from '$lib/components/multi-file-field.svelte';
 
   let { data } = $props();
   const allProducts = $derived(data.products);
@@ -28,6 +30,9 @@
   // svelte-ignore state_referenced_locally
   const superform = getSuperForm(invoiceSchema, data.form, {
     dataType: 'json',
+    onUpdate() {
+      $form.images = [];
+    },
   });
   const { form, isTainted, tainted, errors, enhance, submitting } = superform;
 
@@ -222,29 +227,48 @@
   link={{ route: route.list, title: `List ${title.plural}` }}
 />
 
-<form class="space-y-4" method="POST" use:enhance>
+<form enctype="multipart/form-data" class="space-y-4" method="POST" use:enhance>
   {#if isEditing}
     <HiddenField {superform} field="id" />
   {/if}
 
-  <TextField
-    disabled
-    {superform}
-    field="invoiceNumber"
-    label="{title.singular} Number"
-  />
-  <TextField {superform} disabled={isImmutable} field="store" />
-  <DateField {superform} field="date" />
-  <RadioField
-    {superform}
-    field="status"
-    options={[
-      { value: 'draft' },
-      { value: 'processing' },
-      { value: 'delivered' },
-      { value: 'returned' },
-    ]}
-  />
+  <div class="grid grid-cols-2">
+    <div class="space-y-4">
+      <TextField
+        disabled
+        {superform}
+        field="invoiceNumber"
+        label="{title.singular} Number"
+      />
+      <TextField {superform} disabled={isImmutable} field="store" />
+      <DateField {superform} field="date" />
+      <RadioField
+        {superform}
+        field="status"
+        options={[
+          { value: 'draft' },
+          { value: 'processing' },
+          { value: 'delivered' },
+          { value: 'returned' },
+        ]}
+      />
+    </div>
+    <div class="flex flex-col items-end gap-4 text-lg font-bold">
+      <div>Profit: {totalProfit}%</div>
+      <div>
+        Cost: {totalCost.toLocaleString('en-US', {
+          style: 'currency',
+          currency: 'PKR',
+        })}
+      </div>
+      <div>
+        Total: {total.toLocaleString('en-US', {
+          style: 'currency',
+          currency: 'PKR',
+        })}
+      </div>
+    </div>
+  </div>
 
   <div class="flex items-center gap-2">
     <Button type="button" onclick={addProduct} disabled={isImmutable}>
@@ -384,16 +408,56 @@
     </Table.Body>
   </Table.Root>
 
-  <!-- Display total and profit outside the table for better prominence -->
-  <div class="flex justify-end gap-4 text-lg font-bold">
-    <div>Profit: {totalProfit}%</div>
-    <div>
-      Total: {total.toLocaleString('en-US', {
-        style: 'currency',
-        currency: 'PKR',
-      })}
-    </div>
+  <div class="flex items-center gap-2">
+    <h2 class="text-lg font-semibold">Attachments</h2>
+    <MultiFileField {superform} field="images" hideLabel={true} />
   </div>
+  {#if $form.files.length}
+    <Table.Root class="border">
+      <Table.Header>
+        <Table.Row>
+          <Table.Head class="w-16 p-4 text-nowrap"></Table.Head>
+          <Table.Head class="w-10 p-4 text-nowrap">#</Table.Head>
+          <Table.Head class=" p-4 text-nowrap">Name</Table.Head>
+        </Table.Row>
+      </Table.Header>
+      <Table.Body>
+        {#each $form.files as file, index (file.url)}
+          {#if !file.deleted}
+            <Table.Row>
+              <Table.Cell class="space-x-2 p-4 text-nowrap">
+                <Button
+                  href={file.url}
+                  target="_blank"
+                  variant="outline"
+                  size="icon"
+                >
+                  <Eye class="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="destructive"
+                  type="button"
+                  onclick={() => {
+                    $form.files[index].deleted = true;
+                    $form.files = $form.files;
+                  }}
+                  disabled={isImmutable}
+                >
+                  <Trash class="h-4 w-4" />
+                </Button>
+              </Table.Cell>
+              <Table.Cell class="p-4 text-nowrap">
+                {index + 1}
+              </Table.Cell>
+              <Table.Cell class="p-4 text-nowrap">
+                {file.name}
+              </Table.Cell>
+            </Table.Row>
+          {/if}
+        {/each}
+      </Table.Body>
+    </Table.Root>
+  {/if}
 
   <div class="flex gap-2">
     <Button

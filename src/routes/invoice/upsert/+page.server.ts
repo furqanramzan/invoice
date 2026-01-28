@@ -1,4 +1,5 @@
 import { db } from '$lib/server/db';
+import { del, put } from '@vercel/blob';
 import {
   invoices,
   lineItems,
@@ -13,6 +14,8 @@ import {
   redirectTo,
   sendMessage,
 } from '$lib/superforms';
+import { BLOB_READ_WRITE_TOKEN } from '$env/static/private';
+import { dev } from '$app/environment';
 
 export const load = async (event) => {
   const id = event.url.searchParams.get('id');
@@ -42,6 +45,7 @@ export const load = async (event) => {
     currentInvoice
       ? {
           ...currentInvoice,
+          files: currentInvoice.files || undefined,
           status: currentInvoice.status as unknown as InvoiceStatus,
           lineItems: currentInvoice.lineItems.map((lineItem) => ({
             ...lineItem,
@@ -54,6 +58,7 @@ export const load = async (event) => {
           invoiceNumber,
           date: new Date(),
           status: 'draft',
+          files: [],
         },
   );
 
@@ -69,7 +74,7 @@ export const actions = {
 
     const user = getUser();
 
-    const { id, lineItems: products, ...invoiceData } = form.data;
+    const { id, lineItems: products, images, ...invoiceData } = form.data;
 
     await db.transaction(async (tx) => {
       // Fetch the current invoice from the database if editing
@@ -132,13 +137,41 @@ export const actions = {
           0,
         ) * 100,
       );
+      if (!dev) {
+        if (images?.length) {
+          invoiceData.files = [
+            ...(invoiceData?.files || []),
+            ...(
+              await Promise.all(
+                images.map((image) =>
+                  put(
+                    `invoices/${invoiceData.date.getMonth() + 1}${invoiceData.date.getFullYear()}/${crypto.randomUUID()}${image.name}`,
+                    image,
+                    { token: BLOB_READ_WRITE_TOKEN, access: 'public' },
+                  ),
+                ),
+              )
+            ).map((x, index) => ({ url: x.url, name: images[index].name })),
+          ];
+        }
+        if (invoiceData.files.some((x) => x.deleted)) {
+          await Promise.all(
+            invoiceData.files
+              .filter((x) => x.deleted)
+              .map((file) => del(file.url, { token: BLOB_READ_WRITE_TOKEN })),
+          );
+          invoiceData.files = invoiceData.files.filter((file) => !file.deleted);
+        }
+      }
 
       const data = {
         ...invoiceData,
+        store: 'cutom',
         total,
         date: new Date(invoiceData.date),
         userId: user.id,
       };
+
       if (id) {
         await tx.update(invoices).set(data).where(eq(invoices.id, id));
 

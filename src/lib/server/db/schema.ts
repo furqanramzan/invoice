@@ -52,6 +52,10 @@ export const invoices = sqliteTable('invoices', {
   status: text('status').notNull().default('draft'),
   store: text('store'),
   total: integer('total').notNull(),
+  files: text('files', { mode: 'json' })
+    .$type<Array<{ url: string; name: string; deleted?: boolean }>>()
+    .notNull()
+    .default(sql`'[]'`),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .default(sql`(unixepoch())`)
     .notNull(),

@@ -27,4 +27,12 @@ export const invoiceSchema = z.object({
   date: z.date(),
   lineItems: z.array(lineItemSchema),
   status: invoiceStatus,
+  files: z
+    .object({ url: z.url(), name: z.string(), deleted: z.boolean().optional() })
+    .array(),
+  images: z
+    .instanceof(File, { message: 'Please upload a file.' })
+    .refine((f) => f.size < 100_000_000, 'Max 100 kB upload size.')
+    .array()
+    .optional(),
 });

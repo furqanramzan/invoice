@@ -61,7 +61,7 @@ export function getSuperForm<
       }
       const errorMessage = 'Oops, something broke!';
       if (event.result.type === 'error') {
-        toast.error(errorMessage);
+        toast.error(errorMessage, { id });
         return;
       }
       if (event.result.type === 'success') {
