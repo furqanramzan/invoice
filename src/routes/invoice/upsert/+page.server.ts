@@ -18,6 +18,7 @@ import {
 export const load = async (event) => {
   const id = event.url.searchParams.get('id');
   let currentInvoice = null;
+  let invoiceNumber: number | undefined;
 
   if (id) {
     currentInvoice = await db.query.invoices.findFirst({
@@ -34,6 +35,8 @@ export const load = async (event) => {
     if (!currentInvoice) {
       return redirectTo(route.list, event, `${title.singular} not exists!`);
     }
+  } else {
+    invoiceNumber = await getLastestInvoiceNumber();
   }
   const form = await initForm(
     invoiceSchema,
@@ -50,7 +53,7 @@ export const load = async (event) => {
           })),
         }
       : {
-          invoiceNumber: crypto.randomUUID(),
+          invoiceNumber,
           date: toISODateString(new Date()),
           status: 'draft',
         },
@@ -144,9 +147,10 @@ export const actions = {
         // Delete existing line items for this invoice
         await tx.delete(lineItems).where(eq(lineItems.invoiceId, id));
       } else {
+        const invoiceNumber = await getLastestInvoiceNumber();
         const [newInvoice] = await tx
           .insert(invoices)
-          .values(data)
+          .values({ ...data, invoiceNumber })
           .returning({ id: invoices.id });
         form.data.id = newInvoice.id; // Assign new ID to form data for line items
       }
@@ -177,3 +181,11 @@ export const actions = {
     return sendMessage(form, `${title.plural} updated!`);
   },
 };
+
+async function getLastestInvoiceNumber() {
+  const lastInvoice = await db.query.invoices.findFirst({
+    columns: { invoiceNumber: true },
+    orderBy: (invoices, { desc }) => desc(invoices.invoiceNumber),
+  });
+  return (lastInvoice?.invoiceNumber || 0) + 1;
+}

@@ -47,7 +47,7 @@ export const invoices = sqliteTable('invoices', {
   userId: text('user_id')
     .notNull()
     .references(() => user.id),
-  invoiceNumber: text('invoice_number').notNull().unique(),
+  invoiceNumber: integer('invoice_number').notNull().unique(),
   date: integer('date', { mode: 'timestamp' }).notNull(),
   status: text('status').notNull().default('draft'),
   store: text('store'),

@@ -226,13 +226,13 @@
     <HiddenField {superform} field="id" />
   {/if}
 
-  <TextField {superform} disabled={isImmutable} field="store" />
   <TextField
-    disabled={isImmutable}
+    disabled
     {superform}
     field="invoiceNumber"
     label="{title.singular} Number"
   />
+  <TextField {superform} disabled={isImmutable} field="store" />
 
   <div>
     <Label for="date" class="mb-1">Date</Label>

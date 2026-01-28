@@ -15,7 +15,7 @@
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "precommit": "pnpm format && pnpm lint && pnpm check",
+    "precommit": "pnpm format && (pnpm lint & pnpm check & wait)",
     "db:studio": "drizzle-kit studio"
   },
   "devDependencies": {
