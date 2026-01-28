@@ -24,7 +24,7 @@ export const invoiceSchema = z.object({
   id: z.string().optional(), // Added and made optional for upsert
   store: z.string().nullable(),
   invoiceNumber: z.number().positive(),
-  date: z.iso.date(),
+  date: z.date(),
   lineItems: z.array(lineItemSchema),
   status: invoiceStatus,
 });

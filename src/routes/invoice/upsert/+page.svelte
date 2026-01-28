@@ -16,6 +16,7 @@
   import HiddenField from '$lib/components/hidden-field.svelte';
   import TextField from '$lib/components/text-field.svelte';
   import { formatAmount, formatCents } from '$lib/utils.js';
+  import DateField from '$lib/components/date-field.svelte';
 
   let { data } = $props();
   const allProducts = $derived(data.products);
@@ -233,20 +234,7 @@
     label="{title.singular} Number"
   />
   <TextField {superform} disabled={isImmutable} field="store" />
-
-  <div>
-    <Label for="date" class="mb-1">Date</Label>
-    <Input
-      id="date"
-      name="date"
-      type="date"
-      bind:value={$form.date}
-      disabled={isImmutable}
-    />
-    {#if $errors.date}
-      <p class="text-red-500">{$errors.date}</p>
-    {/if}
-  </div>
+  <DateField {superform} field="date" />
 
   <div>
     <Label for="status" class="mb-1">Status</Label>

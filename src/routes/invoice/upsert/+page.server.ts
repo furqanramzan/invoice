@@ -6,7 +6,6 @@ import {
 } from '$lib/server/db/schema';
 import { invoiceSchema, route, title, type InvoiceStatus } from './utils';
 import { eq } from 'drizzle-orm';
-import { toISODateString } from '$lib/utils.js';
 import { getUser } from '$lib/server/auth.js';
 import {
   initForm,
@@ -44,7 +43,6 @@ export const load = async (event) => {
       ? {
           ...currentInvoice,
           status: currentInvoice.status as unknown as InvoiceStatus,
-          date: toISODateString(currentInvoice.date),
           lineItems: currentInvoice.lineItems.map((lineItem) => ({
             ...lineItem,
             name: lineItem.product.name,
@@ -54,7 +52,7 @@ export const load = async (event) => {
         }
       : {
           invoiceNumber,
-          date: toISODateString(new Date()),
+          date: new Date(),
           status: 'draft',
         },
   );
