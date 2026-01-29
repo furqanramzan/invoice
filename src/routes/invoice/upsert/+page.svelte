@@ -31,7 +31,7 @@
   const superform = getSuperForm(invoiceSchema, data.form, {
     dataType: 'json',
     onUpdate() {
-      $form.images = [];
+      $form.images = undefined;
     },
   });
   const { form, isTainted, tainted, errors, enhance, submitting } = superform;

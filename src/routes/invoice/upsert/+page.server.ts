@@ -1,5 +1,4 @@
 import { db } from '$lib/server/db';
-import { del, put } from '@vercel/blob';
 import {
   invoices,
   lineItems,
@@ -14,8 +13,8 @@ import {
   redirectTo,
   sendMessage,
 } from '$lib/superforms';
-import { BLOB_READ_WRITE_TOKEN } from '$env/static/private';
 import { dev } from '$app/environment';
+import { delFile, putFile } from '$lib/server/filesystem.js';
 
 export const load = async (event) => {
   const id = event.url.searchParams.get('id');
@@ -144,23 +143,22 @@ export const actions = {
             ...(
               await Promise.all(
                 images.map((image) =>
-                  put(
+                  putFile(
                     `invoices/${invoiceData.date.getMonth() + 1}${invoiceData.date.getFullYear()}/${crypto.randomUUID()}${image.name}`,
                     image,
-                    { token: BLOB_READ_WRITE_TOKEN, access: 'public' },
                   ),
                 ),
               )
-            ).map((x, index) => ({ url: x.url, name: images[index].name })),
+            ).map((x, index) => ({ url: x, name: images[index].name })),
           ];
         }
         if (invoiceData.files.some((x) => x.deleted)) {
           await Promise.all(
             invoiceData.files
               .filter((x) => x.deleted)
-              .map((file) => del(file.url, { token: BLOB_READ_WRITE_TOKEN })),
+              .map((file) => delFile(file.url)),
           );
-          invoiceData.files = invoiceData.files.filter((file) => !file.deleted);
+          // invoiceData.files = invoiceData.files.filter((file) => !file.deleted);
         }
       }
 
