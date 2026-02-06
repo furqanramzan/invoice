@@ -47,6 +47,9 @@ export const invoices = sqliteTable('invoices', {
   userId: text('user_id')
     .notNull()
     .references(() => user.id),
+  companyId: text('company_id')
+    .notNull()
+    .references(() => companies.id),
   invoiceNumber: integer('invoice_number').notNull(),
   date: integer('date', { mode: 'timestamp' }).notNull(),
   status: text('status').notNull().default('draft'),
@@ -60,8 +63,9 @@ export const invoices = sqliteTable('invoices', {
     .notNull(),
 });
 
-export const invoicesRelations = relations(invoices, ({ many }) => ({
+export const invoicesRelations = relations(invoices, ({ many, one }) => ({
   lineItems: many(lineItems),
+  company: one(companies),
 }));
 
 export const lineItems = sqliteTable('line_items', {

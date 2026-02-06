@@ -5,7 +5,7 @@ import {
   products as productsSchema,
 } from '$lib/server/db/schema';
 import { invoiceSchema, route, title, type InvoiceStatus } from './utils';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { getUser } from '$lib/server/auth.js';
 import {
   initForm,
@@ -18,7 +18,6 @@ import { delFile, putFile } from '$lib/server/filesystem.js';
 export const load = async (event) => {
   const id = event.url.searchParams.get('id');
   let currentInvoice = null;
-  let invoiceNumber: number | undefined;
 
   if (id) {
     currentInvoice = await db.query.invoices.findFirst({
@@ -35,9 +34,23 @@ export const load = async (event) => {
     if (!currentInvoice) {
       return redirectTo(route.list, event, `${title.singular} not exists!`);
     }
-  } else {
-    invoiceNumber = await getLastestInvoiceNumber();
   }
+
+  const companies = await db.query.companies.findMany({
+    columns: { id: true, name: true, printLayout: true, logoUrl: true },
+  });
+
+  const invoicenumbers = await db
+    .select({
+      companyId: invoices.companyId,
+      invoiceNumber: sql<number>`max(${invoices.invoiceNumber})`,
+    })
+    .from(invoices)
+    .groupBy(invoices.companyId);
+  const invoiceNumber =
+    (invoicenumbers.find((x) => x.companyId === companies.at(0)?.id)
+      ?.invoiceNumber || 0) + 1;
+
   const form = await initForm(
     invoiceSchema,
     currentInvoice
@@ -53,6 +66,7 @@ export const load = async (event) => {
         }
       : {
           invoiceNumber,
+          companyId: companies.at(0)?.id,
           date: new Date(),
           status: 'draft',
           files: [],
@@ -61,7 +75,7 @@ export const load = async (event) => {
 
   const products = await db.query.products.findMany();
 
-  return { form, products, currentInvoice };
+  return { form, products, invoicenumbers, companies, currentInvoice };
 };
 
 export const actions = {
@@ -172,10 +186,9 @@ export const actions = {
         // Delete existing line items for this invoice
         await tx.delete(lineItems).where(eq(lineItems.invoiceId, id));
       } else {
-        const invoiceNumber = await getLastestInvoiceNumber();
         const [newInvoice] = await tx
           .insert(invoices)
-          .values({ ...data, invoiceNumber })
+          .values({ ...data })
           .returning({ id: invoices.id });
         form.data.id = newInvoice.id; // Assign new ID to form data for line items
       }
@@ -206,11 +219,3 @@ export const actions = {
     return sendMessage(form, `${title.plural} updated!`);
   },
 };
-
-async function getLastestInvoiceNumber() {
-  const lastInvoice = await db.query.invoices.findFirst({
-    columns: { invoiceNumber: true },
-    orderBy: (invoices, { desc }) => desc(invoices.invoiceNumber),
-  });
-  return (lastInvoice?.invoiceNumber || 0) + 1;
-}

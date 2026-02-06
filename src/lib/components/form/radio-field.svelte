@@ -9,23 +9,33 @@
     type FormFieldProxy,
   } from 'sveltekit-superforms';
 
+  type FieldType = string;
   type Props = {
     superform: SuperForm<T>;
-    field: FormPathLeaves<T, string>;
+    field: FormPathLeaves<T, FieldType>;
     options: Array<{ label?: string; value: string }>;
     label?: string;
     disabled?: boolean;
+    onchange?: (value: FieldType) => void;
   };
 
-  let { superform, field, options, label, disabled }: Props = $props();
+  let { superform, onchange, field, options, label, disabled }: Props =
+    $props();
 
   // svelte-ignore state_referenced_locally
   const { value, errors } = formFieldProxy(
     superform,
     field,
-  ) satisfies FormFieldProxy<string>;
+  ) satisfies FormFieldProxy<FieldType>;
 
   let labelText = $derived(label || titleCase(field));
+
+  $effect(() => {
+    if (!onchange) {
+      return;
+    }
+    onchange($value);
+  });
 </script>
 
 <div class="space-y-1">

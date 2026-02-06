@@ -41,7 +41,7 @@ export async function putFile(key: string, file: File) {
 }
 
 export async function delFile(fileUrl: string) {
-  if (dev) {
+  if (dev || !fileUrl) {
     return;
   }
 

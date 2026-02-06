@@ -220,6 +220,11 @@
     const filename = `${invoiceData.invoiceNumber}_${invoiceData.date}.pdf`;
     doc.save(filename);
   }
+
+  let invoiceNumber = $derived(
+    (data.invoicenumbers.find((x) => x.companyId === $form.companyId)
+      ?.invoiceNumber || 0) + 1,
+  );
 </script>
 
 <Heading
@@ -234,8 +239,19 @@
 
   <div class="grid grid-cols-2">
     <div class="space-y-4">
-      <TextField
-        disabled
+      <RadioField
+        {superform}
+        field="companyId"
+        label="Company"
+        options={data.companies.map((x) => ({ label: x.name, value: x.id }))}
+        onchange={() => {
+          if (isEditing) {
+            return;
+          }
+          $form.invoiceNumber = invoiceNumber;
+        }}
+      />
+      <NumberField
         {superform}
         field="invoiceNumber"
         label="{title.singular} Number"
