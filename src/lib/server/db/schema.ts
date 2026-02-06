@@ -47,15 +47,14 @@ export const invoices = sqliteTable('invoices', {
   userId: text('user_id')
     .notNull()
     .references(() => user.id),
-  invoiceNumber: integer('invoice_number').notNull().unique(),
+  invoiceNumber: integer('invoice_number').notNull(),
   date: integer('date', { mode: 'timestamp' }).notNull(),
   status: text('status').notNull().default('draft'),
   store: text('store'),
   total: integer('total').notNull(),
-  files: text('files', { mode: 'json' })
-    .$type<Array<{ url: string; name: string; deleted?: boolean }>>()
-    .notNull()
-    .default(sql`'[]'`),
+  files: text('files', { mode: 'json' }).$type<
+    Array<{ url: string; name: string; deleted?: boolean }>
+  >(),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .default(sql`(unixepoch())`)
     .notNull(),
@@ -94,6 +93,22 @@ export const lineItemsRelations = relations(lineItems, ({ one }) => ({
   }),
 }));
 
+export const companies = sqliteTable('companies', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id),
+  name: text('name').notNull(),
+  logoUrl: text('logo_url'),
+  printLayout: text('print_layout'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
+    .notNull(),
+});
+
 export type Session = typeof session.$inferSelect;
 export type User = typeof user.$inferSelect;
 export type Product = typeof products.$inferSelect;
+export type Company = typeof companies.$inferSelect;

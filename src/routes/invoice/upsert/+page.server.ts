@@ -13,7 +13,6 @@ import {
   redirectTo,
   sendMessage,
 } from '$lib/superforms';
-import { dev } from '$app/environment';
 import { delFile, putFile } from '$lib/server/filesystem.js';
 
 export const load = async (event) => {
@@ -44,7 +43,6 @@ export const load = async (event) => {
     currentInvoice
       ? {
           ...currentInvoice,
-          files: currentInvoice.files || undefined,
           status: currentInvoice.status as unknown as InvoiceStatus,
           lineItems: currentInvoice.lineItems.map((lineItem) => ({
             ...lineItem,
@@ -136,30 +134,28 @@ export const actions = {
           0,
         ) * 100,
       );
-      if (!dev) {
-        if (images?.length) {
-          invoiceData.files = [
-            ...(invoiceData?.files || []),
-            ...(
-              await Promise.all(
-                images.map((image) =>
-                  putFile(
-                    `invoices/${invoiceData.date.getMonth() + 1}${invoiceData.date.getFullYear()}/${crypto.randomUUID()}${image.name}`,
-                    image,
-                  ),
+      if (images?.length) {
+        invoiceData.files = [
+          ...(invoiceData?.files || []),
+          ...(
+            await Promise.all(
+              images.map((image) =>
+                putFile(
+                  `invoices/${invoiceData.date.getMonth() + 1}${invoiceData.date.getFullYear()}/${crypto.randomUUID()}${image.name}`,
+                  image,
                 ),
-              )
-            ).map((x, index) => ({ url: x, name: images[index].name })),
-          ];
-        }
-        if (invoiceData.files.some((x) => x.deleted)) {
-          await Promise.all(
-            invoiceData.files
-              .filter((x) => x.deleted)
-              .map((file) => delFile(file.url)),
-          );
-          // invoiceData.files = invoiceData.files.filter((file) => !file.deleted);
-        }
+              ),
+            )
+          ).map((x, index) => ({ url: x, name: images[index].name })),
+        ];
+      }
+      if (invoiceData.files?.some((x) => x.deleted)) {
+        await Promise.all(
+          invoiceData.files
+            .filter((x) => x.deleted)
+            .map((file) => delFile(file.url)),
+        );
+        // invoiceData.files = invoiceData.files.filter((file) => !file.deleted);
       }
 
       const data = {

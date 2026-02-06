@@ -1,7 +1,7 @@
 <script lang="ts" generics="T extends Record<string, unknown>">
   import type { Snippet } from 'svelte';
   import { type FormPathLeaves, type SuperForm } from 'sveltekit-superforms';
-  import { Button } from './ui/button';
+  import { Button } from '../ui/button';
 
   type Props = {
     children: Snippet;

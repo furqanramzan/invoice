@@ -12,13 +12,13 @@
   import { route, title } from './utils.js';
   import Heading from '$lib/components/heading.svelte';
   import { getSuperForm } from '$lib/superforms.js';
-  import HiddenField from '$lib/components/hidden-field.svelte';
-  import TextField from '$lib/components/text-field.svelte';
+  import HiddenField from '$lib/components/form/hidden-field.svelte';
+  import TextField from '$lib/components/form/text-field.svelte';
   import { formatAmount, formatCents } from '$lib/utils.js';
-  import DateField from '$lib/components/date-field.svelte';
-  import RadioField from '$lib/components/radio-field.svelte';
-  import NumberField from '$lib/components/number-field.svelte';
-  import MultiFileField from '$lib/components/multi-file-field.svelte';
+  import DateField from '$lib/components/form/date-field.svelte';
+  import RadioField from '$lib/components/form/radio-field.svelte';
+  import NumberField from '$lib/components/form/number-field.svelte';
+  import MultiFileField from '$lib/components/form/multi-file-field.svelte';
 
   let { data } = $props();
   const allProducts = $derived(data.products);
@@ -412,7 +412,7 @@
     <h2 class="text-lg font-semibold">Attachments</h2>
     <MultiFileField {superform} field="images" hideLabel={true} />
   </div>
-  {#if $form.files.length}
+  {#if $form.files?.length}
     <Table.Root class="border">
       <Table.Header>
         <Table.Row>
@@ -438,6 +438,9 @@
                   variant="destructive"
                   type="button"
                   onclick={() => {
+                    if (!$form.files || !$form.files[index]) {
+                      return;
+                    }
                     $form.files[index].deleted = true;
                     $form.files = $form.files;
                   }}

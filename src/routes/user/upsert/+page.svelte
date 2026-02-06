@@ -3,11 +3,11 @@
   import { getSuperForm } from '$lib/superforms.js';
   import Heading from '$lib/components/heading.svelte';
   import { route, title } from './utils.js';
-  import Form from '$lib/components/form.svelte';
-  import HiddenField from '$lib/components/hidden-field.svelte';
-  import TextField from '$lib/components/text-field.svelte';
-  import EmailField from '$lib/components/email-field.svelte';
-  import PasswordField from '$lib/components/password-field.svelte';
+  import Form from '$lib/components/form/form.svelte';
+  import HiddenField from '$lib/components/form/hidden-field.svelte';
+  import TextField from '$lib/components/form/text-field.svelte';
+  import EmailField from '$lib/components/form/email-field.svelte';
+  import PasswordField from '$lib/components/form/password-field.svelte';
 
   let { data } = $props();
 

@@ -30,13 +30,18 @@
 
 <div class="space-y-1">
   <Label id={field}>{labelText}</Label>
-  <RadioGroup.Root {disabled} class="flex gap-2" bind:value={$value}>
+  <RadioGroup.Root
+    name={field}
+    {disabled}
+    class="flex gap-2"
+    bind:value={$value}
+  >
     {#each options as option, index (index)}
       <div class="flex items-center space-x-2">
         <RadioGroup.Item value={option.value} id={option.value} />
-        <Label for={option.value}
-          >{titleCase(option.label || option.value)}</Label
-        >
+        <Label for={option.value}>
+          {titleCase(option.label || option.value)}
+        </Label>
       </div>
     {/each}
   </RadioGroup.Root>

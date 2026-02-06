@@ -9,7 +9,7 @@
   import { formatCents } from '$lib/utils';
   import { route, title } from './upsert/utils.js';
   import Heading from '$lib/components/heading.svelte';
-  import ActionForm from '$lib/components/action-form.svelte';
+  import ActionForm from '$lib/components/form/action-form.svelte';
 
   const { data } = $props();
 

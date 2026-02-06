@@ -1,3 +1,4 @@
+import { dev } from '$app/environment';
 import {
   R2_ACCESS_KEY_ID,
   R2_ACCOUNT_ID,
@@ -21,6 +22,10 @@ const s3 = new S3Client({
 });
 
 export async function putFile(key: string, file: File) {
+  if (dev) {
+    return '';
+  }
+
   const arrayBuffer = await file.arrayBuffer();
   await s3.send(
     new PutObjectCommand({
@@ -36,6 +41,10 @@ export async function putFile(key: string, file: File) {
 }
 
 export async function delFile(fileUrl: string) {
+  if (dev) {
+    return;
+  }
+
   const url = new URL(fileUrl);
   let key = url.pathname.startsWith('/') ? url.pathname.slice(1) : url.pathname;
   key = decodeURIComponent(key);
