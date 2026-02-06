@@ -251,6 +251,12 @@
           $form.invoiceNumber = invoiceNumber;
         }}
       />
+      <RadioField
+        {superform}
+        field="clientId"
+        label="Client"
+        options={data.clients.map((x) => ({ label: x.name, value: x.id }))}
+      />
       <NumberField
         {superform}
         field="invoiceNumber"

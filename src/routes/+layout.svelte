@@ -40,6 +40,7 @@
         <a href={resolve('/invoice/upsert')} class="text-sm">Create Invoice</a>
         <a href={resolve('/product')} class="text-sm">Products</a>
         <a href={resolve('/company')} class="text-sm">Companies</a>
+        <a href={resolve('/client')} class="text-sm">Clients</a>
         <form method="post" action="/logout" class="text-sm" use:enhance>
           <button>Sign out</button>
         </form>

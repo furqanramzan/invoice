@@ -50,6 +50,9 @@ export const invoices = sqliteTable('invoices', {
   companyId: text('company_id')
     .notNull()
     .references(() => companies.id),
+  clientId: text('client_id')
+    .notNull()
+    .references(() => companies.id),
   invoiceNumber: integer('invoice_number').notNull(),
   date: integer('date', { mode: 'timestamp' }).notNull(),
   status: text('status').notNull().default('draft'),
@@ -66,6 +69,7 @@ export const invoices = sqliteTable('invoices', {
 export const invoicesRelations = relations(invoices, ({ many, one }) => ({
   lineItems: many(lineItems),
   company: one(companies),
+  client: one(clients),
 }));
 
 export const lineItems = sqliteTable('line_items', {
@@ -105,8 +109,25 @@ export const companies = sqliteTable('companies', {
     .notNull()
     .references(() => user.id),
   name: text('name').notNull(),
+  address: text('address'),
+  email: text('email'),
+  phone: text('phone'),
   logoUrl: text('logo_url'),
   printLayout: text('print_layout'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
+    .notNull(),
+});
+
+export const clients = sqliteTable('clients', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id),
+  name: text('name').notNull(),
+  address: text('address'),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .default(sql`(unixepoch())`)
     .notNull(),
@@ -116,3 +137,4 @@ export type Session = typeof session.$inferSelect;
 export type User = typeof user.$inferSelect;
 export type Product = typeof products.$inferSelect;
 export type Company = typeof companies.$inferSelect;
+export type Client = typeof clients.$inferSelect;

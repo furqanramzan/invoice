@@ -8,7 +8,7 @@ import { delFile, putFile } from '$lib/server/filesystem.js';
 
 export const load = async (event) => {
   const id = event.url.searchParams.get('id');
-  let currentCompany = null;
+  let currentCompany: Company | undefined;
 
   if (id) {
     currentCompany = await db.query.companies.findFirst({

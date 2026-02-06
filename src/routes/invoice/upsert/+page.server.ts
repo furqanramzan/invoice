@@ -39,6 +39,7 @@ export const load = async (event) => {
   const companies = await db.query.companies.findMany({
     columns: { id: true, name: true, printLayout: true, logoUrl: true },
   });
+  const clients = await db.query.clients.findMany();
 
   const invoicenumbers = await db
     .select({
@@ -67,6 +68,7 @@ export const load = async (event) => {
       : {
           invoiceNumber,
           companyId: companies.at(0)?.id,
+          clientId: clients.at(0)?.id,
           date: new Date(),
           status: 'draft',
           files: [],
@@ -75,7 +77,7 @@ export const load = async (event) => {
 
   const products = await db.query.products.findMany();
 
-  return { form, products, invoicenumbers, companies, currentInvoice };
+  return { form, products, invoicenumbers, companies, clients, currentInvoice };
 };
 
 export const actions = {
