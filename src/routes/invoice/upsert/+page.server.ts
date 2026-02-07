@@ -36,9 +36,7 @@ export const load = async (event) => {
     }
   }
 
-  const companies = await db.query.companies.findMany({
-    columns: { id: true, name: true, printLayout: true, logoUrl: true },
-  });
+  const companies = await db.query.companies.findMany();
   const clients = await db.query.clients.findMany();
 
   const invoicenumbers = await db
@@ -176,7 +174,6 @@ export const actions = {
 
       const data = {
         ...invoiceData,
-        store: 'cutom',
         total,
         date: new Date(invoiceData.date),
         userId: user.id,
@@ -190,7 +187,7 @@ export const actions = {
       } else {
         const [newInvoice] = await tx
           .insert(invoices)
-          .values({ ...data })
+          .values(data)
           .returning({ id: invoices.id });
         form.data.id = newInvoice.id; // Assign new ID to form data for line items
       }

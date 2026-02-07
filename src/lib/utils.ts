@@ -37,15 +37,15 @@ export function getPaginationData(event: RequestEvent) {
 
 export function formatCents(amount: number) {
   return (amount / 100).toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'PKR',
+    // style: 'currency',
+    // currency: 'PKR',
   });
 }
 
 export function formatAmount(amount: number) {
   return amount.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'PKR',
+    // style: 'currency',
+    // currency: 'PKR',
   });
 }
 
@@ -55,4 +55,21 @@ export function convertCents(amount: number) {
 
 export function convertToCents(amount: number) {
   return Math.round(amount * 100);
+}
+
+export function splitAfterChars(str: string, limit = 60) {
+  const result = [];
+  let current = '';
+
+  str.split(' ').forEach((word) => {
+    if ((current + ' ' + word).trim().length > limit) {
+      result.push(current.trim());
+      current = word;
+    } else {
+      current += ' ' + word;
+    }
+  });
+
+  if (current) result.push(current.trim());
+  return result;
 }

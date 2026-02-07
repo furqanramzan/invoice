@@ -11,5 +11,6 @@ export const route = {
 export const clientSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, { message: 'Name is required' }),
-  address: z.string().optional().nullable(),
+  address: z.string(),
+  attention: z.string().optional().nullable(),
 });

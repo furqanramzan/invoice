@@ -42,7 +42,6 @@
           <Table.Cell class="p-4 text-nowrap">
             {invoice.invoiceNumber}
           </Table.Cell>
-          <Table.Cell class="p-4 text-nowrap">{invoice.store}</Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
             {new Date(invoice.date).toLocaleDateString()}
           </Table.Cell>

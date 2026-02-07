@@ -52,11 +52,10 @@ export const invoices = sqliteTable('invoices', {
     .references(() => companies.id),
   clientId: text('client_id')
     .notNull()
-    .references(() => companies.id),
+    .references(() => clients.id),
   invoiceNumber: integer('invoice_number').notNull(),
   date: integer('date', { mode: 'timestamp' }).notNull(),
   status: text('status').notNull().default('draft'),
-  store: text('store'),
   total: integer('total').notNull(),
   files: text('files', { mode: 'json' }).$type<
     Array<{ url: string; name: string; deleted?: boolean }>
@@ -109,11 +108,11 @@ export const companies = sqliteTable('companies', {
     .notNull()
     .references(() => user.id),
   name: text('name').notNull(),
-  address: text('address'),
-  email: text('email'),
-  phone: text('phone'),
+  address: text('address').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone').notNull(),
   logoUrl: text('logo_url'),
-  printLayout: text('print_layout'),
+  printLayout: text('print_layout').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .default(sql`(unixepoch())`)
     .notNull(),
@@ -127,7 +126,8 @@ export const clients = sqliteTable('clients', {
     .notNull()
     .references(() => user.id),
   name: text('name').notNull(),
-  address: text('address'),
+  address: text('address').notNull(),
+  attention: text('address'),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .default(sql`(unixepoch())`)
     .notNull(),

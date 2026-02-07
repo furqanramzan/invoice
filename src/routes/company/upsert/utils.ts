@@ -14,9 +14,9 @@ export type PrintLayout = z.infer<typeof printLayoutEnum>;
 export const companySchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, { message: 'Name is required' }),
-  address: z.string().optional().nullable(),
-  email: z.email({ message: 'Invalid email address' }).optional().nullable(),
-  phone: z.string().optional().nullable(),
+  address: z.string(),
+  email: z.email({ message: 'Invalid email address' }),
+  phone: z.string(),
   logo: z
     .instanceof(File, { message: 'Please upload a file.' })
     .refine((f) => f.size < 100_000_000, 'Max 100 MB upload size.')

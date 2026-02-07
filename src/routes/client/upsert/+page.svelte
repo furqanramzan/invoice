@@ -29,4 +29,5 @@
 
   <TextField {superform} field="name" />
   <TextField {superform} field="address" />
+  <TextField {superform} field="attention" />
 </Form>

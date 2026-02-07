@@ -50,7 +50,7 @@
       <div class="flex items-center space-x-2">
         <RadioGroup.Item value={option.value} id={option.value} />
         <Label for={option.value}>
-          {titleCase(option.label || option.value)}
+          {option.label || titleCase(option.value)}
         </Label>
       </div>
     {/each}

@@ -22,7 +22,6 @@ const invoiceStatus = z
 export type InvoiceStatus = z.infer<typeof invoiceStatus>;
 export const invoiceSchema = z.object({
   id: z.string().optional(), // Added and made optional for upsert
-  store: z.string().nullable(),
   invoiceNumber: z.number().positive(),
   companyId: z.uuidv4(),
   clientId: z.uuidv4(),

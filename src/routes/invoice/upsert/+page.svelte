@@ -13,12 +13,13 @@
   import Heading from '$lib/components/heading.svelte';
   import { getSuperForm } from '$lib/superforms.js';
   import HiddenField from '$lib/components/form/hidden-field.svelte';
-  import TextField from '$lib/components/form/text-field.svelte';
-  import { formatAmount, formatCents } from '$lib/utils.js';
+  import { formatAmount, formatCents, splitAfterChars } from '$lib/utils.js';
   import DateField from '$lib/components/form/date-field.svelte';
   import RadioField from '$lib/components/form/radio-field.svelte';
   import NumberField from '$lib/components/form/number-field.svelte';
   import MultiFileField from '$lib/components/form/multi-file-field.svelte';
+  import { onMount } from 'svelte';
+  import { toast } from 'svelte-sonner';
 
   let { data } = $props();
   const allProducts = $derived(data.products);
@@ -69,6 +70,12 @@
       ? '0.00'
       : (((total - totalCost) / totalCost) * 100).toFixed(2),
   );
+  let company = $derived(data.companies.find((x) => x.id === $form.companyId));
+  let client = $derived(data.clients.find((x) => x.id === $form.clientId));
+  let invoiceNumber = $derived(
+    (data.invoicenumbers.find((x) => x.companyId === $form.companyId)
+      ?.invoiceNumber || 0) + 1,
+  );
 
   let searchTerm: string[] = $state($form.lineItems.map(() => ''));
   let suggestions: Product[][] = $state($form.lineItems.map(() => []));
@@ -96,6 +103,13 @@
     suggestions[index] = [];
     activeSuggestionIndex[index] = -1; // Reset active index
   }
+
+  // Reactive block to reset search state when products array changes (e.g., product added/removed)
+  $effect(() => {
+    searchTerm = $form.lineItems.map(() => '');
+    suggestions = $form.lineItems.map(() => []);
+    activeSuggestionIndex = $form.lineItems.map(() => -1);
+  });
 
   function handleKeydown(index: number, event: KeyboardEvent) {
     if (suggestions[index].length === 0) return;
@@ -132,13 +146,97 @@
     }
   }
 
-  // Reactive block to reset search state when products array changes (e.g., product added/removed)
-  $effect(() => {
-    searchTerm = $form.lineItems.map(() => '');
-    suggestions = $form.lineItems.map(() => []);
-    activeSuggestionIndex = $form.lineItems.map(() => -1);
-  });
+  onMount(generateSSInvoice);
+  async function generateSSInvoice() {
+    const doc = new jsPDF();
 
+    // --- Header Section ---
+    // Centered Logo and Company Tagline
+    // doc.addImage(logo, 'PNG', 80, 10, 50, 20); // Center logo
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.text('SS ENTERPRISES', 105, 35, { align: 'center' }); //
+
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(10);
+    doc.text('"Delivering Quality, On Time, Every Time."', 105, 42, {
+      align: 'center',
+    }); //
+
+    // --- Client and Invoice Details ---
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('K.Jees.', 15, 55); // [cite: 18]
+    doc.setFont('helvetica', 'normal');
+    doc.text('Karachi', 15, 60); // [cite: 19]
+    doc.text('PO-111563-1', 15, 65); //
+
+    // Invoice Meta (Right Aligned)
+    doc.setFont('helvetica', 'bold');
+    doc.text('Invoice', 195, 55, { align: 'right' }); // [cite: 21]
+    doc.setFont('helvetica', 'normal');
+    doc.text('Date: January 29, 2025', 195, 60, { align: 'right' }); // [cite: 22]
+    doc.text('Invoice: KJ/00112', 195, 65, { align: 'right' }); // [cite: 23]
+
+    // --- Items Table ---
+    autoTable(doc, {
+      startY: 75,
+      head: [['SN', 'Name of Materials', 'QTY-Pieces', 'Rates', 'Total']], //
+      body: [
+        ['1', 'Plastic Gloves', '200,000', '0.39', '78,000'], //
+      ],
+      foot: [['Total', '', '', '', '78,000']], //
+      theme: 'grid',
+      headStyles: { fillColor: [0, 0, 0], textColor: 255, halign: 'center' },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 15 },
+        2: { halign: 'center' },
+        3: { halign: 'right' },
+        4: { halign: 'right' },
+      },
+      footStyles: {
+        fillColor: [255, 255, 255],
+        textColor: 0,
+        fontStyle: 'bold',
+        halign: 'right',
+      },
+    });
+
+    // --- Reception and Footer Section ---
+    let finalY = doc.lastAutoTable.finalY + 15;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Received by:', 15, finalY); // [cite: 25]
+    doc.setFont('helvetica', 'normal');
+    doc.text('Name: ________________', 15, finalY + 10); // [cite: 26]
+    doc.text('Designation: ___________', 15, finalY + 18); // [cite: 27]
+    doc.text('Department: ____________', 15, finalY + 26); // [cite: 28]
+
+    // Footer Branding
+    doc.setFont('helvetica', 'bold');
+    doc.text('Thank You for your Business.', 105, finalY + 45, {
+      align: 'center',
+    }); // [cite: 29]
+    doc.text('SS Enterprises', 105, finalY + 52, { align: 'center' }); // [cite: 30]
+
+    // Address and Contact Details
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(
+      'OFFICE OFFICE 505, SHARJAHA TRADE CENTER, SHAR-E-LIAQUAT, NEW CHALI, KARACHI',
+      105,
+      finalY + 60,
+      { align: 'center' },
+    ); //
+    doc.text(
+      'EMAIL: SSENTERPRISES1994@GMAIL.COM | CELL: 00923272326266',
+      105,
+      finalY + 65,
+      { align: 'center' },
+    ); //
+
+    doc.save('Invoice_KJ_00112_SS_Enterprises.pdf');
+  }
   async function exportData() {
     if (isTainted($tainted)) {
       alert(
@@ -146,85 +244,138 @@
       );
       return;
     }
+    if (!company) {
+      toast.error('Select company first!');
+      return;
+    }
+    if (!client) {
+      toast.error('Select client first!');
+      return;
+    }
+    if (company.printLayout === 'A') {
+      const doc = new jsPDF();
 
-    // Prepare invoice data
-    const invoiceData = {
-      store: $form.store,
-      invoiceNumber: $form.invoiceNumber,
-      date: $form.date,
-      products: $form.lineItems.map((p) => ({
-        name: p.name,
-        quantity: p.quantity,
-        unitPrice: p.unitPrice,
-        totalPrice: p.quantity * p.unitPrice,
-      })),
-    };
+      // --- Header Section ---
+      doc.setFont('times', 'bold');
+      doc.setFontSize(20);
+      doc.setTextColor('#1155cc');
+      doc.text(company.name, 15, 20);
 
-    const total = invoiceData.products.reduce(
-      (sum, p) => sum + p.totalPrice,
-      0,
-    );
+      doc.setTextColor('black');
+      doc.setFont('times', 'normal');
+      doc.setFontSize(8);
+      const address = [
+        `PHONE NO. = ${company.phone}`,
+        `EMAIL = ${company.email}`,
+      ];
+      if (company.address) {
+        address.unshift(...splitAfterChars(company.address));
+      }
+      doc.text(address, 15, 24);
 
-    const doc = new jsPDF();
+      if (company.logoUrl) {
+        // @ts-expect-error it's working fine without providing height or width
+        doc.addImage(company.logoUrl, 'PNG', 160, 12);
+      }
 
-    doc.setFontSize(12);
+      // --- Meta Data Table (Client Info & Date) ---
+      autoTable(doc, {
+        startY: 40,
+        body: [
+          [
+            client.name,
+            `Date: ${new Intl.DateTimeFormat('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }).format($form.date)}`,
+          ],
+          ['Att: KJ Management', `Invoice #: ${$form.invoiceNumber}`],
+          [client.name, ''],
+        ],
+        theme: 'grid',
+        styles: {
+          font: 'times',
+          fontStyle: 'bold',
+          textColor: '#566a8a',
+          fontSize: 14,
+          cellPadding: 1,
+          lineWidth: 0.8,
+          lineColor: 'black',
+        },
+      });
 
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${title.singular} #:`, 120, 20);
-    doc.setFont('helvetica', 'normal');
-    doc.text(String(invoiceData.invoiceNumber), 160, 20);
+      // --- Greeting ---
+      let finalY = doc.lastAutoTable.finalY + 5;
+      doc.setFont('times', 'bold');
+      doc.setFontSize(10);
+      doc.text('Dear Sir,', 15, finalY);
+      doc.setFont('times', 'normal');
+      doc.text(
+        'We have delivered the goods at your door, there is a invoice for the respective goods.',
+        15,
+        finalY + 5,
+      );
 
-    doc.setFont('helvetica', 'bold');
-    doc.text('Date:', 120, 28);
-    doc.setFont('helvetica', 'normal');
-    doc.text(String(invoiceData.date), 160, 28);
+      // --- Main Items Table ---
+      autoTable(doc, {
+        startY: finalY + 8,
+        head: [['S.No.', 'Item Description', 'Qty', 'Rate', 'Amount']],
+        body: $form.lineItems.map((lineItem, index) => [
+          index + 1,
+          lineItem.name,
+          lineItem.quantity,
+          formatAmount(lineItem.unitPrice),
+          formatAmount(lineItem.unitPrice * lineItem.quantity),
+        ]),
+        foot: [['', '', '', 'Total.', formatAmount(total)]],
+        theme: 'grid',
+        headStyles: {
+          fillColor: [60, 60, 60],
+          textColor: 255,
+          halign: 'center',
+        },
+        footStyles: {
+          fillColor: [240, 240, 240],
+          textColor: 0,
+          fontStyle: 'bold',
+          halign: 'right',
+        },
+        columnStyles: {
+          0: { halign: 'center' },
+          2: { halign: 'center' },
+          3: { halign: 'right' },
+          4: { halign: 'right' },
+        },
+      });
 
-    doc.setFont('helvetica', 'bold');
-    doc.text('Store:', 120, 36);
-    doc.setFont('helvetica', 'normal');
-    doc.text(String(invoiceData.store), 160, 36);
+      // --- Footer / Signatures ---
+      doc.setFont('times', 'bold');
+      finalY = doc.lastAutoTable.finalY + 5;
+      doc.setFontSize(14);
+      doc.setTextColor('#566a8a');
+      doc.text('Thank you for your Business', 15, finalY, {});
+      doc.setTextColor('black');
 
-    autoTable(doc, {
-      startY: 50,
-      margin: { left: 15, right: 15 },
-      tableWidth: 'auto',
-      head: [['Product Name', 'Quantity', 'Unit Price', 'Total Price']],
-      body: invoiceData.products.map((p) => [
-        p.name,
-        p.quantity,
-        formatAmount(p.unitPrice),
-        formatAmount(p.totalPrice),
-      ]),
-      styles: {
-        fontSize: 10,
-        cellPadding: 4,
-      },
-      headStyles: {
-        fillColor: [240, 240, 240],
-        textColor: 0,
-        fontStyle: 'bold',
-      },
-      columnStyles: {
-        0: { cellWidth: 'auto' }, // Product Name
-        1: { cellWidth: 25, halign: 'right' },
-        2: { cellWidth: 35, halign: 'right' },
-        3: { cellWidth: 35, halign: 'right' },
-      },
-    });
+      doc.setFontSize(10);
+      finalY += 10;
+      doc.text('Received By:', 15, finalY);
 
-    const finalY = doc.lastAutoTable.finalY + 10;
-    doc.setFont('helvetica', 'bold');
-    doc.text('Total:', 130, finalY);
-    doc.text(formatAmount(total), 190, finalY, { align: 'right' });
+      finalY += 10;
+      const footerInfo = [
+        'Name: ________________________________',
+        '',
+        'Designation: ________________________________',
+        '',
+        'Department: ________________________________',
+        '',
+        'Sign: ________________________________',
+      ];
+      doc.text(footerInfo, 15, finalY);
 
-    const filename = `${invoiceData.invoiceNumber}_${invoiceData.date}.pdf`;
-    doc.save(filename);
+      doc.save('Invoice_927_Nimco.pdf');
+    }
   }
-
-  let invoiceNumber = $derived(
-    (data.invoicenumbers.find((x) => x.companyId === $form.companyId)
-      ?.invoiceNumber || 0) + 1,
-  );
 </script>
 
 <Heading
@@ -262,7 +413,6 @@
         field="invoiceNumber"
         label="{title.singular} Number"
       />
-      <TextField {superform} disabled={isImmutable} field="store" />
       <DateField {superform} field="date" />
       <RadioField
         {superform}

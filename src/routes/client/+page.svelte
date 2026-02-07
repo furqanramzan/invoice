@@ -30,8 +30,6 @@
       <Table.Row>
         <Table.Head class="p-4 text-nowrap">Client Name</Table.Head>
         <Table.Head class="p-4 text-nowrap">Address</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Email</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Phone</Table.Head>
         <Table.Head class="p-4 text-nowrap">Actions</Table.Head>
       </Table.Row>
     </Table.Header>

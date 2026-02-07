@@ -7,7 +7,6 @@
   import { getSuperForm } from '$lib/superforms.js';
   import RadioField from '$lib/components/form/radio-field.svelte';
   import FileField from '$lib/components/form/file-field.svelte';
-  import EmailField from '$lib/components/form/email-field.svelte';
 
   let { data } = $props();
 
@@ -33,7 +32,7 @@
 
   <TextField {superform} field="name" />
   <TextField {superform} field="address" />
-  <EmailField {superform} field="email" />
+  <TextField {superform} field="email" />
   <TextField {superform} field="phone" />
   <FileField
     {superform}
