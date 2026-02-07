@@ -31,6 +31,7 @@
   {/if}
 
   <TextField {superform} field="name" />
+  <TextField {superform} field="office" />
   <TextField {superform} field="address" />
   <TextField {superform} field="email" />
   <TextField {superform} field="phone" />

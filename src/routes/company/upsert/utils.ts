@@ -15,6 +15,7 @@ export const companySchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, { message: 'Name is required' }),
   address: z.string(),
+  office: z.string(),
   email: z.email({ message: 'Invalid email address' }),
   phone: z.string(),
   logo: z

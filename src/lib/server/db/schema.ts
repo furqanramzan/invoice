@@ -109,6 +109,7 @@ export const companies = sqliteTable('companies', {
     .references(() => user.id),
   name: text('name').notNull(),
   address: text('address').notNull(),
+  office: text('office').notNull(),
   email: text('email').notNull(),
   phone: text('phone').notNull(),
   logoUrl: text('logo_url'),
@@ -127,7 +128,9 @@ export const clients = sqliteTable('clients', {
     .references(() => user.id),
   name: text('name').notNull(),
   address: text('address').notNull(),
-  attention: text('address'),
+  attention: text('attention'),
+  email: text('email'),
+  phone: text('phone'),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .default(sql`(unixepoch())`)
     .notNull(),

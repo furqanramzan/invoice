@@ -18,8 +18,8 @@
   import RadioField from '$lib/components/form/radio-field.svelte';
   import NumberField from '$lib/components/form/number-field.svelte';
   import MultiFileField from '$lib/components/form/multi-file-field.svelte';
-  import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
+  import { snakeCase } from 'text-case';
 
   let { data } = $props();
   const allProducts = $derived(data.products);
@@ -146,97 +146,6 @@
     }
   }
 
-  onMount(generateSSInvoice);
-  async function generateSSInvoice() {
-    const doc = new jsPDF();
-
-    // --- Header Section ---
-    // Centered Logo and Company Tagline
-    // doc.addImage(logo, 'PNG', 80, 10, 50, 20); // Center logo
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.text('SS ENTERPRISES', 105, 35, { align: 'center' }); //
-
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(10);
-    doc.text('"Delivering Quality, On Time, Every Time."', 105, 42, {
-      align: 'center',
-    }); //
-
-    // --- Client and Invoice Details ---
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text('K.Jees.', 15, 55); // [cite: 18]
-    doc.setFont('helvetica', 'normal');
-    doc.text('Karachi', 15, 60); // [cite: 19]
-    doc.text('PO-111563-1', 15, 65); //
-
-    // Invoice Meta (Right Aligned)
-    doc.setFont('helvetica', 'bold');
-    doc.text('Invoice', 195, 55, { align: 'right' }); // [cite: 21]
-    doc.setFont('helvetica', 'normal');
-    doc.text('Date: January 29, 2025', 195, 60, { align: 'right' }); // [cite: 22]
-    doc.text('Invoice: KJ/00112', 195, 65, { align: 'right' }); // [cite: 23]
-
-    // --- Items Table ---
-    autoTable(doc, {
-      startY: 75,
-      head: [['SN', 'Name of Materials', 'QTY-Pieces', 'Rates', 'Total']], //
-      body: [
-        ['1', 'Plastic Gloves', '200,000', '0.39', '78,000'], //
-      ],
-      foot: [['Total', '', '', '', '78,000']], //
-      theme: 'grid',
-      headStyles: { fillColor: [0, 0, 0], textColor: 255, halign: 'center' },
-      columnStyles: {
-        0: { halign: 'center', cellWidth: 15 },
-        2: { halign: 'center' },
-        3: { halign: 'right' },
-        4: { halign: 'right' },
-      },
-      footStyles: {
-        fillColor: [255, 255, 255],
-        textColor: 0,
-        fontStyle: 'bold',
-        halign: 'right',
-      },
-    });
-
-    // --- Reception and Footer Section ---
-    let finalY = doc.lastAutoTable.finalY + 15;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Received by:', 15, finalY); // [cite: 25]
-    doc.setFont('helvetica', 'normal');
-    doc.text('Name: ________________', 15, finalY + 10); // [cite: 26]
-    doc.text('Designation: ___________', 15, finalY + 18); // [cite: 27]
-    doc.text('Department: ____________', 15, finalY + 26); // [cite: 28]
-
-    // Footer Branding
-    doc.setFont('helvetica', 'bold');
-    doc.text('Thank You for your Business.', 105, finalY + 45, {
-      align: 'center',
-    }); // [cite: 29]
-    doc.text('SS Enterprises', 105, finalY + 52, { align: 'center' }); // [cite: 30]
-
-    // Address and Contact Details
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text(
-      'OFFICE OFFICE 505, SHARJAHA TRADE CENTER, SHAR-E-LIAQUAT, NEW CHALI, KARACHI',
-      105,
-      finalY + 60,
-      { align: 'center' },
-    ); //
-    doc.text(
-      'EMAIL: SSENTERPRISES1994@GMAIL.COM | CELL: 00923272326266',
-      105,
-      finalY + 65,
-      { align: 'center' },
-    ); //
-
-    doc.save('Invoice_KJ_00112_SS_Enterprises.pdf');
-  }
   async function exportData() {
     if (isTainted($tainted)) {
       alert(
@@ -252,6 +161,181 @@
       toast.error('Select client first!');
       return;
     }
+
+    const body = $form.lineItems.map((lineItem, index) => [
+      index + 1,
+      lineItem.name,
+      lineItem.quantity,
+      formatAmount(lineItem.unitPrice),
+      formatAmount(lineItem.unitPrice * lineItem.quantity),
+    ]);
+
+    if (company.printLayout === 'B') {
+      const doc = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      // --- Corporate Header (Right Aligned per Excel) ---
+      doc.setFont('times', 'bold');
+      doc.setFontSize(9);
+      doc.setFontSize(9);
+      let currentY = 20;
+      const lineHeight = 5;
+
+      // 1. Company Name (Bold only, or use dddt with empty normal text)
+      doc.setFont('times', 'bold');
+      doc.text(company.office, 130, currentY);
+      currentY += lineHeight;
+
+      // 2. Address (Handling potential multi-line)
+      const addressLines = splitAfterChars(` ${company.address}`, 45);
+      addressLines.forEach((line, index) => {
+        if (index === 0) {
+          dddt('Add: ', line, 130, currentY);
+        } else {
+          // Indent subsequent address lines under the normal text of the first line
+          const indent = doc.getTextWidth('Add:  ');
+          doc.setFont('times', 'normal');
+          doc.text(line, 130 + indent, currentY);
+        }
+        currentY += lineHeight;
+      });
+
+      // 3. Phone/Cell
+      dddt('Cell: ', company.phone, 130, currentY);
+      currentY += lineHeight;
+
+      // 4. Email
+      dddt('Email: ', company.email, 130, currentY);
+
+      // --- Main Title ---
+      doc.setFontSize(16);
+      const text = 'SALES INVOICE';
+      const x = 105;
+      const y = 50;
+      doc.setLineWidth(0.5);
+      doc.text(text, x, y, { align: 'center' });
+      const textWidth = doc.getTextWidth(text);
+      const lineY = y + 1; // distance below text
+      doc.line(x - textWidth / 2, lineY, x + textWidth / 2, lineY);
+
+      // --- Sub-Header & Meta Data ---
+      doc.setFontSize(10);
+
+      function dddt(
+        boldText: string,
+        normalText: string,
+        x: number,
+        y: number,
+        options?: Parameters<typeof doc.text>[4],
+      ) {
+        doc.setFont('times', 'bold');
+        doc.text(boldText, x, y);
+
+        const texWidth = doc.getTextWidth(boldText);
+        doc.setFont('times', 'normal');
+        doc.text(normalText, texWidth + x, y, options);
+      }
+      currentY = 60;
+      const lineGap = 7;
+      dddt('Sub: ', 'Supply Hardware', 15, currentY);
+      currentY += lineGap;
+
+      dddt('M/s: ', client.name, 15, currentY);
+      currentY += lineGap;
+
+      dddt('Date: ', $form.date.toDateString(), 160, 60);
+      dddt('Invoice CS: ', $form.invoiceNumber.toString(), 160, 67);
+
+      // optional fields
+      if (client.attention) {
+        dddt('Att: ', client.attention, 15, currentY);
+        currentY += lineGap;
+      }
+
+      if (client.email) {
+        dddt('Email: ', client.email, 15, currentY);
+        currentY += lineGap;
+      }
+
+      if (client.phone) {
+        dddt('Tel # ', client.phone, 15, currentY);
+        currentY += lineGap;
+      }
+
+      // --- Items Table (Mimicking Excel Grid) ---
+      autoTable(doc, {
+        startY: currentY,
+        head: [
+          ['S.NO', 'DESCRIPTION', 'QTY', 'UNIT PRICE', 'TOTAL UNIT PRICE'],
+        ],
+        body,
+        foot: [['', 'Total Amount', '', '', formatAmount(total)]],
+        theme: 'grid',
+        headStyles: {
+          fillColor: '#31859c',
+          textColor: 'white',
+          halign: 'center',
+        },
+        styles: {
+          lineWidth: 0.1,
+          lineColor: [0, 0, 0],
+          fontSize: 10,
+          cellPadding: 3,
+          minCellHeight: 10,
+          font: 'times',
+        },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 15 },
+          1: { cellWidth: 80 },
+          2: { halign: 'center', cellWidth: 20 },
+          3: { halign: 'right', cellWidth: 35 },
+          4: { halign: 'right', cellWidth: 40 },
+        },
+        footStyles: {
+          fillColor: 'white',
+          textColor: 0,
+          fontStyle: 'bold',
+          halign: 'right',
+        },
+      });
+
+      // --- Note Section ---
+      let finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFont('times', 'bold');
+      doc.text('Note:', 15, finalY);
+      doc.setFont('times', 'normal');
+      doc.text('1. All the prices mentioned are in PKR.', 15, finalY + 5);
+
+      doc.setFontSize(10);
+      doc.setFont('times', 'bold');
+      finalY += 20;
+      doc.text('Received By:', 15, finalY);
+
+      finalY += 6;
+      const footerInfo = [
+        'Name: ________________________________',
+        '',
+        'Designation: ________________________________',
+        '',
+        'Department: ________________________________',
+        '',
+        'Sign: ________________________________',
+      ];
+      doc.text(footerInfo, 15, finalY);
+
+      // --- Footer / Signatures ---
+      doc.setFont('times', 'bold');
+      const pageHeight = doc.internal.pageSize.height;
+      doc.line(15, pageHeight - 30, 65, pageHeight - 30); // Signature line
+      doc.text('Accountant', 15, pageHeight - 25);
+      doc.text(company.name, 15, pageHeight - 20);
+
+      doc.save(`${snakeCase(company.name)}_${$form.invoiceNumber}`);
+    }
+
     if (company.printLayout === 'A') {
       const doc = new jsPDF();
 
@@ -321,13 +405,7 @@
       autoTable(doc, {
         startY: finalY + 8,
         head: [['S.No.', 'Item Description', 'Qty', 'Rate', 'Amount']],
-        body: $form.lineItems.map((lineItem, index) => [
-          index + 1,
-          lineItem.name,
-          lineItem.quantity,
-          formatAmount(lineItem.unitPrice),
-          formatAmount(lineItem.unitPrice * lineItem.quantity),
-        ]),
+        body,
         foot: [['', '', '', 'Total.', formatAmount(total)]],
         theme: 'grid',
         headStyles: {
@@ -373,7 +451,7 @@
       ];
       doc.text(footerInfo, 15, finalY);
 
-      doc.save('Invoice_927_Nimco.pdf');
+      doc.save(`${snakeCase(company.name)}_${$form.invoiceNumber}.pdf`);
     }
   }
 </script>
