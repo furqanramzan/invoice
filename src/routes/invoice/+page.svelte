@@ -31,7 +31,7 @@
         <Table.Head class="p-4 text-nowrap">Company</Table.Head>
         <Table.Head class="p-4 text-nowrap">Client</Table.Head>
         <Table.Head class="p-4 text-nowrap">Status</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Invoice Number</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Invoice #</Table.Head>
         <Table.Head class="p-4 text-nowrap">Date</Table.Head>
         <Table.Head class="p-4 text-nowrap">Total</Table.Head>
         <Table.Head class="p-4 text-nowrap">Received</Table.Head>

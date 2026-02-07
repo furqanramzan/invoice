@@ -29,8 +29,9 @@ export const products = sqliteTable('products', {
     .$defaultFn(() => crypto.randomUUID()),
   userId: text('user_id').references(() => user.id),
   name: text('name').notNull(),
-  costPrice: integer('cost_price').notNull(),
-  unitPrice: integer('unit_price').notNull(),
+  actualPrice: integer('actual_price').notNull(),
+  quotedPrice: integer('quoted_price').notNull(),
+  salePrice: integer('sale_price').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .default(sql`(unixepoch())`)
     .notNull(),
@@ -89,8 +90,10 @@ export const lineItems = sqliteTable('line_items', {
     .notNull()
     .references(() => products.id),
   quantity: integer('quantity').notNull(),
-  costPrice: integer('cost_price').notNull(),
-  unitPrice: integer('unit_price').notNull(),
+  actualPrice: integer('actual_price').notNull(),
+  quotedPrice: integer('quoted_price').notNull(),
+  salePrice: integer('sale_price').notNull(),
+  receivedPrice: integer('received_price').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .default(sql`(unixepoch())`)
     .notNull(),

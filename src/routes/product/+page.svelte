@@ -29,8 +29,9 @@
     <Table.Header>
       <Table.Row>
         <Table.Head class="p-4 text-nowrap">Product Name</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Cost Price</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Unit Price</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Actual Price</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Quoted Price</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Sale Price</Table.Head>
         <Table.Head class="p-4 text-nowrap">Actions</Table.Head>
       </Table.Row>
     </Table.Header>
@@ -39,10 +40,13 @@
         <Table.Row>
           <Table.Cell class="p-4 text-nowrap">{product.name}</Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            {formatCents(product.costPrice)}
+            {formatCents(product.actualPrice)}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            {formatCents(product.unitPrice)}
+            {formatCents(product.quotedPrice)}
+          </Table.Cell>
+          <Table.Cell class="p-4 text-nowrap">
+            {formatCents(product.salePrice)}
           </Table.Cell>
           <Table.Cell class="flex shrink-0 space-x-2 p-4 text-nowrap">
             <Button

@@ -9,24 +9,36 @@
     type FormFieldProxy,
   } from 'sveltekit-superforms';
 
+  type FieldType = number;
   type Props = {
     superform: SuperForm<T>;
-    field: FormPathLeaves<T, number>;
+    field: FormPathLeaves<T, FieldType>;
     label?: string;
     hideLabel?: boolean;
+    disabled?: boolean;
     placeholder?: string;
     min?: number;
     max?: number;
+    onchange?: (value: FieldType) => void;
   };
 
-  let { superform, field, label, hideLabel, placeholder, min, max }: Props =
-    $props();
+  let {
+    superform,
+    field,
+    label,
+    onchange,
+    disabled,
+    hideLabel,
+    placeholder,
+    min,
+    max,
+  }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   const { value, errors, constraints } = formFieldProxy(
     superform,
     field,
-  ) satisfies FormFieldProxy<number>;
+  ) satisfies FormFieldProxy<FieldType>;
 
   let labelText = $derived(label || titleCase(field));
   let placeholderText = $derived(
@@ -39,6 +51,7 @@
     <Label id={field}>{labelText}</Label>
   {/if}
   <Input
+    {disabled}
     autocomplete="off"
     id={field}
     name={field}
@@ -49,6 +62,12 @@
     aria-invalid={$errors ? 'true' : undefined}
     bind:value={$value}
     {...$constraints}
+    oninput={() => {
+      if (!onchange) {
+        return;
+      }
+      onchange($value);
+    }}
   />
   {#if $errors}
     <p class="text-red-500">{$errors}</p>

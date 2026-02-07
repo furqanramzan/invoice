@@ -11,6 +11,11 @@ export const route = {
 export const productSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, { message: 'Name is required' }),
-  costPrice: z.number().min(0, { message: 'Cost price cannot be negative' }),
-  unitPrice: z.number().min(0, { message: 'Unit price cannot be negative' }),
+  actualPrice: z
+    .number()
+    .min(0, { message: 'Actual price cannot be negative' }),
+  quotedPrice: z
+    .number()
+    .min(0, { message: 'Quoted price cannot be negative' }),
+  salePrice: z.number().min(0, { message: 'Sale price cannot be negative' }),
 });

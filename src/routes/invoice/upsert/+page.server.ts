@@ -60,8 +60,10 @@ export const load = async (event) => {
           lineItems: currentInvoice.lineItems.map((lineItem) => ({
             ...lineItem,
             name: lineItem.product.name,
-            costPrice: lineItem.costPrice / 100,
-            unitPrice: lineItem.unitPrice / 100,
+            actualPrice: lineItem.actualPrice / 100,
+            quotedPrice: lineItem.quotedPrice / 100,
+            salePrice: lineItem.salePrice / 100,
+            receivedPrice: lineItem.receivedPrice / 100,
           })),
         }
       : {
@@ -125,8 +127,9 @@ export const actions = {
           const productData = {
             ...p,
             userId: user.id,
-            costPrice: Math.round(p.costPrice * 100),
-            unitPrice: Math.round(p.unitPrice * 100),
+            quotedPrice: Math.round(p.quotedPrice * 100),
+            salePrice: Math.round(p.salePrice * 100),
+            actualPrice: Math.round(p.actualPrice * 100),
           };
           const [upsertedProduct] = await tx
             .insert(productsSchema)
@@ -145,10 +148,17 @@ export const actions = {
 
       const total = Math.round(
         processedProducts.reduce(
-          (acc, p) => acc + p.quantity * p.unitPrice,
+          (acc, p) => acc + p.quantity * p.salePrice,
           0,
         ) * 100,
       );
+      if (products.some((x) => x.receivedPrice)) {
+        invoiceData.receivedAmount = products.reduce(
+          (totalReceived, lineItem) =>
+            totalReceived + (lineItem.receivedPrice || 0),
+          0,
+        );
+      }
       if (images?.length) {
         invoiceData.files = [
           ...(invoiceData?.files || []),
@@ -196,11 +206,13 @@ export const actions = {
       if (products.length) {
         await tx.insert(lineItems).values(
           processedProducts.map((p) => ({
+            invoiceId: form.data.id!,
             productId: p.productId!,
             quantity: p.quantity,
-            costPrice: Math.round(p.costPrice * 100),
-            unitPrice: Math.round(p.unitPrice * 100),
-            invoiceId: form.data.id!,
+            quotedPrice: Math.round(p.quotedPrice * 100),
+            salePrice: Math.round(p.salePrice * 100),
+            actualPrice: Math.round(p.actualPrice * 100),
+            receivedPrice: Math.round(p.receivedPrice * 100),
           })),
         );
       }

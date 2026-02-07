@@ -41,8 +41,10 @@
         id: crypto.randomUUID(),
         name: '',
         quantity: 1,
-        costPrice: 0,
-        unitPrice: 0,
+        quotedPrice: 0,
+        salePrice: 0,
+        actualPrice: 0,
+        receivedPrice: 0,
       },
     ];
     setTimeout(
@@ -57,10 +59,10 @@
   }
 
   let total = $derived(
-    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.unitPrice, 0),
+    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.salePrice, 0),
   );
   let totalCost = $derived(
-    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.costPrice, 0),
+    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.actualPrice, 0),
   );
   let totalProfit = $derived(
     totalCost === 0
@@ -93,8 +95,9 @@
 
   function selectSuggestion(index: number, product: Product) {
     $form.lineItems[index].name = product.name;
-    $form.lineItems[index].costPrice = product.costPrice / 100;
-    $form.lineItems[index].unitPrice = product.unitPrice / 100;
+    $form.lineItems[index].quotedPrice = product.quotedPrice / 100;
+    $form.lineItems[index].actualPrice = product.actualPrice / 100;
+    $form.lineItems[index].salePrice = product.salePrice / 100;
     $form.lineItems[index].productId = product.id;
     searchTerm[index] = '';
     suggestions[index] = [];
@@ -163,8 +166,8 @@
       index + 1,
       lineItem.name,
       lineItem.quantity,
-      formatAmount(lineItem.unitPrice),
-      formatAmount(lineItem.unitPrice * lineItem.quantity),
+      formatAmount(lineItem.salePrice),
+      formatAmount(lineItem.salePrice * lineItem.quantity),
     ]);
 
     if (company.printLayout === 'B') {
@@ -494,7 +497,11 @@
         label="{title.singular} Number"
       />
       <DateField {superform} field="date" />
-      <NumberField {superform} field="receivedAmount" />
+      <NumberField
+        {superform}
+        disabled={$form.lineItems.some((x) => x.receivedPrice)}
+        field="receivedAmount"
+      />
       <RadioField
         {superform}
         field="status"
@@ -536,8 +543,10 @@
         <Table.Head class="p-4 text-nowrap">#</Table.Head>
         <Table.Head class="w-2/5 p-4 text-nowrap">Name</Table.Head>
         <Table.Head class="p-4 text-nowrap">Quantity</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Unit cost</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Unit price</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Actual cost</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Quoted cost</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Sale price</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Received amount</Table.Head>
         <Table.Head class="p-4 text-nowrap">Profit</Table.Head>
         <Table.Head class="p-4 text-nowrap">Total</Table.Head>
       </Table.Row>
@@ -601,8 +610,8 @@
                       >
                         {suggestion.name}
                         <span class="text-sm text-gray-500 dark:text-zinc-400">
-                          ({formatCents(suggestion.costPrice)}) ({formatCents(
-                            suggestion.unitPrice,
+                          ({formatCents(suggestion.actualPrice)}) ({formatCents(
+                            suggestion.salePrice,
                           )})
                         </span>
                       </li>
@@ -623,26 +632,74 @@
               {superform}
               field="lineItems[{index}].quantity"
               hideLabel
+              onchange={() => {
+                if (!$form.lineItems[index].quantity) {
+                  $form.lineItems[index].quantity = 1;
+                }
+              }}
             />
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
             <NumberField
               {superform}
-              field="lineItems[{index}].costPrice"
+              field="lineItems[{index}].actualPrice"
               hideLabel
+              onchange={() => {
+                if (!$form.lineItems[index].actualPrice) {
+                  $form.lineItems[index].actualPrice = 0;
+                }
+              }}
             />
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
             <NumberField
               {superform}
-              field="lineItems[{index}].unitPrice"
+              field="lineItems[{index}].quotedPrice"
               hideLabel
+              onchange={() => {
+                if (!$form.lineItems[index].quotedPrice) {
+                  $form.lineItems[index].quotedPrice = 0;
+                }
+              }}
+            />
+          </Table.Cell>
+          <Table.Cell class="p-4 text-nowrap">
+            <NumberField
+              {superform}
+              field="lineItems[{index}].salePrice"
+              hideLabel
+              onchange={() => {
+                if (!$form.lineItems[index].salePrice) {
+                  $form.lineItems[index].salePrice = 0;
+                }
+              }}
+            />
+          </Table.Cell>
+          <Table.Cell class="p-4 text-nowrap">
+            <NumberField
+              {superform}
+              field="lineItems[{index}].receivedPrice"
+              hideLabel
+              onchange={() => {
+                if (!$form.lineItems[index].receivedPrice) {
+                  $form.lineItems[index].receivedPrice = 0;
+                }
+                $form.receivedAmount = $form.lineItems.reduce(
+                  (totalReceived, lineItem) =>
+                    totalReceived + (lineItem.receivedPrice || 0),
+                  0,
+                );
+                if (!$form.receivedAmount) {
+                  $form.receivedAmount = data.currentInvoice?.receivedAmount;
+                }
+              }}
             />
           </Table.Cell>
           <Table.Cell class="w-36 p-4 text-lg text-nowrap">
-            {#if product.costPrice > 0}
+            {#if product.quotedPrice > 0}
               {(
-                ((product.unitPrice - product.costPrice) / product.costPrice) *
+                ((product.salePrice - product.actualPrice) /
+                  product.actualPrice) *
                 100
               ).toFixed(2)}%
             {:else}
@@ -650,7 +707,7 @@
             {/if}
           </Table.Cell>
           <Table.Cell class="w-36 p-4 text-lg text-nowrap">
-            {(product.quantity * product.unitPrice).toLocaleString('en-US', {
+            {(product.quantity * product.salePrice).toLocaleString('en-US', {
               style: 'currency',
               currency: 'PKR',
             })}

@@ -25,8 +25,9 @@ export const load = async (event) => {
     currentProduct
       ? {
           ...currentProduct,
-          costPrice: convertCents(currentProduct.costPrice / 100),
-          unitPrice: convertCents(currentProduct.unitPrice / 100),
+          actualPrice: convertCents(currentProduct.actualPrice / 100),
+          quotedPrice: convertCents(currentProduct.quotedPrice / 100),
+          salePrice: convertCents(currentProduct.salePrice / 100),
         }
       : undefined,
   );
@@ -44,8 +45,9 @@ export const actions = {
 
     const productData = {
       ...data,
-      costPrice: convertToCents(data.costPrice * 100),
-      unitPrice: convertCents(data.unitPrice * 100),
+      actualPrice: convertToCents(data.actualPrice * 100),
+      quotedPrice: convertCents(data.quotedPrice * 100),
+      salePrice: convertCents(data.salePrice * 100),
       userId: user.id,
     };
 

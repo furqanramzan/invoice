@@ -29,6 +29,7 @@
   {/if}
 
   <TextField {superform} field="name" />
-  <NumberField {superform} field="costPrice" />
-  <NumberField {superform} field="unitPrice" />
+  <NumberField {superform} field="actualPrice" />
+  <NumberField {superform} field="quotedPrice" />
+  <NumberField {superform} field="salePrice" />
 </Form>
