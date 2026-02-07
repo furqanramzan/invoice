@@ -57,6 +57,7 @@ export const invoices = sqliteTable('invoices', {
   date: integer('date', { mode: 'timestamp' }).notNull(),
   status: text('status').notNull().default('draft'),
   total: integer('total').notNull(),
+  receivedAmount: integer('received_amount'),
   files: text('files', { mode: 'json' }).$type<
     Array<{ url: string; name: string; deleted?: boolean }>
   >(),
@@ -67,8 +68,14 @@ export const invoices = sqliteTable('invoices', {
 
 export const invoicesRelations = relations(invoices, ({ many, one }) => ({
   lineItems: many(lineItems),
-  company: one(companies),
-  client: one(clients),
+  company: one(companies, {
+    fields: [invoices.companyId],
+    references: [companies.id],
+  }),
+  client: one(clients, {
+    fields: [invoices.clientId],
+    references: [clients.id],
+  }),
 }));
 
 export const lineItems = sqliteTable('line_items', {
@@ -127,6 +134,7 @@ export const clients = sqliteTable('clients', {
     .notNull()
     .references(() => user.id),
   name: text('name').notNull(),
+  invoiceNumberInitial: text('inoive_number_initial').notNull(),
   address: text('address').notNull(),
   attention: text('attention'),
   email: text('email'),

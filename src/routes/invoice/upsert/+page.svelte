@@ -24,9 +24,6 @@
   let { data } = $props();
   const allProducts = $derived(data.products);
   const isEditing = $derived(!!data.currentInvoice);
-  const isDelivered = $derived(data.currentInvoice?.status === 'delivered');
-  const isReturned = $derived(data.currentInvoice?.status === 'returned');
-  const isImmutable = $derived(isDelivered || isReturned);
 
   // svelte-ignore state_referenced_locally
   const superform = getSuperForm(invoiceSchema, data.form, {
@@ -73,7 +70,7 @@
   let company = $derived(data.companies.find((x) => x.id === $form.companyId));
   let client = $derived(data.clients.find((x) => x.id === $form.clientId));
   let invoiceNumber = $derived(
-    (data.invoicenumbers.find((x) => x.companyId === $form.companyId)
+    (data.invoiceNumbers.find((x) => x.companyId === $form.companyId)
       ?.invoiceNumber || 0) + 1,
   );
 
@@ -247,7 +244,12 @@
       currentY += lineGap;
 
       dddt('Date: ', $form.date.toDateString(), 160, 60);
-      dddt('Invoice CS: ', $form.invoiceNumber.toString(), 160, 67);
+      dddt(
+        'Invoice CS: ',
+        client.invoiceNumberInitial + $form.invoiceNumber.toString(),
+        160,
+        67,
+      );
 
       // optional fields
       if (client.attention) {
@@ -492,6 +494,7 @@
         label="{title.singular} Number"
       />
       <DateField {superform} field="date" />
+      <NumberField {superform} field="receivedAmount" />
       <RadioField
         {superform}
         field="status"
@@ -521,7 +524,7 @@
   </div>
 
   <div class="flex items-center gap-2">
-    <Button type="button" onclick={addProduct} disabled={isImmutable}>
+    <Button type="button" onclick={addProduct}>
       <Plus />
     </Button>
     <h2 class="text-lg font-semibold">Products</h2>
@@ -547,7 +550,6 @@
               variant="destructive"
               type="button"
               onclick={() => removeProduct(index)}
-              disabled={isImmutable}
             >
               <Trash class="h-4 w-4" />
             </Button>
@@ -569,13 +571,13 @@
                   onkeydown={(e) => handleKeydown(index, e)}
                   onblur={() => (suggestions = [])}
                   autocomplete="off"
-                  disabled={!!product.productId || isDelivered}
+                  disabled={!!product.productId}
                 />
                 {#if $errors.lineItems?.[index]?.name}
                   <p class="text-red-500">{$errors.lineItems[index].name}</p>
                 {/if}
 
-                {#if suggestions[index]?.length > 0 && !isDelivered}
+                {#if suggestions[index]?.length > 0}
                   <ul
                     class="
     absolute z-10 max-h-48 w-full overflow-y-auto rounded-md border
@@ -694,7 +696,6 @@
                     $form.files[index].deleted = true;
                     $form.files = $form.files;
                   }}
-                  disabled={isImmutable}
                 >
                   <Trash class="h-4 w-4" />
                 </Button>
@@ -713,10 +714,7 @@
   {/if}
 
   <div class="flex gap-2">
-    <Button
-      disabled={$submitting || isDelivered || !isTainted($tainted)}
-      type="submit"
-    >
+    <Button disabled={$submitting || !isTainted($tainted)} type="submit">
       {isEditing ? `Update ${title.singular}` : `Create ${title.singular}`}
     </Button>
     <Button

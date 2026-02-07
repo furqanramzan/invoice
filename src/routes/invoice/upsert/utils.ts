@@ -25,6 +25,7 @@ export const invoiceSchema = z.object({
   invoiceNumber: z.number().positive(),
   companyId: z.uuidv4(),
   clientId: z.uuidv4(),
+  receivedAmount: z.number().positive().optional().nullable(),
   date: z.date(),
   lineItems: z.array(lineItemSchema),
   status: invoiceStatus,

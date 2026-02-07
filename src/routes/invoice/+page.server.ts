@@ -16,6 +16,10 @@ export async function load(event) {
       limit,
       offset,
       orderBy: desc(invoices.date),
+      with: {
+        company: { columns: { name: true } },
+        client: { columns: { name: true } },
+      },
     }),
     db.select().from(invoices),
   ]);

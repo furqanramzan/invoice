@@ -39,15 +39,16 @@ export const load = async (event) => {
   const companies = await db.query.companies.findMany();
   const clients = await db.query.clients.findMany();
 
-  const invoicenumbers = await db
+  const invoiceNumbers = await db
     .select({
       companyId: invoices.companyId,
+      clientId: invoices.clientId,
       invoiceNumber: sql<number>`max(${invoices.invoiceNumber})`,
     })
     .from(invoices)
-    .groupBy(invoices.companyId);
+    .groupBy(invoices.companyId, invoices.clientId);
   const invoiceNumber =
-    (invoicenumbers.find((x) => x.companyId === companies.at(0)?.id)
+    (invoiceNumbers.find((x) => x.companyId === companies.at(0)?.id)
       ?.invoiceNumber || 0) + 1;
 
   const form = await initForm(
@@ -75,7 +76,7 @@ export const load = async (event) => {
 
   const products = await db.query.products.findMany();
 
-  return { form, products, invoicenumbers, companies, clients, currentInvoice };
+  return { form, products, invoiceNumbers, companies, clients, currentInvoice };
 };
 
 export const actions = {

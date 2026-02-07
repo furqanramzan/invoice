@@ -15,4 +15,5 @@ export const clientSchema = z.object({
   attention: z.string().optional().nullable(),
   email: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
+  invoiceNumberInitial: z.string(),
 });

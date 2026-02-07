@@ -32,4 +32,5 @@
   <TextField {superform} field="email" />
   <TextField {superform} field="phone" />
   <TextField {superform} field="attention" />
+  <TextField {superform} field="invoiceNumberInitial" />
 </Form>
