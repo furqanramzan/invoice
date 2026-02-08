@@ -2,7 +2,6 @@ import { db } from '$lib/server/db';
 import { companies, type Company } from '$lib/server/db/schema';
 import { companySchema, route, title, type PrintLayout } from './utils';
 import { eq } from 'drizzle-orm';
-import { getUser } from '$lib/server/auth';
 import { initForm, redirectTo, validateAction } from '$lib/superforms';
 import { delFile, putFile } from '$lib/server/filesystem.js';
 
@@ -45,7 +44,6 @@ export const actions = {
       });
     }
     const { id, logo, ...companyData } = form.data;
-    const user = getUser();
 
     if (currentCompany?.logoUrl && (logo || !companyData.logoUrl)) {
       await delFile(currentCompany.logoUrl);
@@ -57,15 +55,10 @@ export const actions = {
       );
     }
 
-    const dataToSave = {
-      ...companyData,
-      userId: user.id,
-    };
-
     if (id) {
-      await db.update(companies).set(dataToSave).where(eq(companies.id, id));
+      await db.update(companies).set(companyData).where(eq(companies.id, id));
     } else {
-      await db.insert(companies).values(dataToSave);
+      await db.insert(companies).values(companyData);
     }
 
     return redirectTo(

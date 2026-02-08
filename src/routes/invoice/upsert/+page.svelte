@@ -246,7 +246,7 @@
       dddt('M/s: ', client.name, 15, currentY);
       currentY += lineGap;
 
-      dddt('Date: ', $form.date.toDateString(), 160, 60);
+      dddt('Date: ', $form.dateOfDelivery.toDateString(), 160, 60);
       dddt(
         'Invoice CS: ',
         client.invoiceNumberInitial + $form.invoiceNumber.toString(),
@@ -377,7 +377,7 @@
               year: 'numeric',
               month: 'long',
               day: 'numeric',
-            }).format($form.date)}`,
+            }).format($form.dateOfDelivery)}`,
           ],
           ['Att: KJ Management', `Invoice #: ${$form.invoiceNumber}`],
           [client.name, ''],
@@ -496,7 +496,8 @@
         field="invoiceNumber"
         label="{title.singular} Number"
       />
-      <DateField {superform} field="date" />
+      <DateField {superform} field="dateOfDelivery" />
+      <DateField {superform} field="dateOfInvoice" />
       <NumberField
         {superform}
         disabled={$form.lineItems.some((x) => x.receivedPrice)}
@@ -645,6 +646,10 @@
               field="lineItems[{index}].actualPrice"
               hideLabel
               onchange={() => {
+                if (!$form.lineItems[index].quotedPrice) {
+                  $form.lineItems[index].quotedPrice =
+                    $form.lineItems[index].actualPrice;
+                }
                 if (!$form.lineItems[index].actualPrice) {
                   $form.lineItems[index].actualPrice = 0;
                 }

@@ -6,7 +6,6 @@ import {
 } from '$lib/server/db/schema';
 import { invoiceSchema, route, title, type InvoiceStatus } from './utils';
 import { eq, sql } from 'drizzle-orm';
-import { getUser } from '$lib/server/auth.js';
 import {
   initForm,
   validateAction,
@@ -70,7 +69,8 @@ export const load = async (event) => {
           invoiceNumber,
           companyId: companies.at(0)?.id,
           clientId: clients.at(0)?.id,
-          date: new Date(),
+          dateOfDelivery: new Date(),
+          dateOfInvoice: new Date(),
           status: 'draft',
           files: [],
         },
@@ -85,8 +85,6 @@ export const actions = {
   default: async (event) => {
     const form = await validateAction(event, invoiceSchema);
     if (!form.valid) return form.error;
-
-    const user = getUser();
 
     const { id, lineItems: products, images, ...invoiceData } = form.data;
 
@@ -126,7 +124,6 @@ export const actions = {
         products.map(async (p) => {
           const productData = {
             ...p,
-            userId: user.id,
             quotedPrice: Math.round(p.quotedPrice * 100),
             salePrice: Math.round(p.salePrice * 100),
             actualPrice: Math.round(p.actualPrice * 100),
@@ -165,10 +162,7 @@ export const actions = {
           ...(
             await Promise.all(
               images.map((image) =>
-                putFile(
-                  `invoices/${invoiceData.date.getMonth() + 1}${invoiceData.date.getFullYear()}/${crypto.randomUUID()}${image.name}`,
-                  image,
-                ),
+                putFile(`invoices/${crypto.randomUUID()}${image.name}`, image),
               ),
             )
           ).map((x, index) => ({ url: x, name: images[index].name })),
@@ -186,8 +180,8 @@ export const actions = {
       const data = {
         ...invoiceData,
         total,
-        date: new Date(invoiceData.date),
-        userId: user.id,
+        dateOfDelivery: new Date(invoiceData.dateOfDelivery),
+        dateOfInvoice: new Date(invoiceData.dateOfInvoice),
       };
 
       if (id) {

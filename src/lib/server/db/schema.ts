@@ -27,7 +27,6 @@ export const products = sqliteTable('products', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  userId: text('user_id').references(() => user.id),
   name: text('name').notNull(),
   actualPrice: integer('actual_price').notNull(),
   quotedPrice: integer('quoted_price').notNull(),
@@ -45,9 +44,6 @@ export const invoices = sqliteTable('invoices', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  userId: text('user_id')
-    .notNull()
-    .references(() => user.id),
   companyId: text('company_id')
     .notNull()
     .references(() => companies.id),
@@ -55,7 +51,8 @@ export const invoices = sqliteTable('invoices', {
     .notNull()
     .references(() => clients.id),
   invoiceNumber: integer('invoice_number').notNull(),
-  date: integer('date', { mode: 'timestamp' }).notNull(),
+  dateOfDelivery: integer('date_of_delivery', { mode: 'timestamp' }).notNull(),
+  dateOfInvoice: integer('date_of_invoice', { mode: 'timestamp' }).notNull(),
   status: text('status').notNull().default('draft'),
   total: integer('total').notNull(),
   receivedAmount: integer('received_amount'),
@@ -114,9 +111,6 @@ export const companies = sqliteTable('companies', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  userId: text('user_id')
-    .notNull()
-    .references(() => user.id),
   name: text('name').notNull(),
   address: text('address').notNull(),
   office: text('office').notNull(),
@@ -133,9 +127,6 @@ export const clients = sqliteTable('clients', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  userId: text('user_id')
-    .notNull()
-    .references(() => user.id),
   name: text('name').notNull(),
   invoiceNumberInitial: text('inoive_number_initial').notNull(),
   address: text('address').notNull(),
@@ -150,5 +141,6 @@ export const clients = sqliteTable('clients', {
 export type Session = typeof session.$inferSelect;
 export type User = typeof user.$inferSelect;
 export type Product = typeof products.$inferSelect;
+export type ProductInsert = typeof products.$inferInsert;
 export type Company = typeof companies.$inferSelect;
 export type Client = typeof clients.$inferSelect;

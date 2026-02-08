@@ -2,7 +2,6 @@ import { db } from '$lib/server/db';
 import { clients, type Client } from '$lib/server/db/schema';
 import { clientSchema, route, title } from './utils';
 import { eq } from 'drizzle-orm';
-import { getUser } from '$lib/server/auth';
 import { initForm, redirectTo, validateAction } from '$lib/superforms';
 
 export const load = async (event) => {
@@ -30,17 +29,11 @@ export const actions = {
     if (!form.valid) return form.error;
 
     const { id, ...clientData } = form.data;
-    const user = getUser();
-
-    const dataToSave = {
-      ...clientData,
-      userId: user.id,
-    };
 
     if (id) {
-      await db.update(clients).set(dataToSave).where(eq(clients.id, id));
+      await db.update(clients).set(clientData).where(eq(clients.id, id));
     } else {
-      await db.insert(clients).values(dataToSave);
+      await db.insert(clients).values(clientData);
     }
 
     return redirectTo(

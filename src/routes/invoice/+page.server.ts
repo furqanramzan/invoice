@@ -15,7 +15,7 @@ export async function load(event) {
     db.query.invoices.findMany({
       limit,
       offset,
-      orderBy: desc(invoices.date),
+      orderBy: desc(invoices.dateOfInvoice),
       with: {
         company: { columns: { name: true } },
         client: { columns: { name: true } },

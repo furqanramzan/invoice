@@ -2,7 +2,6 @@ import { db } from '$lib/server/db';
 import { products } from '$lib/server/db/schema';
 import { productSchema, route, title } from './utils';
 import { eq } from 'drizzle-orm';
-import { getUser } from '$lib/server/auth';
 import { initForm, redirectTo, validateAction } from '$lib/superforms.js';
 import { convertCents, convertToCents } from '$lib/utils.js';
 
@@ -41,14 +40,12 @@ export const actions = {
     if (!form.valid) return form.error;
 
     const { id, ...data } = form.data;
-    const user = getUser();
 
     const productData = {
       ...data,
       actualPrice: convertToCents(data.actualPrice * 100),
       quotedPrice: convertCents(data.quotedPrice * 100),
       salePrice: convertCents(data.salePrice * 100),
-      userId: user.id,
     };
 
     if (id) {

@@ -32,7 +32,8 @@
         <Table.Head class="p-4 text-nowrap">Client</Table.Head>
         <Table.Head class="p-4 text-nowrap">Status</Table.Head>
         <Table.Head class="p-4 text-nowrap">Invoice #</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Date</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Delivery Date</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Invoice Date</Table.Head>
         <Table.Head class="p-4 text-nowrap">Total</Table.Head>
         <Table.Head class="p-4 text-nowrap">Received</Table.Head>
         <Table.Head class="p-4 text-nowrap">Actions</Table.Head>
@@ -62,7 +63,10 @@
             {invoice.invoiceNumber}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            {new Date(invoice.date).toLocaleDateString()}
+            {new Date(invoice.dateOfDelivery).toLocaleDateString()}
+          </Table.Cell>
+          <Table.Cell class="p-4 text-nowrap">
+            {new Date(invoice.dateOfInvoice).toLocaleDateString()}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
             {formatCents(invoice.total)}
