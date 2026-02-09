@@ -37,6 +37,7 @@ export const load = async (event) => {
 
   const companies = await db.query.companies.findMany();
   const clients = await db.query.clients.findMany();
+  const locations = await db.query.locations.findMany();
 
   const invoiceNumbers = await db
     .select({
@@ -69,6 +70,8 @@ export const load = async (event) => {
           invoiceNumber,
           companyId: companies.at(0)?.id,
           clientId: clients.at(0)?.id,
+          locationId: locations.find((x) => x.clientId === clients.at(0)?.id)
+            ?.id,
           dateOfDelivery: new Date(),
           dateOfInvoice: new Date(),
           status: 'draft',
@@ -78,7 +81,15 @@ export const load = async (event) => {
 
   const products = await db.query.products.findMany();
 
-  return { form, products, invoiceNumbers, companies, clients, currentInvoice };
+  return {
+    form,
+    locations,
+    products,
+    invoiceNumbers,
+    companies,
+    clients,
+    currentInvoice,
+  };
 };
 
 export const actions = {
@@ -143,9 +154,21 @@ export const actions = {
         }),
       );
 
-      const total = Math.round(
+      const salePrice = Math.round(
         processedProducts.reduce(
           (acc, p) => acc + p.quantity * p.salePrice,
+          0,
+        ) * 100,
+      );
+      const actualPrice = Math.round(
+        processedProducts.reduce(
+          (acc, p) => acc + p.quantity * p.actualPrice,
+          0,
+        ) * 100,
+      );
+      const quotedPrice = Math.round(
+        processedProducts.reduce(
+          (acc, p) => acc + p.quantity * p.quotedPrice,
           0,
         ) * 100,
       );
@@ -179,7 +202,9 @@ export const actions = {
 
       const data = {
         ...invoiceData,
-        total,
+        actualPrice,
+        quotedPrice,
+        salePrice,
         dateOfDelivery: new Date(invoiceData.dateOfDelivery),
         dateOfInvoice: new Date(invoiceData.dateOfInvoice),
       };

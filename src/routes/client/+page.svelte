@@ -29,7 +29,6 @@
     <Table.Header>
       <Table.Row>
         <Table.Head class="p-4 text-nowrap">Client Name</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Address</Table.Head>
         <Table.Head class="p-4 text-nowrap">Actions</Table.Head>
       </Table.Row>
     </Table.Header>
@@ -37,7 +36,6 @@
       {#each data.clients as client (client.id)}
         <Table.Row>
           <Table.Cell class="p-4 text-nowrap">{client.name}</Table.Cell>
-          <Table.Cell class="p-4 text-nowrap">{client.address}</Table.Cell>
           <Table.Cell class="flex shrink-0 space-x-2 p-4 text-nowrap">
             <Button
               href={resolve(`/client/upsert`) + `?id=${client.id}`}

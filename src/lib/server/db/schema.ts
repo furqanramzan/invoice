@@ -50,11 +50,16 @@ export const invoices = sqliteTable('invoices', {
   clientId: text('client_id')
     .notNull()
     .references(() => clients.id),
+  locationId: text('location_id')
+    .notNull()
+    .references(() => locations.id),
   invoiceNumber: integer('invoice_number').notNull(),
   dateOfDelivery: integer('date_of_delivery', { mode: 'timestamp' }).notNull(),
   dateOfInvoice: integer('date_of_invoice', { mode: 'timestamp' }).notNull(),
   status: text('status').notNull().default('draft'),
-  total: integer('total').notNull(),
+  actualPrice: integer('actual_price').notNull(),
+  quotedPrice: integer('quoted_price').notNull(),
+  salePrice: integer('sale_price').notNull(),
   receivedAmount: integer('received_amount'),
   files: text('files', { mode: 'json' }).$type<
     Array<{ url: string; name: string; deleted?: boolean }>
@@ -129,7 +134,6 @@ export const clients = sqliteTable('clients', {
     .$defaultFn(() => crypto.randomUUID()),
   name: text('name').notNull(),
   invoiceNumberInitial: text('inoive_number_initial').notNull(),
-  address: text('address').notNull(),
   attention: text('attention'),
   email: text('email'),
   phone: text('phone'),
@@ -137,6 +141,27 @@ export const clients = sqliteTable('clients', {
     .default(sql`(unixepoch())`)
     .notNull(),
 });
+
+export const locations = sqliteTable('locations', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  address: text('address').notNull(),
+  clientId: text('client_id')
+    .notNull()
+    .references(() => clients.id),
+});
+
+export const clientsRelations = relations(clients, ({ many }) => ({
+  locations: many(locations),
+}));
+
+export const locationsRelations = relations(locations, ({ one }) => ({
+  client: one(clients, {
+    fields: [locations.clientId],
+    references: [clients.id],
+  }),
+}));
 
 export type Session = typeof session.$inferSelect;
 export type User = typeof user.$inferSelect;

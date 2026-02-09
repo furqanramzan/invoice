@@ -34,6 +34,10 @@
   });
   const { form, isTainted, tainted, errors, enhance, submitting } = superform;
 
+  let locations = $derived(
+    data.locations.filter((x) => x.clientId === $form.clientId),
+  );
+
   function addProduct() {
     $form.lineItems = [
       ...$form.lineItems,
@@ -61,13 +65,19 @@
   let total = $derived(
     $form.lineItems.reduce((acc, p) => acc + p.quantity * p.salePrice, 0),
   );
-  let totalCost = $derived(
+  let quotedPrice = $derived(
+    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.quotedPrice, 0),
+  );
+  let salePrice = $derived(
+    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.salePrice, 0),
+  );
+  let actualPrice = $derived(
     $form.lineItems.reduce((acc, p) => acc + p.quantity * p.actualPrice, 0),
   );
   let totalProfit = $derived(
-    totalCost === 0
+    actualPrice === 0
       ? '0.00'
-      : (((total - totalCost) / totalCost) * 100).toFixed(2),
+      : (((total - actualPrice) / actualPrice) * 100).toFixed(2),
   );
   let company = $derived(data.companies.find((x) => x.id === $form.companyId));
   let client = $derived(data.clients.find((x) => x.id === $form.clientId));
@@ -491,6 +501,12 @@
         label="Client"
         options={data.clients.map((x) => ({ label: x.name, value: x.id }))}
       />
+      <RadioField
+        {superform}
+        field="locationId"
+        label="Location"
+        options={locations.map((x) => ({ value: x.id, label: x.address }))}
+      />
       <NumberField
         {superform}
         field="invoiceNumber"
@@ -515,19 +531,16 @@
       />
     </div>
     <div class="flex flex-col items-end gap-4 text-lg font-bold">
+      <div>
+        Actual Price: {formatAmount(actualPrice)}
+      </div>
+      <div>
+        Quoted Price: {formatAmount(quotedPrice)}
+      </div>
+      <div>
+        Sale Price: {formatAmount(salePrice)}
+      </div>
       <div>Profit: {totalProfit}%</div>
-      <div>
-        Cost: {totalCost.toLocaleString('en-US', {
-          style: 'currency',
-          currency: 'PKR',
-        })}
-      </div>
-      <div>
-        Total: {total.toLocaleString('en-US', {
-          style: 'currency',
-          currency: 'PKR',
-        })}
-      </div>
     </div>
   </div>
 

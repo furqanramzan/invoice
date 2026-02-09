@@ -34,7 +34,9 @@
         <Table.Head class="p-4 text-nowrap">Invoice #</Table.Head>
         <Table.Head class="p-4 text-nowrap">Delivery Date</Table.Head>
         <Table.Head class="p-4 text-nowrap">Invoice Date</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Total</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Actual Price</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Quoted Price</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Sale Price</Table.Head>
         <Table.Head class="p-4 text-nowrap">Received</Table.Head>
         <Table.Head class="p-4 text-nowrap">Actions</Table.Head>
       </Table.Row>
@@ -69,7 +71,13 @@
             {new Date(invoice.dateOfInvoice).toLocaleDateString()}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            {formatCents(invoice.total)}
+            {formatCents(invoice.actualPrice)}
+          </Table.Cell>
+          <Table.Cell class="p-4 text-nowrap">
+            {formatCents(invoice.quotedPrice)}
+          </Table.Cell>
+          <Table.Cell class="p-4 text-nowrap">
+            {formatCents(invoice.salePrice)}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
             {invoice.receivedAmount
