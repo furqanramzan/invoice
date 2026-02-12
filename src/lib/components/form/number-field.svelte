@@ -20,6 +20,7 @@
     min?: number;
     max?: number;
     onchange?: (value: FieldType) => void;
+    onblur?: (value: FieldType) => void;
   };
 
   let {
@@ -27,6 +28,7 @@
     field,
     label,
     onchange,
+    onblur,
     disabled,
     hideLabel,
     placeholder,
@@ -62,6 +64,12 @@
     aria-invalid={$errors ? 'true' : undefined}
     bind:value={$value}
     {...$constraints}
+    onblur={() => {
+      if (!onblur) {
+        return;
+      }
+      onblur($value);
+    }}
     oninput={() => {
       if (!onchange) {
         return;

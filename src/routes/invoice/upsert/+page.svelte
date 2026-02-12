@@ -104,6 +104,7 @@
   }
 
   function selectSuggestion(index: number, product: Product) {
+    $form.lineItems[index].id = product.id;
     $form.lineItems[index].name = product.name;
     $form.lineItems[index].quotedPrice = product.quotedPrice / 100;
     $form.lineItems[index].actualPrice = product.actualPrice / 100;
@@ -544,22 +545,22 @@
   <Table.Root class="border">
     <Table.Header>
       <Table.Row>
-        <Table.Head class="p-4 text-nowrap"></Table.Head>
-        <Table.Head class="p-4 text-nowrap">#</Table.Head>
-        <Table.Head class="w-2/5 p-4 text-nowrap">Name</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Quantity</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Actual cost</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Quoted cost</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Sale price</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Received amount</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Profit</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Total</Table.Head>
+        <Table.Head class="py-4 text-nowrap"></Table.Head>
+        <Table.Head class="py-4 text-nowrap">#</Table.Head>
+        <Table.Head class="w-2/5 py-4 text-nowrap">Name</Table.Head>
+        <Table.Head class="py-4 text-nowrap">Quantity</Table.Head>
+        <Table.Head class="py-4 text-nowrap">Actual cost</Table.Head>
+        <Table.Head class="py-4 text-nowrap">Quoted cost</Table.Head>
+        <Table.Head class="py-4 text-nowrap">Sale price</Table.Head>
+        <Table.Head class="py-4 text-nowrap">Received amount</Table.Head>
+        <Table.Head class="py-4 text-nowrap">Profit</Table.Head>
+        <Table.Head class="py-4 text-nowrap">Total</Table.Head>
       </Table.Row>
     </Table.Header>
     <Table.Body>
       {#each $form.lineItems as product, index (product.id)}
         <Table.Row>
-          <Table.Cell class="p-4 text-nowrap">
+          <Table.Cell class="py-4 text-nowrap">
             <Button
               variant="destructive"
               type="button"
@@ -568,10 +569,10 @@
               <Trash class="h-4 w-4" />
             </Button>
           </Table.Cell>
-          <Table.Cell class="p-4 text-nowrap">
+          <Table.Cell class="py-4 text-nowrap">
             {index + 1}
           </Table.Cell>
-          <Table.Cell class="p-4 text-nowrap">
+          <Table.Cell class="py-4 text-nowrap">
             <div class="product-item">
               <div class="relative">
                 <Input
@@ -632,7 +633,7 @@
               />
             </div>
           </Table.Cell>
-          <Table.Cell class="p-4 text-nowrap">
+          <Table.Cell class="py-4 text-nowrap">
             <NumberField
               {superform}
               field="lineItems[{index}].quantity"
@@ -644,12 +645,12 @@
               }}
             />
           </Table.Cell>
-          <Table.Cell class="p-4 text-nowrap">
+          <Table.Cell class="py-4 text-nowrap">
             <NumberField
               {superform}
               field="lineItems[{index}].actualPrice"
               hideLabel
-              onchange={() => {
+              onblur={() => {
                 if (!$form.lineItems[index].quotedPrice) {
                   $form.lineItems[index].quotedPrice =
                     $form.lineItems[index].actualPrice;
@@ -660,36 +661,36 @@
               }}
             />
           </Table.Cell>
-          <Table.Cell class="p-4 text-nowrap">
+          <Table.Cell class="py-4 text-nowrap">
             <NumberField
               {superform}
               field="lineItems[{index}].quotedPrice"
               hideLabel
-              onchange={() => {
+              onblur={() => {
                 if (!$form.lineItems[index].quotedPrice) {
                   $form.lineItems[index].quotedPrice = 0;
                 }
               }}
             />
           </Table.Cell>
-          <Table.Cell class="p-4 text-nowrap">
+          <Table.Cell class="py-4 text-nowrap">
             <NumberField
               {superform}
               field="lineItems[{index}].salePrice"
               hideLabel
-              onchange={() => {
+              onblur={() => {
                 if (!$form.lineItems[index].salePrice) {
                   $form.lineItems[index].salePrice = 0;
                 }
               }}
             />
           </Table.Cell>
-          <Table.Cell class="p-4 text-nowrap">
+          <Table.Cell class="py-4 text-nowrap">
             <NumberField
               {superform}
               field="lineItems[{index}].receivedPrice"
               hideLabel
-              onchange={() => {
+              onblur={() => {
                 if (!$form.lineItems[index].receivedPrice) {
                   $form.lineItems[index].receivedPrice = 0;
                 }
@@ -704,7 +705,7 @@
               }}
             />
           </Table.Cell>
-          <Table.Cell class="w-36 p-4 text-lg text-nowrap">
+          <Table.Cell class="w-36 py-4 text-lg text-nowrap">
             {#if product.quotedPrice > 0}
               {(
                 ((product.salePrice - product.actualPrice) /
@@ -715,7 +716,7 @@
               0.00%
             {/if}
           </Table.Cell>
-          <Table.Cell class="w-36 p-4 text-lg text-nowrap">
+          <Table.Cell class="w-36 py-4 text-lg text-nowrap">
             {(product.quantity * product.salePrice).toLocaleString('en-US', {
               style: 'currency',
               currency: 'PKR',

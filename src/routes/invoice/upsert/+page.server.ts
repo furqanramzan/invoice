@@ -13,6 +13,7 @@ import {
   sendMessage,
 } from '$lib/superforms';
 import { delFile, putFile } from '$lib/server/filesystem.js';
+import { convertCents, convertToCents } from '$lib/utils.js';
 
 export const load = async (event) => {
   const id = event.url.searchParams.get('id');
@@ -57,13 +58,17 @@ export const load = async (event) => {
       ? {
           ...currentInvoice,
           status: currentInvoice.status as unknown as InvoiceStatus,
+          receivedAmount: currentInvoice.receivedAmount
+            ? convertCents(currentInvoice.receivedAmount)
+            : undefined,
           lineItems: currentInvoice.lineItems.map((lineItem) => ({
             ...lineItem,
+            id: lineItem.product.id,
             name: lineItem.product.name,
-            actualPrice: lineItem.actualPrice / 100,
-            quotedPrice: lineItem.quotedPrice / 100,
-            salePrice: lineItem.salePrice / 100,
-            receivedPrice: lineItem.receivedPrice / 100,
+            actualPrice: convertToCents(lineItem.actualPrice),
+            quotedPrice: convertToCents(lineItem.quotedPrice),
+            salePrice: convertToCents(lineItem.salePrice),
+            receivedPrice: convertToCents(lineItem.receivedPrice),
           })),
         }
       : {
@@ -100,44 +105,13 @@ export const actions = {
     const { id, lineItems: products, images, ...invoiceData } = form.data;
 
     await db.transaction(async (tx) => {
-      // Fetch the current invoice from the database if editing
-      let existingInvoice = null;
-      if (id) {
-        existingInvoice = await tx.query.invoices.findFirst({
-          where: eq(invoices.id, id),
-          columns: { status: true },
-        });
-      }
-
-      if (
-        existingInvoice &&
-        (existingInvoice.status === 'delivered' ||
-          existingInvoice.status === 'returned')
-      ) {
-        // If the status is changing, update only the status.
-        if (invoiceData.status !== existingInvoice.status && id) {
-          await tx
-            .update(invoices)
-            .set({ status: invoiceData.status })
-            .where(eq(invoices.id, id));
-          return { form };
-        }
-        // If the status is not changing, and the invoice is delivered or returned,
-        // no other fields should be modifiable. Reject the submission.
-        return sendMessage(
-          form,
-          `Cannot modify a delivered or returned invoice!`,
-          'error',
-        );
-      }
-
       const processedProducts = await Promise.all(
         products.map(async (p) => {
           const productData = {
             ...p,
-            quotedPrice: Math.round(p.quotedPrice * 100),
-            salePrice: Math.round(p.salePrice * 100),
-            actualPrice: Math.round(p.actualPrice * 100),
+            quotedPrice: convertToCents(p.quotedPrice),
+            salePrice: convertToCents(p.salePrice),
+            actualPrice: convertToCents(p.actualPrice),
           };
           const [upsertedProduct] = await tx
             .insert(productsSchema)
@@ -178,6 +152,9 @@ export const actions = {
             totalReceived + (lineItem.receivedPrice || 0),
           0,
         );
+      }
+      if (invoiceData.receivedAmount) {
+        invoiceData.receivedAmount = convertToCents(invoiceData.receivedAmount);
       }
       if (images?.length) {
         invoiceData.files = [
@@ -228,10 +205,10 @@ export const actions = {
             invoiceId: form.data.id!,
             productId: p.productId!,
             quantity: p.quantity,
-            quotedPrice: Math.round(p.quotedPrice * 100),
-            salePrice: Math.round(p.salePrice * 100),
-            actualPrice: Math.round(p.actualPrice * 100),
-            receivedPrice: Math.round(p.receivedPrice * 100),
+            quotedPrice: convertToCents(p.quotedPrice),
+            salePrice: convertToCents(p.salePrice),
+            actualPrice: convertToCents(p.actualPrice),
+            receivedPrice: convertToCents(p.receivedPrice),
           })),
         );
       }

@@ -142,15 +142,15 @@ export const actions = {
         currentInvoice.lineItems.push({
           name,
           quantity,
-          actualPrice,
-          salePrice,
-          quotedPrice,
+          actualPrice: actualPrice * 100,
+          salePrice: salePrice * 100,
+          quotedPrice: quotedPrice * 100,
         });
       }
 
       const receivedAmount = Number(getCell(21));
       if (currentInvoice && receivedAmount) {
-        currentInvoice.receivedAmount = receivedAmount;
+        currentInvoice.receivedAmount = receivedAmount * 100;
       }
     }
 
