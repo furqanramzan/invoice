@@ -41,7 +41,9 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 function guestRoutes(event: RequestEvent) {
   return (
     event.url.pathname === '/' ||
-    ['/register'].some((url) => event.url.pathname.startsWith(url))
+    ['/register', '/import/save'].some((url) =>
+      event.url.pathname.startsWith(url),
+    )
   );
 }
 

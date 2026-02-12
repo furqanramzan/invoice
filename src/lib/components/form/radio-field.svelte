@@ -8,12 +8,13 @@
     type FormPathLeaves,
     type FormFieldProxy,
   } from 'sveltekit-superforms';
+  import type { Options } from '$lib/utils';
 
   type FieldType = string;
   type Props = {
     superform: SuperForm<T>;
     field: FormPathLeaves<T, FieldType>;
-    options: Array<{ label?: string; value: string }>;
+    options: Options;
     label?: string;
     disabled?: boolean;
     onchange?: (value: FieldType) => void;

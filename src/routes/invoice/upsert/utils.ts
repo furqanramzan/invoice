@@ -1,5 +1,6 @@
 import z from 'zod';
 import { resolve } from '$app/paths';
+import type { Option } from '$lib/utils';
 
 export const title = { singular: 'Invoice', plural: 'Invoices' };
 
@@ -44,3 +45,14 @@ export const invoiceSchema = z.object({
     .array()
     .optional(),
 });
+
+interface Statuses extends Option {
+  color?: string;
+}
+export const statuses: Statuses[] = [
+  { value: 'draft' },
+  { value: 'processing', color: 'yellow' },
+  { value: 'delivered', color: 'blue' },
+  { value: 'delivery_acknowledged', color: 'teal' },
+  { value: 'paid', color: 'green' },
+];

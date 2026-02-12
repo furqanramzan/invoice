@@ -73,3 +73,9 @@ export function splitAfterChars(str: string, limit = 60) {
   if (current) result.push(current.trim());
   return result;
 }
+
+export interface Option {
+  label?: string;
+  value: string;
+}
+export type Options = Array<Option>;

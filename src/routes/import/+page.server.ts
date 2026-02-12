@@ -1,3 +1,5 @@
+import fs from 'fs/promises';
+import path from 'path';
 import ExcelJS, { type Row } from 'exceljs';
 import { initForm, sendMessage, validateAction } from '$lib/superforms.js';
 import { importSchema } from './utils.js';
@@ -150,19 +152,12 @@ export const actions = {
       if (currentInvoice && receivedAmount) {
         currentInvoice.receivedAmount = receivedAmount;
       }
-
-      if (rowIndex > 40) {
-        break;
-      }
     }
 
-    // const filteredInvoices = invoices.filter((x) => x.lineItems.length);
-    // const filePath = path.resolve(process.cwd(), 'invoices.json');
-    // await fs.writeFile(
-    //   filePath,
-    //   JSON.stringify(filteredInvoices, null, 2),
-    //   'utf-8',
-    // );
+    const filePath = path.resolve(process.cwd(), 'invoices.json');
+    await fs.writeFile(filePath, JSON.stringify(invoices, null, 2), 'utf-8');
+
+    console.log('Done done');
 
     return sendMessage(form, 'File imported!');
   },

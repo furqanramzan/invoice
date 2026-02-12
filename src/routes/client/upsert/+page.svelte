@@ -61,6 +61,7 @@
             <Button
               size="icon-sm"
               type="button"
+              disabled={$form.locations.filter((x) => !x.deleted).length < 2}
               onclick={() => {
                 $form.locations[index].deleted = true;
                 $form.locations = $form.locations;

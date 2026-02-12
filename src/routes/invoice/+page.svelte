@@ -7,9 +7,10 @@
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Pagination } from '$lib/components/ui/pagination';
   import { formatAmount, formatCents } from '$lib/utils';
-  import { route, title } from './upsert/utils.js';
+  import { route, statuses, title } from './upsert/utils.js';
   import Heading from '$lib/components/heading.svelte';
   import ActionForm from '$lib/components/form/action-form.svelte';
+  import { titleCase } from 'text-case';
 
   const { data } = $props();
 
@@ -51,14 +52,11 @@
             {invoice.client?.name}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            {#if invoice.status === 'processing'}
-              <Badge class="bg-yellow-500">{invoice.status}</Badge>
-            {:else if invoice.status === 'delivered'}
-              <Badge class="bg-green-500">{invoice.status}</Badge>
-            {:else if invoice.status === 'returned'}
-              <Badge class="bg-red-500 text-white">{invoice.status}</Badge>
-            {:else}
-              <Badge variant="outline">{invoice.status}</Badge>
+            {@const status = statuses.find((x) => x.value === invoice.status)}
+            {#if status}
+              <Badge class="bg-{status.color}-500"
+                >{titleCase(invoice.status)}</Badge
+              >
             {/if}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">

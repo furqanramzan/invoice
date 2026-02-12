@@ -6,7 +6,7 @@
   import Eye from '@lucide/svelte/icons/eye';
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
-  import { invoiceSchema } from './utils.js';
+  import { invoiceSchema, statuses } from './utils.js';
   import * as Table from '$lib/components/ui/table/index.js';
   import type { Product } from '$lib/server/db/schema.js';
   import { route, title } from './utils.js';
@@ -519,16 +519,7 @@
         disabled={$form.lineItems.some((x) => x.receivedPrice)}
         field="receivedAmount"
       />
-      <RadioField
-        {superform}
-        field="status"
-        options={[
-          { value: 'draft' },
-          { value: 'processing' },
-          { value: 'delivered' },
-          { value: 'returned' },
-        ]}
-      />
+      <RadioField {superform} field="status" options={statuses} />
     </div>
     <div class="flex flex-col items-end gap-4 text-lg font-bold">
       <div>
