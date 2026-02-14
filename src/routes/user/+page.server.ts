@@ -1,5 +1,5 @@
+import { getUserCount } from '$lib/server/auth.js';
 import { db } from '$lib/server/db';
-import * as table from '$lib/server/db/schema';
 import { getPaginationData } from '$lib/utils';
 
 export async function load(event) {
@@ -14,13 +14,13 @@ export async function load(event) {
         name: true,
       },
     }),
-    db.select().from(table.user),
+    getUserCount(),
   ]);
 
   return {
     users: users,
     currentPage: page,
-    totalPages: Math.ceil(total.length / limit),
+    totalPages: Math.ceil(total / limit),
   };
 }
 

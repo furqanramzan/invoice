@@ -1,35 +1,31 @@
 import { db } from '$lib/server/db';
 import { companies } from '$lib/server/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { count, desc, eq } from 'drizzle-orm';
 import { initForm, sendMessage, validateAction } from '$lib/superforms.js';
 import { title } from './upsert/utils.js';
 import { getPaginationData } from '$lib/utils.js';
 import { delFile } from '$lib/server/filesystem.js';
-import z from 'zod';
-
-const deleteSchema = z.object({
-  id: z.string().min(1),
-});
+import { deleteSchema } from '$lib/validations.js';
 
 export async function load(event) {
   const form = await initForm(deleteSchema);
 
   const { page, offset, limit } = getPaginationData(event);
 
-  const [allCompanies, totalCompanies] = await Promise.all([
+  const [allCompanies, [{ count: totalCompanies }]] = await Promise.all([
     db.query.companies.findMany({
       limit,
       offset,
       orderBy: desc(companies.createdAt),
     }),
-    db.select().from(companies),
+    db.select({ count: count() }).from(companies),
   ]);
 
   return {
     form,
     companies: allCompanies,
     currentPage: page,
-    totalPages: Math.ceil(totalCompanies.length / limit),
+    totalPages: Math.ceil(totalCompanies / limit),
   };
 }
 

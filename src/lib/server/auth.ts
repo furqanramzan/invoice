@@ -1,5 +1,5 @@
 import { redirect, type RequestEvent } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase64url, encodeHexLowerCase } from '@oslojs/encoding';
 import { db } from '$lib/server/db';
@@ -16,7 +16,7 @@ export function generateSessionToken() {
   return token;
 }
 
-export async function createSession(token: string, userId: string) {
+export async function createSession(token: string, userId: number) {
   const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
   const session: table.Session = {
     id: sessionId,
@@ -96,4 +96,11 @@ export function getUser() {
   }
 
   return locals.user;
+}
+
+export async function getUserCount() {
+  const [{ count: users }] = await db
+    .select({ count: count() })
+    .from(table.user);
+  return users;
 }

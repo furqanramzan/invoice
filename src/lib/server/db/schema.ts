@@ -2,9 +2,7 @@ import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
 
 export const user = sqliteTable('users', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+  id: integer('id', { mode: 'number' }).primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
@@ -17,16 +15,14 @@ export const session = sqliteTable('sessions', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  userId: text('user_id')
+  userId: integer('user_id', { mode: 'number' })
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: 'cascade' }),
   expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
 });
 
 export const products = sqliteTable('products', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+  id: integer('id', { mode: 'number' }).primaryKey(),
   name: text('name').notNull(),
   actualPrice: integer('actual_price').notNull(),
   quotedPrice: integer('quoted_price').notNull(),
@@ -41,18 +37,16 @@ export const productsRelations = relations(products, ({ many }) => ({
 }));
 
 export const invoices = sqliteTable('invoices', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  companyId: text('company_id')
+  id: integer('id', { mode: 'number' }).primaryKey(),
+  companyId: integer('company_id', { mode: 'number' })
     .notNull()
-    .references(() => companies.id),
-  clientId: text('client_id')
+    .references(() => companies.id, { onDelete: 'cascade' }),
+  clientId: integer('client_id', { mode: 'number' })
     .notNull()
-    .references(() => clients.id),
-  locationId: text('location_id')
+    .references(() => clients.id, { onDelete: 'cascade' }),
+  locationId: integer('location_id', { mode: 'number' })
     .notNull()
-    .references(() => locations.id),
+    .references(() => locations.id, { onDelete: 'cascade' }),
   invoiceNumber: integer('invoice_number').notNull(),
   dateOfDelivery: integer('date_of_delivery', { mode: 'timestamp' }).notNull(),
   dateOfInvoice: integer('date_of_invoice', { mode: 'timestamp' }).notNull(),
@@ -82,15 +76,13 @@ export const invoicesRelations = relations(invoices, ({ many, one }) => ({
 }));
 
 export const lineItems = sqliteTable('line_items', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  invoiceId: text('invoice_id')
+  id: integer('id', { mode: 'number' }).primaryKey(),
+  invoiceId: integer('invoice_id', { mode: 'number' })
     .notNull()
-    .references(() => invoices.id),
-  productId: text('product_id')
+    .references(() => invoices.id, { onDelete: 'cascade' }),
+  productId: integer('product_id', { mode: 'number' })
     .notNull()
-    .references(() => products.id),
+    .references(() => products.id, { onDelete: 'cascade' }),
   quantity: integer('quantity').notNull(),
   actualPrice: integer('actual_price').notNull(),
   quotedPrice: integer('quoted_price').notNull(),
@@ -113,9 +105,7 @@ export const lineItemsRelations = relations(lineItems, ({ one }) => ({
 }));
 
 export const companies = sqliteTable('companies', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+  id: integer('id', { mode: 'number' }).primaryKey(),
   name: text('name').notNull(),
   address: text('address').notNull(),
   office: text('office').notNull(),
@@ -129,9 +119,7 @@ export const companies = sqliteTable('companies', {
 });
 
 export const clients = sqliteTable('clients', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+  id: integer('id', { mode: 'number' }).primaryKey(),
   name: text('name').notNull(),
   invoiceNumberInitial: text('inoive_number_initial').notNull(),
   attention: text('attention'),
@@ -143,13 +131,11 @@ export const clients = sqliteTable('clients', {
 });
 
 export const locations = sqliteTable('locations', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+  id: integer('id', { mode: 'number' }).primaryKey(),
   address: text('address').notNull(),
-  clientId: text('client_id')
+  clientId: integer('client_id', { mode: 'number' })
     .notNull()
-    .references(() => clients.id),
+    .references(() => clients.id, { onDelete: 'cascade' }),
 });
 
 export const clientsRelations = relations(clients, ({ many }) => ({

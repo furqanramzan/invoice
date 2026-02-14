@@ -50,7 +50,7 @@ export async function saveUser(data: RegisterSchema) {
   return newUser;
 }
 
-export async function createSessionToken(event: RequestEvent, userId: string) {
+export async function createSessionToken(event: RequestEvent, userId: number) {
   const sessionToken = auth.generateSessionToken();
   const session = await auth.createSession(sessionToken, userId);
   auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);

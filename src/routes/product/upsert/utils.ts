@@ -9,7 +9,7 @@ export const route = {
 };
 
 export const productSchema = z.object({
-  id: z.string().optional(),
+  id: z.number().positive().optional(),
   name: z.string().min(1, { message: 'Name is required' }),
   actualPrice: z
     .number()

@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { invoices, lineItems } from '$lib/server/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { count, desc, eq } from 'drizzle-orm';
 import { itemSchema } from '$lib/validations.js';
 import { getPaginationData } from '$lib/utils.js';
 import { initForm, sendMessage, validateAction } from '$lib/superforms';
@@ -11,7 +11,7 @@ export async function load(event) {
 
   const { page, offset, limit } = getPaginationData(event);
 
-  const [allInvoices, totalInvoices] = await Promise.all([
+  const [allInvoices, [{ count: totalInvoices }]] = await Promise.all([
     db.query.invoices.findMany({
       limit,
       offset,
@@ -21,14 +21,14 @@ export async function load(event) {
         client: { columns: { name: true } },
       },
     }),
-    db.select().from(invoices),
+    db.select({ count: count() }).from(invoices),
   ]);
 
   return {
     form,
     invoices: allInvoices,
     currentPage: page,
-    totalPages: Math.ceil(totalInvoices.length / limit),
+    totalPages: Math.ceil(totalInvoices / limit),
   };
 }
 

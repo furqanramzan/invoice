@@ -12,7 +12,7 @@ const printLayoutEnum = z.enum(['A', 'B']).default('A');
 export type PrintLayout = z.infer<typeof printLayoutEnum>;
 
 export const companySchema = z.object({
-  id: z.string().optional(),
+  id: z.number().positive().optional(),
   name: z.string().min(1, { message: 'Name is required' }),
   address: z.string(),
   office: z.string(),

@@ -57,99 +57,131 @@ export async function POST() {
   }));
 
   const existingProducts = await db.select().from(products);
-  const invoicesToInsert: Array<typeof invoicesTable.$inferInsert> = [];
-  const lineItemsToInsert: Array<typeof lineItems.$inferInsert> = [];
   const productsToUpdate: Array<{
-    id: string;
+    id: number;
     actualPrice: number;
     quotedPrice: number;
     salePrice: number;
   }> = [];
-  const productsToInsert: Array<typeof products.$inferInsert> = [];
 
-  for (const invoice of invoices.filter((x) => x.lineItems.length)) {
-    let locationId = firstLocation.id;
-    if (invoice.location) {
-      const foundLocation = await db.query.locations.findFirst({
-        where: eq(locations.address, invoice.location),
-      });
-      if (foundLocation) {
-        locationId = foundLocation.id;
+  await db.transaction(async (tx) => {
+    for (const invoice of invoices.filter((x) => x.lineItems.length)) {
+      let locationId = firstLocation.id;
+      if (invoice.location) {
+        const foundLocation = await tx.query.locations.findFirst({
+          where: eq(locations.address, invoice.location),
+        });
+        if (foundLocation) {
+          locationId = foundLocation.id;
+        } else {
+          const [newLoc] = await tx
+            .insert(locations)
+            .values({
+              address: invoice.location,
+              clientId: firstClient.id,
+            })
+            .returning({ id: locations.id });
+
+          locationId = newLoc.id;
+        }
       }
-    }
 
-    let totalActualPrice = 0;
-    let totalQuotedPrice = 0;
-    let totalSalePrice = 0;
+      let totalActualPrice = 0;
+      let totalQuotedPrice = 0;
+      let totalSalePrice = 0;
 
-    const invoiceId = crypto.randomUUID();
+      const lineItemsToInsertForInvoice: Array<
+        Omit<typeof lineItems.$inferInsert, 'invoiceId'>
+      > = [];
 
-    for (const item of invoice.lineItems) {
-      let currentProduct = existingProducts.find((p) => p.name === item.name);
+      for (const item of invoice.lineItems) {
+        let currentProduct = existingProducts.find((p) => p.name === item.name);
 
-      if (currentProduct) {
-        // Update product prices if more recent or different
-        if (
-          currentProduct.actualPrice !== item.actualPrice ||
-          currentProduct.quotedPrice !== item.quotedPrice ||
-          currentProduct.salePrice !== item.salePrice
-        ) {
-          productsToUpdate.push({
-            id: currentProduct.id,
+        if (currentProduct) {
+          if (
+            currentProduct.actualPrice !== item.actualPrice ||
+            currentProduct.quotedPrice !== item.quotedPrice ||
+            currentProduct.salePrice !== item.salePrice
+          ) {
+            productsToUpdate.push({
+              id: currentProduct.id,
+              actualPrice: item.actualPrice,
+              quotedPrice: item.quotedPrice,
+              salePrice: item.salePrice,
+            });
+          }
+        } else {
+          const [newProduct] = await tx
+            .insert(products)
+            .values({
+              name: item.name,
+              actualPrice: item.actualPrice,
+              quotedPrice: item.quotedPrice,
+              salePrice: item.salePrice,
+              createdAt: new Date(),
+            })
+            .returning({ id: products.id });
+          if (!newProduct) {
+            throw new Error('Failed to insert new product');
+          }
+          // To ensure type compatibility with Product type from schema
+          const tempProduct: typeof products.$inferSelect = {
+            id: newProduct.id,
+            name: item.name,
             actualPrice: item.actualPrice,
             quotedPrice: item.quotedPrice,
             salePrice: item.salePrice,
-          });
+            createdAt: new Date(),
+          };
+          currentProduct = tempProduct;
+          existingProducts.push(currentProduct); // Add to existingProducts to avoid re-creating in the same batch
         }
-      } else {
-        // Add new product
-        const newProductId = crypto.randomUUID();
-        currentProduct = {
-          id: newProductId,
-          name: item.name,
-          actualPrice: item.actualPrice,
-          quotedPrice: item.quotedPrice,
-          salePrice: item.salePrice,
-          createdAt: new Date(),
-        };
-        productsToInsert.push(currentProduct);
-        existingProducts.push(currentProduct); // Add to existingProducts to avoid re-creating in the same batch
+
+        if (!currentProduct) {
+          throw new Error('currentProduct is undefined after creation attempt');
+        }
+
+        lineItemsToInsertForInvoice.push({
+          productId: currentProduct.id,
+          quantity: item.quantity,
+          actualPrice: item.actualPrice || 0,
+          quotedPrice: item.quotedPrice || 0,
+          salePrice: item.salePrice || 0,
+          receivedPrice: 0,
+        });
+
+        totalActualPrice += item.actualPrice * item.quantity;
+        totalQuotedPrice += item.quotedPrice * item.quantity;
+        totalSalePrice += item.salePrice * item.quantity;
       }
 
-      lineItemsToInsert.push({
-        invoiceId: invoiceId,
-        productId: currentProduct.id,
-        quantity: item.quantity,
-        actualPrice: item.actualPrice,
-        quotedPrice: item.quotedPrice,
-        salePrice: item.salePrice,
-        receivedPrice: 0, // Assuming receivedPrice is 0 for imported items initially
-      });
+      const [newInvoice] = await tx
+        .insert(invoicesTable)
+        .values({
+          companyId: firstCompany.id,
+          clientId: firstClient.id,
+          locationId: locationId,
+          invoiceNumber: invoice.invoiceNumber,
+          dateOfDelivery: invoice.dateOfDelivery,
+          dateOfInvoice: invoice.dateOfInvoice,
+          status: 'delivery_acknowledged',
+          actualPrice: totalActualPrice,
+          quotedPrice: totalQuotedPrice,
+          salePrice: totalSalePrice,
+          receivedAmount: invoice.receivedAmount,
+        })
+        .returning({ id: invoicesTable.id });
 
-      totalActualPrice += item.actualPrice * item.quantity;
-      totalQuotedPrice += item.quotedPrice * item.quantity;
-      totalSalePrice += item.salePrice * item.quantity;
-    }
+      if (!newInvoice) {
+        throw new Error('Failed to insert new invoice');
+      }
 
-    invoicesToInsert.push({
-      id: invoiceId,
-      companyId: firstCompany.id,
-      clientId: firstClient.id,
-      locationId: locationId,
-      invoiceNumber: invoice.invoiceNumber,
-      dateOfDelivery: invoice.dateOfDelivery,
-      dateOfInvoice: invoice.dateOfInvoice,
-      status: 'delivery_acknowledged', // Default status for imported invoices
-      actualPrice: totalActualPrice,
-      quotedPrice: totalQuotedPrice,
-      salePrice: totalSalePrice,
-      receivedAmount: invoice.receivedAmount,
-    });
-  }
-
-  await db.transaction(async (tx) => {
-    if (productsToInsert.length > 0) {
-      await tx.insert(products).values(productsToInsert);
+      await tx.insert(lineItems).values(
+        lineItemsToInsertForInvoice.map((item) => ({
+          ...item,
+          invoiceId: newInvoice.id,
+        })),
+      );
     }
 
     for (const product of productsToUpdate) {
@@ -161,13 +193,6 @@ export async function POST() {
           salePrice: product.salePrice,
         })
         .where(eq(products.id, product.id));
-    }
-
-    if (invoicesToInsert.length > 0) {
-      await tx.insert(invoicesTable).values(invoicesToInsert);
-    }
-    if (lineItemsToInsert.length > 0) {
-      await tx.insert(lineItems).values(lineItemsToInsert);
     }
   });
 

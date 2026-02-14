@@ -60,7 +60,7 @@
     Previous
   </Button>
 
-  {#each pages as page (page)}
+  {#each pages as page, index (index)}
     {#if page === '...'}
       <span class="px-2 text-muted-foreground">...</span>
     {:else}

@@ -1,6 +1,5 @@
 import z from 'zod';
 import { resolve } from '$app/paths';
-import type { Option } from '$lib/utils';
 
 export const title = { singular: 'Invoice', plural: 'Invoices' };
 
@@ -10,8 +9,8 @@ export const route = {
 };
 
 export const lineItemSchema = z.object({
-  id: z.string().optional(), // Made optional for upsert
-  productId: z.string().optional(),
+  id: z.number().positive().optional(), // Made optional for upsert
+  productId: z.number().positive().optional(),
   name: z.string().min(1),
   quantity: z.number().int().gt(0),
   actualPrice: z.number().min(0),
@@ -20,15 +19,15 @@ export const lineItemSchema = z.object({
   receivedPrice: z.number().min(0),
 });
 const invoiceStatus = z
-  .enum(['draft', 'processing', 'delivered', 'returned'])
+  .enum(['draft', 'processing', 'delivered', 'delivery_acknowledged', 'paid'])
   .default('draft');
 export type InvoiceStatus = z.infer<typeof invoiceStatus>;
 export const invoiceSchema = z.object({
-  id: z.string().optional(), // Added and made optional for upsert
+  id: z.number().positive().optional(), // Added and made optional for upsert
   invoiceNumber: z.number().positive(),
-  companyId: z.uuidv4(),
-  clientId: z.uuidv4(),
-  locationId: z.uuidv4(),
+  companyId: z.coerce.number().positive(),
+  clientId: z.coerce.number().positive(),
+  locationId: z.coerce.number().positive(),
   receivedAmount: z.number().positive().optional().nullable(),
   dateOfDelivery: z.date(),
   dateOfInvoice: z.date(),
@@ -46,11 +45,8 @@ export const invoiceSchema = z.object({
     .optional(),
 });
 
-interface Statuses extends Option {
-  color?: string;
-}
-export const statuses: Statuses[] = [
-  { value: 'draft' },
+export const statuses = [
+  { value: 'draft', color: 'purple' },
   { value: 'processing', color: 'yellow' },
   { value: 'delivered', color: 'blue' },
   { value: 'delivery_acknowledged', color: 'teal' },

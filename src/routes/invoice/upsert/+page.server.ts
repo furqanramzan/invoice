@@ -16,7 +16,7 @@ import { delFile, putFile } from '$lib/server/filesystem.js';
 import { convertCents, convertToCents } from '$lib/utils.js';
 
 export const load = async (event) => {
-  const id = event.url.searchParams.get('id');
+  const id = Number(event.url.searchParams.get('id'));
   let currentInvoice = null;
 
   if (id) {
@@ -65,10 +65,10 @@ export const load = async (event) => {
             ...lineItem,
             id: lineItem.product.id,
             name: lineItem.product.name,
-            actualPrice: convertToCents(lineItem.actualPrice),
-            quotedPrice: convertToCents(lineItem.quotedPrice),
-            salePrice: convertToCents(lineItem.salePrice),
-            receivedPrice: convertToCents(lineItem.receivedPrice),
+            actualPrice: convertCents(lineItem.actualPrice),
+            quotedPrice: convertCents(lineItem.quotedPrice),
+            salePrice: convertCents(lineItem.salePrice),
+            receivedPrice: convertCents(lineItem.receivedPrice),
           })),
         }
       : {
@@ -109,6 +109,7 @@ export const actions = {
         products.map(async (p) => {
           const productData = {
             ...p,
+            receivedPrice: convertToCents(p.receivedPrice),
             quotedPrice: convertToCents(p.quotedPrice),
             salePrice: convertToCents(p.salePrice),
             actualPrice: convertToCents(p.actualPrice),
@@ -116,7 +117,7 @@ export const actions = {
           const [upsertedProduct] = await tx
             .insert(productsSchema)
             .values({
-              id: p.productId || crypto.randomUUID(),
+              id: p.productId,
               ...productData,
             })
             .onConflictDoUpdate({
@@ -128,23 +129,20 @@ export const actions = {
         }),
       );
 
-      const salePrice = Math.round(
-        processedProducts.reduce(
-          (acc, p) => acc + p.quantity * p.salePrice,
-          0,
-        ) * 100,
+      const salePrice = convertToCents(
+        processedProducts.reduce((acc, p) => acc + p.quantity * p.salePrice, 0),
       );
-      const actualPrice = Math.round(
+      const actualPrice = convertToCents(
         processedProducts.reduce(
           (acc, p) => acc + p.quantity * p.actualPrice,
           0,
-        ) * 100,
+        ),
       );
-      const quotedPrice = Math.round(
+      const quotedPrice = convertToCents(
         processedProducts.reduce(
           (acc, p) => acc + p.quantity * p.quotedPrice,
           0,
-        ) * 100,
+        ),
       );
       if (products.some((x) => x.receivedPrice)) {
         invoiceData.receivedAmount = products.reduce(
@@ -162,7 +160,7 @@ export const actions = {
           ...(
             await Promise.all(
               images.map((image) =>
-                putFile(`invoices/${crypto.randomUUID()}${image.name}`, image),
+                putFile(`invoices/${crypto.randomUUID()}-${image.name}`, image),
               ),
             )
           ).map((x, index) => ({ url: x, name: images[index].name })),

@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { products, lineItems } from '$lib/server/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { count, desc, eq } from 'drizzle-orm';
 import { itemSchema } from '$lib/validations.js';
 import { initForm, sendMessage, validateAction } from '$lib/superforms.js';
 import { title } from './upsert/utils.js';
@@ -11,20 +11,20 @@ export async function load(event) {
 
   const { page, offset, limit } = getPaginationData(event);
 
-  const [allProducts, totalProducts] = await Promise.all([
+  const [allProducts, [{ count: totalProducts }]] = await Promise.all([
     db.query.products.findMany({
       limit,
       offset,
       orderBy: desc(products.createdAt),
     }),
-    db.select().from(products),
+    db.select({ count: count() }).from(products),
   ]);
 
   return {
     form,
     products: allProducts,
     currentPage: page,
-    totalPages: Math.ceil(totalProducts.length / limit),
+    totalPages: Math.ceil(totalProducts / limit),
   };
 }
 

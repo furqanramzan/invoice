@@ -9,11 +9,11 @@ export const route = {
 };
 
 export const clientSchema = z.object({
-  id: z.string().optional(),
+  id: z.number().positive().optional(),
   name: z.string().min(1, { message: 'Name is required' }),
   locations: z
     .object({
-      id: z.uuidv4().optional(),
+      id: z.number().positive().optional(),
       deleted: z.boolean().optional(),
       address: z.string(),
     })

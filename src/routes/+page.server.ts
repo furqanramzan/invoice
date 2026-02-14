@@ -9,10 +9,11 @@ import { superValidate, message } from 'sveltekit-superforms/server';
 import { loginSchema } from '$lib/validations';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { createSessionToken } from '$lib/server/user';
+import { getUserCount } from '$lib/server/auth';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const users = await db.select().from(table.user);
-  if (users.length === 0) {
+  const users = await getUserCount();
+  if (users === 0) {
     redirect(302, resolve('/register'));
   }
 

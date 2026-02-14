@@ -1,5 +1,5 @@
 <script lang="ts" generics="T extends Record<string, unknown>">
-  import * as RadioGroup from '$lib/components/ui/radio-group';
+  import * as Select from '$lib/components/ui/select/index.js';
   import { titleCase } from 'text-case';
   import { Label } from '$lib/components/ui/label';
   import {
@@ -29,6 +29,9 @@
     field,
   ) satisfies FormFieldProxy<FieldType>;
 
+  const triggerContent = $derived(
+    options.find((f) => f.value === $value)?.label ?? 'Select a fruit',
+  );
   let labelText = $derived(label || titleCase(field));
 
   $effect(() => {
@@ -41,21 +44,21 @@
 
 <div class="space-y-1">
   <Label id={field}>{labelText}</Label>
-  <RadioGroup.Root
-    name={field}
-    {disabled}
-    class="flex gap-2"
-    bind:value={$value}
-  >
-    {#each options as option, index (index)}
-      <div class="flex items-center space-x-2">
-        <RadioGroup.Item value={option.value} id={option.value} />
-        <Label for={option.value}>
-          {option.label || titleCase(option.value)}
-        </Label>
-      </div>
-    {/each}
-  </RadioGroup.Root>
+  <Select.Root type="single" name="favoriteFruit" bind:value={$value}>
+    <Select.Trigger class="w-full">
+      {triggerContent}
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Group>
+        <Select.Label>Fruits</Select.Label>
+        {#each options as option (option.value)}
+          <Select.Item value={option.value} label={option.label}>
+            {option.label}
+          </Select.Item>
+        {/each}
+      </Select.Group>
+    </Select.Content>
+  </Select.Root>
   {#if $errors}
     <p class="text-red-500">{$errors}</p>
   {/if}

@@ -6,7 +6,7 @@ import { initForm, redirectTo, validateAction } from '$lib/superforms';
 import { delFile, putFile } from '$lib/server/filesystem.js';
 
 export const load = async (event) => {
-  const id = event.url.searchParams.get('id');
+  const id = Number(event.url.searchParams.get('id'));
   let currentCompany: Company | undefined;
 
   if (id) {

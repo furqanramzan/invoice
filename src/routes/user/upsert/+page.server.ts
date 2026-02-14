@@ -14,7 +14,7 @@ import {
 import { route, title } from './utils.js';
 
 export const load = async ({ url }) => {
-  const id = url.searchParams.get('id');
+  const id = Number(url.searchParams.get('id'));
   let currentUser = null;
 
   if (id) {

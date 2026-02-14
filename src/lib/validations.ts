@@ -1,6 +1,6 @@
 import z from 'zod';
 
-export const itemSchema = z.object({ id: z.uuidv4() });
+export const itemSchema = z.object({ id: z.number().positive() });
 
 export const loginSchema = z.object({
   email: z.email(),
@@ -11,7 +11,7 @@ export const loginSchema = z.object({
 });
 
 export const registerSchema = loginSchema.extend({
-  id: z.uuidv4().optional(),
+  id: z.number().positive().optional(),
   name: z
     .string()
     .min(2, 'Name must be at least 2 characters long')
@@ -22,3 +22,7 @@ export const registerSchema = loginSchema.extend({
     ),
 });
 export type RegisterSchema = z.infer<typeof registerSchema>;
+
+export const deleteSchema = z.object({
+  id: z.number().positive(),
+});

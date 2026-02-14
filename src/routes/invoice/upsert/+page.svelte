@@ -13,13 +13,19 @@
   import Heading from '$lib/components/heading.svelte';
   import { getSuperForm } from '$lib/superforms.js';
   import HiddenField from '$lib/components/form/hidden-field.svelte';
-  import { formatAmount, formatCents, splitAfterChars } from '$lib/utils.js';
+  import {
+    formatAmount,
+    formatCents,
+    randomInt,
+    splitAfterChars,
+  } from '$lib/utils.js';
   import DateField from '$lib/components/form/date-field.svelte';
   import RadioField from '$lib/components/form/radio-field.svelte';
   import NumberField from '$lib/components/form/number-field.svelte';
   import MultiFileField from '$lib/components/form/multi-file-field.svelte';
   import { toast } from 'svelte-sonner';
   import { snakeCase } from 'text-case';
+  import SelectField from '$lib/components/form/select-field.svelte';
 
   let { data } = $props();
   const allProducts = $derived(data.products);
@@ -42,7 +48,7 @@
     $form.lineItems = [
       ...$form.lineItems,
       {
-        id: crypto.randomUUID(),
+        id: randomInt(),
         name: '',
         quantity: 1,
         quotedPrice: 0,
@@ -502,7 +508,7 @@
         label="Client"
         options={data.clients.map((x) => ({ label: x.name, value: x.id }))}
       />
-      <RadioField
+      <SelectField
         {superform}
         field="locationId"
         label="Location"

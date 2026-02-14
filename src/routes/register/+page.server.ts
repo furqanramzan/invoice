@@ -1,5 +1,3 @@
-import { db } from '$lib/server/db';
-import * as table from '$lib/server/db/schema';
 import type { Actions, PageServerLoad } from './$types';
 import { registerSchema } from '$lib/validations';
 import { saveUser, createSessionToken } from '$lib/server/user';
@@ -9,10 +7,11 @@ import {
   sendMessage,
   validateAction,
 } from '$lib/superforms';
+import { getUserCount } from '$lib/server/auth';
 
 export const load: PageServerLoad = async () => {
-  const users = await db.select().from(table.user);
-  if (users.length > 0) {
+  const users = await getUserCount();
+  if (users > 0) {
     return redirectTo('/');
   }
 
@@ -22,8 +21,8 @@ export const load: PageServerLoad = async () => {
 
 export const actions: Actions = {
   default: async (event) => {
-    const users = await db.select().from(table.user);
-    if (users.length > 0) {
+    const users = await getUserCount();
+    if (users > 0) {
       return redirectTo('/');
     }
 

@@ -52,11 +52,16 @@
             {invoice.client?.name}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            {@const status = statuses.find((x) => x.value === invoice.status)}
-            {#if status}
-              <Badge class="bg-{status.color}-500"
-                >{titleCase(invoice.status)}</Badge
-              >
+            {#if invoice.status === 'draft'}
+              <Badge class="bg-purple-500">{titleCase(invoice.status)}</Badge>
+            {:else if invoice.status === 'processing'}
+              <Badge class="bg-yellow-500">{titleCase(invoice.status)}</Badge>
+            {:else if invoice.status === 'delivered'}
+              <Badge class="bg-blue-500">{titleCase(invoice.status)}</Badge>
+            {:else if invoice.status === 'delivery_acknowledged'}
+              <Badge class="bg-teal-500">{titleCase(invoice.status)}</Badge>
+            {:else if invoice.status === 'paid'}
+              <Badge class="bg-green-500">{titleCase(invoice.status)}</Badge>
             {/if}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">

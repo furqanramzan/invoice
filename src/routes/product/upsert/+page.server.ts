@@ -6,7 +6,7 @@ import { initForm, redirectTo, validateAction } from '$lib/superforms.js';
 import { convertCents, convertToCents } from '$lib/utils.js';
 
 export const load = async (event) => {
-  const id = event.url.searchParams.get('id');
+  const id = Number(event.url.searchParams.get('id'));
   let currentProduct = null;
 
   if (id) {
@@ -24,9 +24,9 @@ export const load = async (event) => {
     currentProduct
       ? {
           ...currentProduct,
-          actualPrice: convertCents(currentProduct.actualPrice / 100),
-          quotedPrice: convertCents(currentProduct.quotedPrice / 100),
-          salePrice: convertCents(currentProduct.salePrice / 100),
+          actualPrice: convertCents(currentProduct.actualPrice),
+          quotedPrice: convertCents(currentProduct.quotedPrice),
+          salePrice: convertCents(currentProduct.salePrice),
         }
       : undefined,
   );
@@ -49,7 +49,10 @@ export const actions = {
     };
 
     if (id) {
-      await db.update(products).set(productData).where(eq(products.id, id));
+      await db
+        .update(products)
+        .set(productData)
+        .where(eq(products.id, Number(id)));
     } else {
       await db.insert(products).values(productData);
     }
