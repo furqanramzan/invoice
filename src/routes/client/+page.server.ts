@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { clients } from '$lib/server/db/schema';
+import { Clients } from '$lib/server/db/schema';
 import { count, desc, eq } from 'drizzle-orm';
 import { initForm, sendMessage, validateAction } from '$lib/superforms.js';
 import { title } from './upsert/utils.js';
@@ -12,12 +12,12 @@ export async function load(event) {
   const { page, offset, limit } = getPaginationData(event);
 
   const [allClients, [{ count: totalClients }]] = await Promise.all([
-    db.query.clients.findMany({
+    db.query.Clients.findMany({
       limit,
       offset,
-      orderBy: desc(clients.createdAt),
+      orderBy: desc(Clients.createdAt),
     }),
-    db.select({ count: count() }).from(clients),
+    db.select({ count: count() }).from(Clients),
   ]);
 
   return {
@@ -34,7 +34,7 @@ export const actions = {
 
     if (!form.valid) return form.error;
 
-    await db.delete(clients).where(eq(clients.id, form.data.id));
+    await db.delete(Clients).where(eq(Clients.id, form.data.id));
 
     return sendMessage(form, `${title.singular} deleted!`);
   },

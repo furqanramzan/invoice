@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { clients, locations, type Client } from '$lib/server/db/schema';
+import { Clients, Locations, type Client } from '$lib/server/db/schema';
 import { clientSchema, route, title } from './utils';
 import { eq, inArray } from 'drizzle-orm';
 import { initForm, redirectTo, validateAction } from '$lib/superforms';
@@ -9,8 +9,8 @@ export const load = async (event) => {
   let currentClient: Client | undefined;
 
   if (id) {
-    currentClient = await db.query.clients.findFirst({
-      where: eq(clients.id, id),
+    currentClient = await db.query.Clients.findFirst({
+      where: eq(Clients.id, id),
       with: { locations: true },
     });
 
@@ -37,12 +37,12 @@ export const actions = {
 
     await db.transaction(async (tx) => {
       if (id) {
-        await tx.update(clients).set(clientData).where(eq(clients.id, id));
+        await tx.update(Clients).set(clientData).where(eq(Clients.id, id));
       } else {
         const [client] = await tx
-          .insert(clients)
+          .insert(Clients)
           .values(clientData)
-          .returning({ id: clients.id });
+          .returning({ id: Clients.id });
         id = client.id;
       }
 
@@ -55,24 +55,24 @@ export const actions = {
 
       if (newLocations.length) {
         await tx
-          .insert(locations)
+          .insert(Locations)
           .values(newLocations.map((x) => ({ ...x, clientId: id || 0 })));
       }
       if (updateLocations.length) {
         await Promise.all(
           updateLocations.map((location) =>
             tx
-              .update(locations)
+              .update(Locations)
               .set(location)
-              .where(eq(locations.id, location.id || 0)),
+              .where(eq(Locations.id, location.id || 0)),
           ),
         );
       }
       if (deleteLocations.length) {
         await tx
-          .delete(locations)
-          .where(inArray(locations.id, deleteLocations))
-          .returning({ id: locations.id });
+          .delete(Locations)
+          .where(inArray(Locations.id, deleteLocations))
+          .returning({ id: Locations.id });
       }
     });
 

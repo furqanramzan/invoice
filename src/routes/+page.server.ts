@@ -35,8 +35,8 @@ export const actions: Actions = {
 
     const results = await db
       .select()
-      .from(table.user)
-      .where(eq(table.user.email, form.data.email));
+      .from(table.Users)
+      .where(eq(table.Users.email, form.data.email));
 
     const existingUser = results.at(0);
     if (!existingUser) {

@@ -3,29 +3,29 @@ import { eq } from 'drizzle-orm';
 import path from 'path';
 import { db } from '$lib/server/db';
 import {
-  companies,
-  clients,
-  invoices as invoicesTable,
-  lineItems,
-  locations,
-  products,
+  Companies,
+  Clients,
+  Invoices as invoicesTable,
+  LineItems,
+  Locations,
+  Products,
 } from '$lib/server/db/schema';
 import { json } from '@sveltejs/kit';
 
 export async function POST() {
-  const [firstCompany] = await db.select().from(companies).limit(1);
+  const [firstCompany] = await db.select().from(Companies).limit(1);
   if (!firstCompany) {
     return json({ error: 'No company found in database' });
   }
 
-  const [firstClient] = await db.select().from(clients).limit(1);
+  const [firstClient] = await db.select().from(Clients).limit(1);
   if (!firstClient) {
     return json({ error: 'No client found in database.' });
   }
   const [firstLocation] = await db
     .select()
-    .from(locations)
-    .where(eq(locations.clientId, firstClient.id))
+    .from(Locations)
+    .where(eq(Locations.clientId, firstClient.id))
     .limit(1);
   if (!firstLocation) {
     return json({ error: 'No location found for the first client.' });
@@ -56,7 +56,7 @@ export async function POST() {
     dateOfInvoice: new Date(x.dateOfInvoice),
   }));
 
-  const existingProducts = await db.select().from(products);
+  const existingProducts = await db.select().from(Products);
   const productsToUpdate: Array<{
     id: number;
     actualPrice: number;
@@ -68,19 +68,19 @@ export async function POST() {
     for (const invoice of invoices.filter((x) => x.lineItems.length)) {
       let locationId = firstLocation.id;
       if (invoice.location) {
-        const foundLocation = await tx.query.locations.findFirst({
-          where: eq(locations.address, invoice.location),
+        const foundLocation = await tx.query.Locations.findFirst({
+          where: eq(Locations.address, invoice.location),
         });
         if (foundLocation) {
           locationId = foundLocation.id;
         } else {
           const [newLoc] = await tx
-            .insert(locations)
+            .insert(Locations)
             .values({
               address: invoice.location,
               clientId: firstClient.id,
             })
-            .returning({ id: locations.id });
+            .returning({ id: Locations.id });
 
           locationId = newLoc.id;
         }
@@ -91,7 +91,7 @@ export async function POST() {
       let totalSalePrice = 0;
 
       const lineItemsToInsertForInvoice: Array<
-        Omit<typeof lineItems.$inferInsert, 'invoiceId'>
+        Omit<typeof LineItems.$inferInsert, 'invoiceId'>
       > = [];
 
       for (const item of invoice.lineItems) {
@@ -112,7 +112,7 @@ export async function POST() {
           }
         } else {
           const [newProduct] = await tx
-            .insert(products)
+            .insert(Products)
             .values({
               name: item.name,
               actualPrice: item.actualPrice,
@@ -120,12 +120,12 @@ export async function POST() {
               salePrice: item.salePrice,
               createdAt: new Date(),
             })
-            .returning({ id: products.id });
+            .returning({ id: Products.id });
           if (!newProduct) {
             throw new Error('Failed to insert new product');
           }
           // To ensure type compatibility with Product type from schema
-          const tempProduct: typeof products.$inferSelect = {
+          const tempProduct: typeof Products.$inferSelect = {
             id: newProduct.id,
             name: item.name,
             actualPrice: item.actualPrice,
@@ -176,7 +176,7 @@ export async function POST() {
         throw new Error('Failed to insert new invoice');
       }
 
-      await tx.insert(lineItems).values(
+      await tx.insert(LineItems).values(
         lineItemsToInsertForInvoice.map((item) => ({
           ...item,
           invoiceId: newInvoice.id,
@@ -186,13 +186,13 @@ export async function POST() {
 
     for (const product of productsToUpdate) {
       await tx
-        .update(products)
+        .update(Products)
         .set({
           actualPrice: product.actualPrice,
           quotedPrice: product.quotedPrice,
           salePrice: product.salePrice,
         })
-        .where(eq(products.id, product.id));
+        .where(eq(Products.id, product.id));
     }
   });
 

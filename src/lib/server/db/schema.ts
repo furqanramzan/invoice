@@ -1,7 +1,7 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
 
-export const user = sqliteTable('users', {
+export const Users = sqliteTable('users', {
   id: integer('id', { mode: 'number' }).primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
@@ -11,17 +11,17 @@ export const user = sqliteTable('users', {
     .notNull(),
 });
 
-export const session = sqliteTable('sessions', {
+export const Sessions = sqliteTable('sessions', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   userId: integer('user_id', { mode: 'number' })
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
+    .references(() => Users.id, { onDelete: 'cascade' }),
   expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
 });
 
-export const products = sqliteTable('products', {
+export const Products = sqliteTable('products', {
   id: integer('id', { mode: 'number' }).primaryKey(),
   name: text('name').notNull(),
   actualPrice: integer('actual_price').notNull(),
@@ -32,21 +32,21 @@ export const products = sqliteTable('products', {
     .notNull(),
 });
 
-export const productsRelations = relations(products, ({ many }) => ({
-  lineItems: many(lineItems),
+export const ProductsRelations = relations(Products, ({ many }) => ({
+  lineItems: many(LineItems),
 }));
 
-export const invoices = sqliteTable('invoices', {
+export const Invoices = sqliteTable('invoices', {
   id: integer('id', { mode: 'number' }).primaryKey(),
   companyId: integer('company_id', { mode: 'number' })
     .notNull()
-    .references(() => companies.id, { onDelete: 'cascade' }),
+    .references(() => Companies.id, { onDelete: 'cascade' }),
   clientId: integer('client_id', { mode: 'number' })
     .notNull()
-    .references(() => clients.id, { onDelete: 'cascade' }),
+    .references(() => Clients.id, { onDelete: 'cascade' }),
   locationId: integer('location_id', { mode: 'number' })
     .notNull()
-    .references(() => locations.id, { onDelete: 'cascade' }),
+    .references(() => Locations.id, { onDelete: 'cascade' }),
   invoiceNumber: integer('invoice_number').notNull(),
   dateOfDelivery: integer('date_of_delivery', { mode: 'timestamp' }).notNull(),
   dateOfInvoice: integer('date_of_invoice', { mode: 'timestamp' }).notNull(),
@@ -63,26 +63,26 @@ export const invoices = sqliteTable('invoices', {
     .notNull(),
 });
 
-export const invoicesRelations = relations(invoices, ({ many, one }) => ({
-  lineItems: many(lineItems),
-  company: one(companies, {
-    fields: [invoices.companyId],
-    references: [companies.id],
+export const InvoicesRelations = relations(Invoices, ({ many, one }) => ({
+  lineItems: many(LineItems),
+  company: one(Companies, {
+    fields: [Invoices.companyId],
+    references: [Companies.id],
   }),
-  client: one(clients, {
-    fields: [invoices.clientId],
-    references: [clients.id],
+  client: one(Clients, {
+    fields: [Invoices.clientId],
+    references: [Clients.id],
   }),
 }));
 
-export const lineItems = sqliteTable('line_items', {
+export const LineItems = sqliteTable('line_items', {
   id: integer('id', { mode: 'number' }).primaryKey(),
   invoiceId: integer('invoice_id', { mode: 'number' })
     .notNull()
-    .references(() => invoices.id, { onDelete: 'cascade' }),
+    .references(() => Invoices.id, { onDelete: 'cascade' }),
   productId: integer('product_id', { mode: 'number' })
     .notNull()
-    .references(() => products.id, { onDelete: 'cascade' }),
+    .references(() => Products.id, { onDelete: 'cascade' }),
   quantity: integer('quantity').notNull(),
   actualPrice: integer('actual_price').notNull(),
   quotedPrice: integer('quoted_price').notNull(),
@@ -93,18 +93,18 @@ export const lineItems = sqliteTable('line_items', {
     .notNull(),
 });
 
-export const lineItemsRelations = relations(lineItems, ({ one }) => ({
-  invoice: one(invoices, {
-    fields: [lineItems.invoiceId],
-    references: [invoices.id],
+export const LineItemsRelations = relations(LineItems, ({ one }) => ({
+  invoice: one(Invoices, {
+    fields: [LineItems.invoiceId],
+    references: [Invoices.id],
   }),
-  product: one(products, {
-    fields: [lineItems.productId],
-    references: [products.id],
+  product: one(Products, {
+    fields: [LineItems.productId],
+    references: [Products.id],
   }),
 }));
 
-export const companies = sqliteTable('companies', {
+export const Companies = sqliteTable('companies', {
   id: integer('id', { mode: 'number' }).primaryKey(),
   name: text('name').notNull(),
   address: text('address').notNull(),
@@ -118,7 +118,7 @@ export const companies = sqliteTable('companies', {
     .notNull(),
 });
 
-export const clients = sqliteTable('clients', {
+export const Clients = sqliteTable('clients', {
   id: integer('id', { mode: 'number' }).primaryKey(),
   name: text('name').notNull(),
   invoiceNumberInitial: text('inoive_number_initial').notNull(),
@@ -130,28 +130,28 @@ export const clients = sqliteTable('clients', {
     .notNull(),
 });
 
-export const locations = sqliteTable('locations', {
+export const Locations = sqliteTable('locations', {
   id: integer('id', { mode: 'number' }).primaryKey(),
   address: text('address').notNull(),
   clientId: integer('client_id', { mode: 'number' })
     .notNull()
-    .references(() => clients.id, { onDelete: 'cascade' }),
+    .references(() => Clients.id, { onDelete: 'cascade' }),
 });
 
-export const clientsRelations = relations(clients, ({ many }) => ({
-  locations: many(locations),
+export const ClientsRelations = relations(Clients, ({ many }) => ({
+  locations: many(Locations),
 }));
 
-export const locationsRelations = relations(locations, ({ one }) => ({
-  client: one(clients, {
-    fields: [locations.clientId],
-    references: [clients.id],
+export const LocationsRelations = relations(Locations, ({ one }) => ({
+  client: one(Clients, {
+    fields: [Locations.clientId],
+    references: [Clients.id],
   }),
 }));
 
-export type Session = typeof session.$inferSelect;
-export type User = typeof user.$inferSelect;
-export type Product = typeof products.$inferSelect;
-export type ProductInsert = typeof products.$inferInsert;
-export type Company = typeof companies.$inferSelect;
-export type Client = typeof clients.$inferSelect;
+export type Sessions = typeof Sessions.$inferSelect;
+export type Users = typeof Users.$inferSelect;
+export type Product = typeof Products.$inferSelect;
+export type ProductInsert = typeof Products.$inferInsert;
+export type Company = typeof Companies.$inferSelect;
+export type Client = typeof Clients.$inferSelect;

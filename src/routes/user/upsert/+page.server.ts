@@ -18,8 +18,8 @@ export const load = async ({ url }) => {
   let currentUser = null;
 
   if (id) {
-    currentUser = await db.query.user.findFirst({
-      where: eq(table.user.id, id),
+    currentUser = await db.query.Users.findFirst({
+      where: eq(table.Users.id, id),
     });
 
     if (!currentUser) {

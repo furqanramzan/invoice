@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { products, lineItems } from '$lib/server/db/schema';
+import { Products, LineItems } from '$lib/server/db/schema';
 import { count, desc, eq } from 'drizzle-orm';
 import { itemSchema } from '$lib/validations.js';
 import { initForm, sendMessage, validateAction } from '$lib/superforms.js';
@@ -12,12 +12,12 @@ export async function load(event) {
   const { page, offset, limit } = getPaginationData(event);
 
   const [allProducts, [{ count: totalProducts }]] = await Promise.all([
-    db.query.products.findMany({
+    db.query.Products.findMany({
       limit,
       offset,
-      orderBy: desc(products.createdAt),
+      orderBy: desc(Products.createdAt),
     }),
-    db.select({ count: count() }).from(products),
+    db.select({ count: count() }).from(Products),
   ]);
 
   return {
@@ -40,14 +40,14 @@ export const actions = {
     // Check if the product is associated with any line items
     const associatedLineItems = await db
       .select()
-      .from(lineItems)
-      .where(eq(lineItems.productId, form.data.id))
+      .from(LineItems)
+      .where(eq(LineItems.productId, form.data.id))
       .limit(1);
     if (associatedLineItems.length > 0) {
       return sendMessage(form, 'Cannot delete: linked to invoices!', 'error');
     }
 
-    await db.delete(products).where(eq(products.id, form.data.id));
+    await db.delete(Products).where(eq(Products.id, form.data.id));
 
     return sendMessage(form, `${title.singular} deleted!`);
   },

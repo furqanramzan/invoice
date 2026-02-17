@@ -5,7 +5,7 @@ import * as table from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { type RequestEvent } from '@sveltejs/kit';
 import type { RegisterSchema } from '$lib/validations';
-import type { User } from '$lib/server/db/schema';
+import type { Users } from '$lib/server/db/schema';
 
 const argon2 = {
   memoryCost: 19456,
@@ -26,13 +26,13 @@ export async function saveUser(data: RegisterSchema) {
   }
 
   if (id) {
-    const updateData: Partial<User> = {
+    const updateData: Partial<Users> = {
       ...userData,
     };
     if (passwordHash) {
       updateData.passwordHash = passwordHash;
     }
-    await db.update(table.user).set(updateData).where(eq(table.user.id, id));
+    await db.update(table.Users).set(updateData).where(eq(table.Users.id, id));
 
     return { id };
   }
@@ -41,12 +41,12 @@ export async function saveUser(data: RegisterSchema) {
     return 'Password is required for new users.';
   }
   const [newUser] = await db
-    .insert(table.user)
+    .insert(table.Users)
     .values({
       ...userData,
       passwordHash,
     })
-    .returning({ id: table.user.id });
+    .returning({ id: table.Users.id });
   return newUser;
 }
 

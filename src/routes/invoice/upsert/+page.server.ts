@@ -1,11 +1,12 @@
 import { db } from '$lib/server/db';
 import {
-  invoices,
-  lineItems,
-  products as productsSchema,
+  Invoices,
+  LineItems,
+  Locations,
+  Products as productsSchema,
 } from '$lib/server/db/schema';
 import { invoiceSchema, route, title, type InvoiceStatus } from './utils';
-import { eq, sql } from 'drizzle-orm';
+import { asc, eq, sql } from 'drizzle-orm';
 import {
   initForm,
   validateAction,
@@ -20,8 +21,8 @@ export const load = async (event) => {
   let currentInvoice = null;
 
   if (id) {
-    currentInvoice = await db.query.invoices.findFirst({
-      where: eq(invoices.id, id),
+    currentInvoice = await db.query.Invoices.findFirst({
+      where: eq(Invoices.id, id),
       with: {
         lineItems: {
           with: {
@@ -36,18 +37,20 @@ export const load = async (event) => {
     }
   }
 
-  const companies = await db.query.companies.findMany();
-  const clients = await db.query.clients.findMany();
-  const locations = await db.query.locations.findMany();
+  const companies = await db.query.Companies.findMany();
+  const clients = await db.query.Clients.findMany();
+  const locations = await db.query.Locations.findMany({
+    orderBy: asc(Locations.address),
+  });
 
   const invoiceNumbers = await db
     .select({
-      companyId: invoices.companyId,
-      clientId: invoices.clientId,
-      invoiceNumber: sql<number>`max(${invoices.invoiceNumber})`,
+      companyId: Invoices.companyId,
+      clientId: Invoices.clientId,
+      invoiceNumber: sql<number>`max(${Invoices.invoiceNumber})`,
     })
-    .from(invoices)
-    .groupBy(invoices.companyId, invoices.clientId);
+    .from(Invoices)
+    .groupBy(Invoices.companyId, Invoices.clientId);
   const invoiceNumber =
     (invoiceNumbers.find((x) => x.companyId === companies.at(0)?.id)
       ?.invoiceNumber || 0) + 1;
@@ -84,7 +87,7 @@ export const load = async (event) => {
         },
   );
 
-  const products = await db.query.products.findMany();
+  const products = await db.query.Products.findMany();
 
   return {
     form,
@@ -185,20 +188,20 @@ export const actions = {
       };
 
       if (id) {
-        await tx.update(invoices).set(data).where(eq(invoices.id, id));
+        await tx.update(Invoices).set(data).where(eq(Invoices.id, id));
 
         // Delete existing line items for this invoice
-        await tx.delete(lineItems).where(eq(lineItems.invoiceId, id));
+        await tx.delete(LineItems).where(eq(LineItems.invoiceId, id));
       } else {
         const [newInvoice] = await tx
-          .insert(invoices)
+          .insert(Invoices)
           .values(data)
-          .returning({ id: invoices.id });
+          .returning({ id: Invoices.id });
         form.data.id = newInvoice.id; // Assign new ID to form data for line items
       }
 
       if (products.length) {
-        await tx.insert(lineItems).values(
+        await tx.insert(LineItems).values(
           processedProducts.map((p) => ({
             invoiceId: form.data.id!,
             productId: p.productId!,

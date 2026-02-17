@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { companies, type Company } from '$lib/server/db/schema';
+import { Companies, type Company } from '$lib/server/db/schema';
 import { companySchema, route, title, type PrintLayout } from './utils';
 import { eq } from 'drizzle-orm';
 import { initForm, redirectTo, validateAction } from '$lib/superforms';
@@ -10,8 +10,8 @@ export const load = async (event) => {
   let currentCompany: Company | undefined;
 
   if (id) {
-    currentCompany = await db.query.companies.findFirst({
-      where: eq(companies.id, id),
+    currentCompany = await db.query.Companies.findFirst({
+      where: eq(Companies.id, id),
     });
 
     if (!currentCompany) {
@@ -39,8 +39,8 @@ export const actions = {
 
     let currentCompany: Company | undefined;
     if (form.data.id) {
-      currentCompany = await db.query.companies.findFirst({
-        where: eq(companies.id, form.data.id),
+      currentCompany = await db.query.Companies.findFirst({
+        where: eq(Companies.id, form.data.id),
       });
     }
     const { id, logo, ...companyData } = form.data;
@@ -56,9 +56,9 @@ export const actions = {
     }
 
     if (id) {
-      await db.update(companies).set(companyData).where(eq(companies.id, id));
+      await db.update(Companies).set(companyData).where(eq(Companies.id, id));
     } else {
-      await db.insert(companies).values(companyData);
+      await db.insert(Companies).values(companyData);
     }
 
     return redirectTo(

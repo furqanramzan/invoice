@@ -24,7 +24,6 @@
   import NumberField from '$lib/components/form/number-field.svelte';
   import MultiFileField from '$lib/components/form/multi-file-field.svelte';
   import { toast } from 'svelte-sonner';
-  import { snakeCase } from 'text-case';
   import SelectField from '$lib/components/form/select-field.svelte';
 
   let { data } = $props();
@@ -186,6 +185,12 @@
       formatAmount(lineItem.salePrice),
       formatAmount(lineItem.salePrice * lineItem.quantity),
     ]);
+    const invoiceNumber = `${client.invoiceNumberInitial}-${$form.invoiceNumber}`;
+    const fileName = `${invoiceNumber} ${$form.dateOfInvoice.toDateString().replaceAll(' ', '-')} ${company.name} ${$form.lineItems
+      .sort((a, b) => b.salePrice * b.quantity - a.salePrice * a.quantity)
+      .splice(0, 2)
+      .map((x) => x.name)
+      .join(', ')}.pdf`;
 
     if (company.printLayout === 'B') {
       const doc = new jsPDF({
@@ -264,12 +269,7 @@
       currentY += lineGap;
 
       dddt('Date: ', $form.dateOfDelivery.toDateString(), 160, 60);
-      dddt(
-        'Invoice CS: ',
-        client.invoiceNumberInitial + $form.invoiceNumber.toString(),
-        160,
-        67,
-      );
+      dddt('Invoice CS: ', invoiceNumber, 160, 67);
 
       // optional fields
       if (client.attention) {
@@ -355,7 +355,7 @@
       doc.text('Accountant', 15, pageHeight - 25);
       doc.text(company.name, 15, pageHeight - 20);
 
-      doc.save(`${snakeCase(company.name)}_${$form.invoiceNumber}`);
+      doc.save(fileName);
     }
 
     if (company.printLayout === 'A') {
@@ -396,7 +396,7 @@
               day: 'numeric',
             }).format($form.dateOfDelivery)}`,
           ],
-          ['Att: KJ Management', `Invoice #: ${$form.invoiceNumber}`],
+          ['Att: KJ Management', `Invoice #: ${invoiceNumber}`],
           [client.name, ''],
         ],
         theme: 'grid',
@@ -473,7 +473,7 @@
       ];
       doc.text(footerInfo, 15, finalY);
 
-      doc.save(`${snakeCase(company.name)}_${$form.invoiceNumber}.pdf`);
+      doc.save(fileName);
     }
   }
 </script>

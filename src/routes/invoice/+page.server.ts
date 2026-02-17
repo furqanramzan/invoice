@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { invoices, lineItems } from '$lib/server/db/schema';
+import { Invoices, LineItems } from '$lib/server/db/schema';
 import { count, desc, eq } from 'drizzle-orm';
 import { itemSchema } from '$lib/validations.js';
 import { getPaginationData } from '$lib/utils.js';
@@ -12,16 +12,16 @@ export async function load(event) {
   const { page, offset, limit } = getPaginationData(event);
 
   const [allInvoices, [{ count: totalInvoices }]] = await Promise.all([
-    db.query.invoices.findMany({
+    db.query.Invoices.findMany({
       limit,
       offset,
-      orderBy: desc(invoices.dateOfInvoice),
+      orderBy: desc(Invoices.dateOfInvoice),
       with: {
         company: { columns: { name: true } },
         client: { columns: { name: true } },
       },
     }),
-    db.select({ count: count() }).from(invoices),
+    db.select({ count: count() }).from(Invoices),
   ]);
 
   return {
@@ -38,8 +38,8 @@ export const actions = {
     if (!form.valid) return form.error;
 
     await db.transaction(async (tx) => {
-      await tx.delete(lineItems).where(eq(lineItems.invoiceId, form.data.id));
-      await tx.delete(invoices).where(eq(invoices.id, form.data.id));
+      await tx.delete(LineItems).where(eq(LineItems.invoiceId, form.data.id));
+      await tx.delete(Invoices).where(eq(Invoices.id, form.data.id));
     });
 
     return sendMessage(form, `${title.plural} deleted!`);

@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { products } from '$lib/server/db/schema';
+import { Products } from '$lib/server/db/schema';
 import { productSchema, route, title } from './utils';
 import { eq } from 'drizzle-orm';
 import { initForm, redirectTo, validateAction } from '$lib/superforms.js';
@@ -10,8 +10,8 @@ export const load = async (event) => {
   let currentProduct = null;
 
   if (id) {
-    currentProduct = await db.query.products.findFirst({
-      where: eq(products.id, id),
+    currentProduct = await db.query.Products.findFirst({
+      where: eq(Products.id, id),
     });
 
     if (!currentProduct) {
@@ -50,11 +50,11 @@ export const actions = {
 
     if (id) {
       await db
-        .update(products)
+        .update(Products)
         .set(productData)
-        .where(eq(products.id, Number(id)));
+        .where(eq(Products.id, Number(id)));
     } else {
-      await db.insert(products).values(productData);
+      await db.insert(Products).values(productData);
     }
 
     return redirectTo(

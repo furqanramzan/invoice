@@ -5,7 +5,7 @@ import { getPaginationData } from '$lib/utils';
 export async function load(event) {
   const { page, offset, limit } = getPaginationData(event);
   const [users, total] = await Promise.all([
-    db.query.user.findMany({
+    db.query.Users.findMany({
       limit,
       offset,
       columns: {

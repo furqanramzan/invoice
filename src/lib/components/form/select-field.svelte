@@ -44,7 +44,12 @@
 
 <div class="space-y-1">
   <Label id={field}>{labelText}</Label>
-  <Select.Root type="single" name="favoriteFruit" bind:value={$value}>
+  <Select.Root
+    {disabled}
+    type="single"
+    name="favoriteFruit"
+    bind:value={$value}
+  >
     <Select.Trigger class="w-full">
       {triggerContent}
     </Select.Trigger>

@@ -7,7 +7,7 @@
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Pagination } from '$lib/components/ui/pagination';
   import { formatAmount, formatCents } from '$lib/utils';
-  import { route, statuses, title } from './upsert/utils.js';
+  import { route, title } from './upsert/utils.js';
   import Heading from '$lib/components/heading.svelte';
   import ActionForm from '$lib/components/form/action-form.svelte';
   import { titleCase } from 'text-case';
