@@ -26,3 +26,5 @@ export type RegisterSchema = z.infer<typeof registerSchema>;
 export const deleteSchema = z.object({
   id: z.number().positive(),
 });
+
+export const emptySchema = z.object({});

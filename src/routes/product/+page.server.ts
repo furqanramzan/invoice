@@ -38,12 +38,11 @@ export const actions = {
     if (!form.valid) return form.error;
 
     // Check if the product is associated with any line items
-    const associatedLineItems = await db
-      .select()
-      .from(LineItems)
-      .where(eq(LineItems.productId, form.data.id))
-      .limit(1);
-    if (associatedLineItems.length > 0) {
+    const associated = await db.query.LineItems.findFirst({
+      where: eq(LineItems.productId, form.data.id),
+      columns: { id: true },
+    });
+    if (associated) {
       return sendMessage(form, 'Cannot delete: linked to invoices!', 'error');
     }
 

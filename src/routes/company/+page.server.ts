@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { Companies } from '$lib/server/db/schema';
+import { Companies, Invoices } from '$lib/server/db/schema';
 import { count, desc, eq } from 'drizzle-orm';
 import { initForm, sendMessage, validateAction } from '$lib/superforms.js';
 import { title } from './upsert/utils.js';
@@ -34,6 +34,14 @@ export const actions = {
     const form = await validateAction(event, deleteSchema);
 
     if (!form.valid) return form.error;
+
+    const associated = await db.query.Invoices.findFirst({
+      where: eq(Invoices.companyId, form.data.id),
+      columns: { id: true },
+    });
+    if (associated) {
+      return sendMessage(form, 'Cannot delete: linked to invoices!', 'error');
+    }
 
     const companyToDelete = await db.query.Companies.findFirst({
       where: eq(Companies.id, form.data.id),

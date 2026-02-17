@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { superForm } from 'sveltekit-superforms';
   import * as Table from '$lib/components/ui/table';
   import { Button } from '$lib/components/ui/button';
   import Trash from '@lucide/svelte/icons/trash';
@@ -10,11 +9,13 @@
   import Heading from '$lib/components/heading.svelte';
   import { route, title } from './upsert/utils.js';
   import ActionForm from '$lib/components/form/action-form.svelte';
+  import { getSuperForm } from '$lib/superforms.js';
+  import { emptySchema } from '$lib/validations.js';
 
   const { data } = $props();
 
   // svelte-ignore state_referenced_locally
-  const superform = superForm(data.form);
+  const superform = getSuperForm(emptySchema, data.form);
 </script>
 
 <Heading
