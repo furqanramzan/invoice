@@ -42,6 +42,15 @@ export const load = async (event) => {
   const locations = await db.query.Locations.findMany({
     orderBy: asc(Locations.address),
   });
+  const products = await db.query.Products.findMany();
+  const transactionIndex = products.findIndex(
+    (x) => x.name === 'Transportation',
+  );
+  const transaction = products[transactionIndex];
+  if (transaction) {
+    products.splice(transactionIndex, 1);
+    products.unshift(transaction);
+  }
 
   const invoiceNumbers = await db
     .select({
@@ -86,8 +95,6 @@ export const load = async (event) => {
           files: [],
         },
   );
-
-  const products = await db.query.Products.findMany();
 
   return {
     form,
