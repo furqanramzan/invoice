@@ -30,7 +30,8 @@
   ) satisfies FormFieldProxy<FieldType>;
 
   const triggerContent = $derived(
-    options.find((f) => f.value === $value)?.label ?? 'Select a fruit',
+    options.find((f) => f.value === $value)?.label ??
+      `Select ${titleCase(label || field).toLowerCase()} here `,
   );
   let labelText = $derived(label || titleCase(field));
 
@@ -44,18 +45,12 @@
 
 <div class="space-y-1">
   <Label id={field}>{labelText}</Label>
-  <Select.Root
-    {disabled}
-    type="single"
-    name="favoriteFruit"
-    bind:value={$value}
-  >
+  <Select.Root {disabled} type="single" name={field} bind:value={$value}>
     <Select.Trigger class="w-full">
       {triggerContent}
     </Select.Trigger>
     <Select.Content>
       <Select.Group>
-        <Select.Label>Fruits</Select.Label>
         {#each options as option (option.value)}
           <Select.Item value={option.value} label={option.label}>
             {option.label}

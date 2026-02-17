@@ -1,5 +1,10 @@
 import { db } from '$lib/server/db';
-import { Clients, Locations, type Client } from '$lib/server/db/schema';
+import {
+  Clients,
+  Invoices,
+  Locations,
+  type Client,
+} from '$lib/server/db/schema';
 import { clientSchema, route, title } from './utils';
 import { eq, inArray } from 'drizzle-orm';
 import { initForm, redirectTo, validateAction } from '$lib/superforms';
@@ -69,6 +74,18 @@ export const actions = {
         );
       }
       if (deleteLocations.length) {
+        const associated = await db.query.Invoices.findFirst({
+          where: inArray(Invoices.locationId, deleteLocations),
+          columns: { id: true },
+        });
+        if (associated) {
+          return redirectTo(
+            route.list,
+            event,
+            'Cannot delete locations: linked to invoices!',
+            'error',
+          );
+        }
         await tx
           .delete(Locations)
           .where(inArray(Locations.id, deleteLocations))
