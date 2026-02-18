@@ -151,9 +151,21 @@ export const LocationsRelations = relations(Locations, ({ one }) => ({
   }),
 }));
 
+export const Expenses = sqliteTable('expenses', {
+  id: integer('id', { mode: 'number' }).primaryKey(),
+  title: text('title').notNull(),
+  amount: integer('amount').notNull(),
+  date: integer('date', { mode: 'timestamp' }).notNull(),
+  description: text('description'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
+    .notNull(),
+});
+
 export type Sessions = typeof Sessions.$inferSelect;
 export type Users = typeof Users.$inferSelect;
 export type Product = typeof Products.$inferSelect;
 export type ProductInsert = typeof Products.$inferInsert;
 export type Company = typeof Companies.$inferSelect;
 export type Client = typeof Clients.$inferSelect;
+export type Expense = typeof Expenses.$inferSelect;
