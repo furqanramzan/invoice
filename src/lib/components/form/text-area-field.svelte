@@ -1,6 +1,6 @@
 <script lang="ts" generics="T extends Record<string, unknown>">
   import { titleCase } from 'text-case';
-  import { Input } from '$lib/components/ui/input';
+  import { Textarea } from '$lib/components/ui/textarea';
   import { Label } from '$lib/components/ui/label';
   import {
     formFieldProxy,
@@ -43,12 +43,11 @@
   {#if !hideLabel}
     <Label id={field}>{labelText}</Label>
   {/if}
-  <Input
+  <Textarea
     {disabled}
     id={field}
     name={field}
     placeholder={placeholderText}
-    type="text"
     aria-invalid={$errors ? 'true' : undefined}
     bind:value={$value}
     {...$constraints}

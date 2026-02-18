@@ -53,6 +53,7 @@
     <Label id={field}>{labelText}</Label>
   {/if}
   <Input
+    class="no-spinner"
     {disabled}
     autocomplete="off"
     id={field}

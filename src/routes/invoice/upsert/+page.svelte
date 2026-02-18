@@ -4,7 +4,7 @@
   import Plus from '@lucide/svelte/icons/plus';
   import Trash from '@lucide/svelte/icons/trash';
   import Eye from '@lucide/svelte/icons/eye';
-  import { Button } from '$lib/components/ui/button';
+  import { Button, buttonVariants } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { invoiceSchema, statuses } from './utils.js';
   import * as Table from '$lib/components/ui/table/index.js';
@@ -13,6 +13,7 @@
   import Heading from '$lib/components/heading.svelte';
   import { getSuperForm } from '$lib/superforms.js';
   import HiddenField from '$lib/components/form/hidden-field.svelte';
+  import * as Dialog from '$lib/components/ui/dialog/index.js';
   import {
     formatAmount,
     formatCents,
@@ -20,11 +21,12 @@
     splitAfterChars,
   } from '$lib/utils.js';
   import DateField from '$lib/components/form/date-field.svelte';
-  import RadioField from '$lib/components/form/radio-field.svelte';
   import NumberField from '$lib/components/form/number-field.svelte';
   import MultiFileField from '$lib/components/form/multi-file-field.svelte';
   import { toast } from 'svelte-sonner';
   import SelectField from '$lib/components/form/select-field.svelte';
+  import { NotebookPen, Pencil } from '@lucide/svelte';
+  import TextAreaField from '$lib/components/form/text-area-field.svelte';
 
   let { data } = $props();
   const allProducts = $derived(data.products);
@@ -73,16 +75,21 @@
   let quotedPrice = $derived(
     $form.lineItems.reduce((acc, p) => acc + p.quantity * p.quotedPrice, 0),
   );
-  let salePrice = $derived(
-    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.salePrice, 0),
+  let totalQuotedProfit = $derived(
+    quotedPrice === 0
+      ? 0
+      : Math.floor(((total - quotedPrice) / quotedPrice) * 100),
   );
   let actualPrice = $derived(
     $form.lineItems.reduce((acc, p) => acc + p.quantity * p.actualPrice, 0),
   );
-  let totalProfit = $derived(
+  let totalActualProfit = $derived(
     actualPrice === 0
-      ? '0.00'
-      : (((total - actualPrice) / actualPrice) * 100).toFixed(2),
+      ? 0
+      : Math.floor(((total - actualPrice) / actualPrice) * 100),
+  );
+  let salePrice = $derived(
+    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.salePrice, 0),
   );
   let company = $derived(data.companies.find((x) => x.id === $form.companyId));
   let client = $derived(data.clients.find((x) => x.id === $form.clientId));
@@ -488,58 +495,58 @@
     <HiddenField {superform} field="id" />
   {/if}
 
-  <div class="grid grid-cols-2">
-    <div class="space-y-4">
-      <RadioField
-        {superform}
-        field="companyId"
-        label="Company"
-        options={data.companies.map((x) => ({ label: x.name, value: x.id }))}
-        onchange={() => {
-          if (isEditing) {
-            return;
-          }
-          $form.invoiceNumber = invoiceNumber;
-        }}
-      />
-      <RadioField
-        {superform}
-        field="clientId"
-        label="Client"
-        options={data.clients.map((x) => ({ label: x.name, value: x.id }))}
-      />
-      <SelectField
-        {superform}
-        field="locationId"
-        label="Location"
-        options={locations.map((x) => ({ value: x.id, label: x.address }))}
-      />
-      <NumberField
-        {superform}
-        field="invoiceNumber"
-        label="{title.singular} Number"
-      />
-      <DateField {superform} field="dateOfDelivery" />
-      <DateField {superform} field="dateOfInvoice" />
-      <NumberField
-        {superform}
-        disabled={$form.lineItems.some((x) => x.receivedPrice)}
-        field="receivedAmount"
-      />
-      <RadioField {superform} field="status" options={statuses} />
+  <div class="grid grid-cols-3 gap-4">
+    <SelectField
+      {superform}
+      field="companyId"
+      label="Company"
+      options={data.companies.map((x) => ({ label: x.name, value: x.id }))}
+      onchange={() => {
+        if (isEditing) {
+          return;
+        }
+        $form.invoiceNumber = invoiceNumber;
+      }}
+    />
+    <SelectField
+      {superform}
+      field="clientId"
+      label="Client"
+      options={data.clients.map((x) => ({ label: x.name, value: x.id }))}
+    />
+    <SelectField
+      {superform}
+      field="locationId"
+      label="Location"
+      options={locations.map((x) => ({ value: x.id, label: x.address }))}
+    />
+    <NumberField
+      {superform}
+      field="invoiceNumber"
+      label="{title.singular} Number"
+    />
+    <DateField {superform} field="dateOfDelivery" />
+    <DateField {superform} field="dateOfInvoice" />
+    <NumberField
+      {superform}
+      disabled={$form.lineItems.some((x) => x.receivedPrice)}
+      field="receivedAmount"
+    />
+    <SelectField {superform} field="status" options={statuses} />
+    <TextAreaField {superform} label="Remarks" field="remarks" />
+  </div>
+  <div class="grid grid-cols-3 text-lg font-bold">
+    <div>
+      Actual Price: {formatAmount(actualPrice)}
     </div>
-    <div class="flex flex-col items-end gap-4 text-lg font-bold">
-      <div>
-        Actual Price: {formatAmount(actualPrice)}
-      </div>
-      <div>
-        Quoted Price: {formatAmount(quotedPrice)}
-      </div>
-      <div>
-        Sale Price: {formatAmount(salePrice)}
-      </div>
-      <div>Profit: {totalProfit}%</div>
+    <div>
+      Quoted Price: {formatAmount(quotedPrice)}
     </div>
+    <div>
+      Sale Price: {formatAmount(salePrice)}
+    </div>
+    <div>Actual Profit: {totalActualProfit}%</div>
+    <div>Quoted Profit: {totalQuotedProfit}%</div>
   </div>
 
   <div class="flex items-center gap-2">
@@ -566,19 +573,44 @@
     <Table.Body>
       {#each $form.lineItems as product, index (product.id)}
         <Table.Row>
-          <Table.Cell class="py-4 text-nowrap">
+          <Table.Cell class="py-2 text-nowrap">
             <Button
               variant="destructive"
+              size="icon-sm"
               type="button"
               onclick={() => removeProduct(index)}
             >
               <Trash class="h-4 w-4" />
             </Button>
+            <Dialog.Root>
+              <Dialog.Trigger
+                type="button"
+                class={buttonVariants({ variant: 'outline', size: 'icon-sm' })}
+              >
+                {#if product.remarks}
+                  <NotebookPen class="h-4 w-4" />
+                {:else}
+                  <Pencil class="h-4 w-4" />
+                {/if}
+              </Dialog.Trigger>
+              <Dialog.Content class="sm:max-w-xl">
+                <Dialog.Header>
+                  <Dialog.Title>{product.name}</Dialog.Title>
+                </Dialog.Header>
+                <div class="grid gap-4">
+                  <TextAreaField
+                    {superform}
+                    label="Remarks"
+                    field="lineItems[{index}].remarks"
+                  />
+                </div>
+              </Dialog.Content>
+            </Dialog.Root>
           </Table.Cell>
-          <Table.Cell class="py-4 text-nowrap">
+          <Table.Cell class="py-2 text-nowrap">
             {index + 1}
           </Table.Cell>
-          <Table.Cell class="py-4 text-nowrap">
+          <Table.Cell class="py-2 text-nowrap">
             <div class="product-item">
               <div class="relative">
                 <Input
@@ -639,7 +671,7 @@
               />
             </div>
           </Table.Cell>
-          <Table.Cell class="py-4 text-nowrap">
+          <Table.Cell class="py-2 text-nowrap">
             <NumberField
               {superform}
               field="lineItems[{index}].quantity"
@@ -651,7 +683,7 @@
               }}
             />
           </Table.Cell>
-          <Table.Cell class="py-4 text-nowrap">
+          <Table.Cell class="py-2 text-nowrap">
             <NumberField
               {superform}
               field="lineItems[{index}].actualPrice"
@@ -667,7 +699,7 @@
               }}
             />
           </Table.Cell>
-          <Table.Cell class="py-4 text-nowrap">
+          <Table.Cell class="py-2 text-nowrap">
             <NumberField
               {superform}
               field="lineItems[{index}].quotedPrice"
@@ -679,7 +711,7 @@
               }}
             />
           </Table.Cell>
-          <Table.Cell class="py-4 text-nowrap">
+          <Table.Cell class="py-2 text-nowrap">
             <NumberField
               {superform}
               field="lineItems[{index}].salePrice"
@@ -691,7 +723,7 @@
               }}
             />
           </Table.Cell>
-          <Table.Cell class="py-4 text-nowrap">
+          <Table.Cell class="py-2 text-nowrap">
             <NumberField
               {superform}
               field="lineItems[{index}].receivedPrice"
@@ -711,22 +743,19 @@
               }}
             />
           </Table.Cell>
-          <Table.Cell class="w-36 py-4 text-lg text-nowrap">
+          <Table.Cell class="w-16 py-2 text-nowrap">
             {#if product.quotedPrice > 0}
-              {(
+              {Math.floor(
                 ((product.salePrice - product.actualPrice) /
                   product.actualPrice) *
-                100
-              ).toFixed(2)}%
+                  100,
+              )}%
             {:else}
               0.00%
             {/if}
           </Table.Cell>
-          <Table.Cell class="w-36 py-4 text-lg text-nowrap">
-            {(product.quantity * product.salePrice).toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'PKR',
-            })}
+          <Table.Cell class="w-36 py-2 text-nowrap">
+            {formatAmount(product.quantity * product.salePrice)}
           </Table.Cell>
         </Table.Row>
       {/each}
@@ -761,6 +790,7 @@
                 </Button>
                 <Button
                   variant="destructive"
+                  size="icon-sm"
                   type="button"
                   onclick={() => {
                     if (!$form.files || !$form.files[index]) {

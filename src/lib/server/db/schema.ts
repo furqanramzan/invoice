@@ -58,6 +58,7 @@ export const Invoices = sqliteTable('invoices', {
   files: text('files', { mode: 'json' }).$type<
     Array<{ url: string; name: string; deleted?: boolean }>
   >(),
+  remarks: text('remarks'),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .default(sql`(unixepoch())`)
     .notNull(),
@@ -88,6 +89,7 @@ export const LineItems = sqliteTable('line_items', {
   quotedPrice: integer('quoted_price').notNull(),
   salePrice: integer('sale_price').notNull(),
   receivedPrice: integer('received_price').notNull(),
+  remarks: text('remarks'),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .default(sql`(unixepoch())`)
     .notNull(),

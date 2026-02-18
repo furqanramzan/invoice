@@ -49,9 +49,9 @@
   >
     {#each options as option, index (index)}
       <div class="flex items-center space-x-2">
-        <RadioGroup.Item value={option.value} id={option.value} />
-        <Label for={option.value}>
-          {option.label || titleCase(option.value)}
+        <RadioGroup.Item value={option.value} id={option.value.toString()} />
+        <Label for={option.value.toString()}>
+          {option.label || titleCase(option.value.toString())}
         </Label>
       </div>
     {/each}

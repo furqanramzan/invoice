@@ -29,8 +29,10 @@
     field,
   ) satisfies FormFieldProxy<FieldType>;
 
+  const selectedOption = $derived(options.find((f) => f.value === $value));
   const triggerContent = $derived(
-    options.find((f) => f.value === $value)?.label ??
+    (selectedOption?.label ||
+      titleCase(selectedOption?.value.toString() || '')) ??
       `Select ${titleCase(label || field).toLowerCase()} here `,
   );
   let labelText = $derived(label || titleCase(field));
@@ -53,7 +55,7 @@
       <Select.Group>
         {#each options as option (option.value)}
           <Select.Item value={option.value} label={option.label}>
-            {option.label}
+            {option.label || titleCase(option.value.toString())}
           </Select.Item>
         {/each}
       </Select.Group>

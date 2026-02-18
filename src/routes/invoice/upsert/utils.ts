@@ -12,6 +12,7 @@ export const lineItemSchema = z.object({
   id: z.number().positive().optional(), // Made optional for upsert
   productId: z.number().positive().optional(),
   name: z.string().min(1),
+  remarks: z.string().optional().nullable(),
   quantity: z.number().int().gt(0),
   actualPrice: z.number().min(0),
   quotedPrice: z.number().min(0),
@@ -28,6 +29,7 @@ export const invoiceSchema = z.object({
   companyId: z.coerce.number().positive(),
   clientId: z.coerce.number().positive(),
   locationId: z.coerce.number().positive(),
+  remarks: z.string().optional().nullable(),
   receivedAmount: z.number().positive().optional().nullable(),
   dateOfDelivery: z.date(),
   dateOfInvoice: z.date(),

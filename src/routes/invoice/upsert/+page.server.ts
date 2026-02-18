@@ -213,6 +213,7 @@ export const actions = {
             invoiceId: form.data.id!,
             productId: p.productId!,
             quantity: p.quantity,
+            remarks: p.remarks,
             quotedPrice: convertToCents(p.quotedPrice),
             salePrice: convertToCents(p.salePrice),
             actualPrice: convertToCents(p.actualPrice),
