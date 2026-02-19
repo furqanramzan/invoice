@@ -11,6 +11,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
+import sharp from 'sharp';
 
 const s3 = new S3Client({
   region: 'auto',
@@ -26,13 +27,28 @@ export async function putFile(key: string, file: File) {
     return '';
   }
 
-  const arrayBuffer = await file.arrayBuffer();
+  let body: Buffer;
+  let contentType: string;
+
+  if (file.type.startsWith('image/')) {
+    const arrayBuffer = await file.arrayBuffer();
+    body = await sharp(Buffer.from(arrayBuffer))
+      .webp({ quality: 80 })
+      .toBuffer();
+    contentType = 'image/webp';
+    key += '.webp';
+  } else {
+    const arrayBuffer = await file.arrayBuffer();
+    body = Buffer.from(arrayBuffer);
+    contentType = file.type;
+  }
+
   await s3.send(
     new PutObjectCommand({
       Bucket: R2_BUCKET_NAME,
       Key: key,
-      Body: Buffer.from(arrayBuffer),
-      ContentType: file.type,
+      Body: body,
+      ContentType: contentType,
     }),
   );
 
