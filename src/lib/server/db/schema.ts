@@ -74,6 +74,10 @@ export const InvoicesRelations = relations(Invoices, ({ many, one }) => ({
     fields: [Invoices.clientId],
     references: [Clients.id],
   }),
+  location: one(Locations, {
+    fields: [Invoices.locationId],
+    references: [Locations.id],
+  }),
 }));
 
 export const LineItems = sqliteTable('line_items', {

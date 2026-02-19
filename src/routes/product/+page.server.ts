@@ -30,11 +30,7 @@ export async function load(event) {
 
 export const actions = {
   async default(event) {
-    console.log('nme');
-
     const form = await validateAction(event, itemSchema);
-    console.log(form);
-
     if (!form.valid) return form.error;
 
     // Check if the product is associated with any line items

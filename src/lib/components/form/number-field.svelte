@@ -19,6 +19,7 @@
     placeholder?: string;
     min?: number;
     max?: number;
+    default?: number;
     onchange?: (value: FieldType) => void;
     onblur?: (value: FieldType) => void;
   };
@@ -34,6 +35,7 @@
     placeholder,
     min,
     max,
+    default: defaultValue,
   }: Props = $props();
 
   // svelte-ignore state_referenced_locally
@@ -41,6 +43,10 @@
     superform,
     field,
   ) satisfies FormFieldProxy<FieldType>;
+  // svelte-ignore state_referenced_locally
+  if (typeof defaultValue === 'number') {
+    $value = defaultValue;
+  }
 
   let labelText = $derived(label || titleCase(field));
   let placeholderText = $derived(

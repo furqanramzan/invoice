@@ -56,8 +56,6 @@ export const actions = {
       const deleteLocations = locationsEntry
         .filter((x) => x.deleted)
         .map((x) => x.id || 0);
-      console.log(deleteLocations);
-
       if (newLocations.length) {
         await tx
           .insert(Locations)

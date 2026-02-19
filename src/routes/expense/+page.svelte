@@ -4,7 +4,7 @@
   import Trash from '@lucide/svelte/icons/trash';
   import Pencil from '@lucide/svelte/icons/pencil';
   import { Pagination } from '$lib/components/ui/pagination';
-  import { formatCents } from '$lib/utils';
+  import { formatCents, formatDate } from '$lib/utils';
   import { route, title } from './upsert/utils.js';
   import Heading from '$lib/components/heading.svelte';
   import ActionForm from '$lib/components/form/action-form.svelte';
@@ -43,7 +43,7 @@
             {formatCents(expense.amount)}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            {new Date(expense.date).toLocaleDateString()}
+            {formatDate(expense.date)}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap"
             >{expense.description || '-'}</Table.Cell

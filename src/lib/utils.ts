@@ -83,3 +83,7 @@ export type Options = Array<Option>;
 export function randomInt(min = 1, max = 10000) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+export function formatDate(date: Date) {
+  return date.toDateString();
+}

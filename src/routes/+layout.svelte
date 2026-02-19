@@ -39,6 +39,7 @@
         <a href={resolve('/invoice')} class="text-sm">Invoices</a>
         <a href={resolve('/invoice/upsert')} class="text-sm">Create Invoice</a>
         <a href={resolve('/expense')} class="text-sm">Expenses</a>
+        <a href={resolve('/ledger')} class="text-sm">Ledger</a>
         <a href={resolve('/product')} class="text-sm">Products</a>
         <a href={resolve('/company')} class="text-sm">Companies</a>
         <a href={resolve('/client')} class="text-sm">Clients</a>

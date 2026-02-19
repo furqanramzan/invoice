@@ -61,10 +61,6 @@ export const actions = {
       }
 
       const invoiceNumber = Number(getCell(5));
-      if (isNaN(invoiceNumber)) {
-        console.log(invoiceNumber, 'name');
-      }
-
       if (invoiceNumber) {
         let location = String(getCell(3) || '');
         let dateOfDelivery = new Date(getCell(6) || getCell(7));

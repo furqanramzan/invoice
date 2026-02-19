@@ -2,7 +2,10 @@
   import type { Snippet } from 'svelte';
   import { type FormPathLeaves, type SuperForm } from 'sveltekit-superforms';
   import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
-  import { buttonVariants } from '$lib/components/ui/button/index.js';
+  import {
+    buttonVariants,
+    type ButtonVariant,
+  } from '$lib/components/ui/button/index.js';
 
   type Props = {
     children: Snippet;
@@ -10,9 +13,17 @@
     field?: FormPathLeaves<T>;
     value?: string | number;
     action?: string;
+    variant?: ButtonVariant;
   };
 
-  let { children, superform, action, field, value }: Props = $props();
+  let {
+    children,
+    superform,
+    action,
+    field,
+    value,
+    variant = 'destructive',
+  }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   let { enhance, submitting } = superform;
@@ -21,7 +32,7 @@
 <AlertDialog.Root>
   <AlertDialog.Trigger
     type="button"
-    class={buttonVariants({ variant: 'destructive', size: 'icon' })}
+    class={buttonVariants({ variant, size: 'icon' })}
   >
     {@render children()}
   </AlertDialog.Trigger>

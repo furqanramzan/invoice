@@ -65,12 +65,12 @@ export function getSuperForm<
         return;
       }
       if (event.result.type === 'success') {
-        const message = event.result.data?.form?.message || 'Done!';
+        const message = event.result.data?.form?.message?.text || 'Done!';
         toast.success(message, { id });
         return;
       }
       if (event.result.type === 'failure') {
-        const message = event.result.data?.form?.message || errorMessage;
+        const message = event.result.data?.form?.message?.text || errorMessage;
         toast.error(message, { id });
       }
     },
@@ -92,15 +92,20 @@ export function redirectTo(
   return redirect(302, route);
 }
 
-export function sendMessage(
+export function sendMessage<T>(
   form: Awaited<ReturnType<typeof validateAction>>,
-  messageText: string,
+  text: string,
   type: 'success' | 'error' = 'success',
+  data?: T,
 ) {
   if (type === 'success') {
-    return message(form.form, messageText);
+    return message(form.form, { text, data });
   }
-  return message(form.form, messageText, {
-    status: 400,
-  });
+  return message(
+    form.form,
+    { text, data },
+    {
+      status: 400,
+    },
+  );
 }

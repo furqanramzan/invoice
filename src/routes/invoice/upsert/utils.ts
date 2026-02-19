@@ -20,7 +20,14 @@ export const lineItemSchema = z.object({
   receivedPrice: z.number().min(0),
 });
 const invoiceStatus = z
-  .enum(['draft', 'processing', 'delivered', 'delivery_acknowledged', 'paid'])
+  .enum([
+    'draft',
+    'processing',
+    'delivered',
+    'delivery_acknowledged',
+    'disputed',
+    'paid',
+  ])
   .default('draft');
 export type InvoiceStatus = z.infer<typeof invoiceStatus>;
 export const invoiceSchema = z.object({
@@ -52,5 +59,6 @@ export const statuses = [
   { value: 'processing', color: 'yellow' },
   { value: 'delivered', color: 'blue' },
   { value: 'delivery_acknowledged', color: 'teal' },
+  { value: 'disputed', color: 'red' },
   { value: 'paid', color: 'green' },
 ];
