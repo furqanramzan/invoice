@@ -7,12 +7,7 @@ import {
 } from '$lib/server/db/schema';
 import { invoiceSchema, route, title, type InvoiceStatus } from './utils';
 import { asc, eq, sql } from 'drizzle-orm';
-import {
-  initForm,
-  validateAction,
-  redirectTo,
-  sendMessage,
-} from '$lib/superforms';
+import { initForm, validateAction, redirectTo } from '$lib/superforms';
 import { delFile, putFile } from '$lib/server/filesystem.js';
 import { convertCents, convertToCents } from '$lib/utils.js';
 
@@ -92,7 +87,7 @@ export const load = async (event) => {
           dateOfDelivery: new Date(),
           dateOfInvoice: new Date(),
           status: 'draft',
-          files: [],
+          attachmentUrls: [],
         },
   );
 
@@ -112,7 +107,7 @@ export const actions = {
     const form = await validateAction(event, invoiceSchema);
     if (!form.valid) return form.error;
 
-    const { id, lineItems: products, images, ...invoiceData } = form.data;
+    const { id, lineItems: products, attachments, ...invoiceData } = form.data;
 
     await db.transaction(async (tx) => {
       const processedProducts = await Promise.all(
@@ -164,25 +159,27 @@ export const actions = {
       if (invoiceData.receivedAmount) {
         invoiceData.receivedAmount = convertToCents(invoiceData.receivedAmount);
       }
-      if (images?.length) {
-        invoiceData.files = [
-          ...(invoiceData?.files || []),
+      if (attachments?.length) {
+        invoiceData.attachmentUrls = [
+          ...(invoiceData?.attachmentUrls || []),
           ...(
             await Promise.all(
-              images.map((image) =>
+              attachments.map((image) =>
                 putFile(`invoices/${crypto.randomUUID()}-${image.name}`, image),
               ),
             )
-          ).map((x, index) => ({ url: x, name: images[index].name })),
+          ).map((x, index) => ({ url: x, name: attachments[index].name })),
         ];
       }
-      if (invoiceData.files?.some((x) => x.deleted)) {
+      if (invoiceData.attachmentUrls?.some((x) => x.deleted)) {
         await Promise.all(
-          invoiceData.files
+          invoiceData.attachmentUrls
             .filter((x) => x.deleted)
             .map((file) => delFile(file.url)),
         );
-        // invoiceData.files = invoiceData.files.filter((file) => !file.deleted);
+        invoiceData.attachmentUrls = invoiceData.attachmentUrls.filter(
+          (file) => !file.deleted,
+        );
       }
 
       const data = {
@@ -223,16 +220,10 @@ export const actions = {
       }
     });
 
-    // If create then redirect to edit page
-    if (!id) {
-      return redirectTo(
-        // @ts-expect-error it's not string
-        route.upsert + `?id=${form.data.id}`,
-        event,
-        `${title.singular} created!`,
-      );
-    }
-
-    return sendMessage(form, `${title.plural} updated!`);
+    return redirectTo(
+      route.list,
+      event,
+      `${title.singular}  ${id ? 'updated' : 'created'}!`,
+    );
   },
 };

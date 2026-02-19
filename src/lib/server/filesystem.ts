@@ -24,7 +24,7 @@ const s3 = new S3Client({
 
 export async function putFile(key: string, file: File) {
   if (dev) {
-    return '';
+    return 'https://example.com';
   }
 
   let body: Buffer;

@@ -8,13 +8,16 @@
   import Form from '$lib/components/form/form.svelte';
   import Heading from '$lib/components/heading.svelte';
   import { getSuperForm } from '$lib/superforms.js';
+  import MultiFileField from '$lib/components/form/multi-file-field.svelte';
 
   let { data } = $props();
 
   let isEditing = $derived(!!data.currentExpense);
 
   // svelte-ignore state_referenced_locally
-  const superform = getSuperForm(expenseSchema, data.form);
+  const superform = getSuperForm(expenseSchema, data.form, {
+    dataType: 'json',
+  });
 </script>
 
 <Heading
@@ -24,6 +27,7 @@
 
 <Form
   {superform}
+  enctype="multipart/form-data"
   buttonText={(isEditing ? 'Update ' : 'Create ') + title.singular}
 >
   {#if isEditing}
@@ -34,4 +38,5 @@
   <NumberField {superform} field="amount" />
   <DateField {superform} field="date" />
   <TextAreaField {superform} field="description" />
+  <MultiFileField {superform} field="attachments" urlsField="attachmentUrls" />
 </Form>

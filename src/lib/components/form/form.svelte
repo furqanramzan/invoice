@@ -8,7 +8,7 @@
     superform: SuperForm<T>;
     buttonText?: string;
     action?: string;
-    enctype?: HTMLFormElement['multipart/form-data'];
+    enctype?: 'multipart/form-data';
   };
 
   let { children, enctype, superform, buttonText, action }: Props = $props();

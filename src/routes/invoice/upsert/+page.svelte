@@ -2,8 +2,7 @@
   import jsPDF from 'jspdf';
   import autoTable from 'jspdf-autotable';
   import Plus from '@lucide/svelte/icons/plus';
-  import Trash from '@lucide/svelte/icons/trash';
-  import Eye from '@lucide/svelte/icons/eye';
+
   import { Button, buttonVariants } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { invoiceSchema, statuses } from './utils.js';
@@ -25,7 +24,7 @@
   import MultiFileField from '$lib/components/form/multi-file-field.svelte';
   import { toast } from 'svelte-sonner';
   import SelectField from '$lib/components/form/select-field.svelte';
-  import { NotebookPen, Pencil } from '@lucide/svelte';
+  import { NotebookPen, Pencil, Trash } from '@lucide/svelte';
   import TextAreaField from '$lib/components/form/text-area-field.svelte';
 
   let { data } = $props();
@@ -35,9 +34,6 @@
   // svelte-ignore state_referenced_locally
   const superform = getSuperForm(invoiceSchema, data.form, {
     dataType: 'json',
-    onUpdate() {
-      $form.images = undefined;
-    },
   });
   const { form, isTainted, tainted, errors, enhance, submitting } = superform;
 
@@ -762,59 +758,7 @@
     </Table.Body>
   </Table.Root>
 
-  <div class="flex items-center gap-2">
-    <h2 class="text-lg font-semibold">Attachments</h2>
-    <MultiFileField {superform} field="images" hideLabel={true} />
-  </div>
-  {#if $form.files?.length}
-    <Table.Root class="border">
-      <Table.Header>
-        <Table.Row>
-          <Table.Head class="w-16 p-4 text-nowrap"></Table.Head>
-          <Table.Head class="w-10 p-4 text-nowrap">#</Table.Head>
-          <Table.Head class=" p-4 text-nowrap">Name</Table.Head>
-        </Table.Row>
-      </Table.Header>
-      <Table.Body>
-        {#each $form.files as file, index (file.url)}
-          {#if !file.deleted}
-            <Table.Row>
-              <Table.Cell class="space-x-2 p-4 text-nowrap">
-                <Button
-                  href={file.url}
-                  target="_blank"
-                  variant="outline"
-                  size="icon"
-                >
-                  <Eye class="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="icon-sm"
-                  type="button"
-                  onclick={() => {
-                    if (!$form.files || !$form.files[index]) {
-                      return;
-                    }
-                    $form.files[index].deleted = true;
-                    $form.files = $form.files;
-                  }}
-                >
-                  <Trash class="h-4 w-4" />
-                </Button>
-              </Table.Cell>
-              <Table.Cell class="p-4 text-nowrap">
-                {index + 1}
-              </Table.Cell>
-              <Table.Cell class="p-4 text-nowrap">
-                {file.name}
-              </Table.Cell>
-            </Table.Row>
-          {/if}
-        {/each}
-      </Table.Body>
-    </Table.Root>
-  {/if}
+  <MultiFileField {superform} field="attachments" urlsField="attachmentUrls" />
 
   <div class="flex gap-2">
     <Button disabled={$submitting || !isTainted($tainted)} type="submit">

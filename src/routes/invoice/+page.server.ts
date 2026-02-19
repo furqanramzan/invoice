@@ -1,10 +1,11 @@
 import { db } from '$lib/server/db';
-import { Invoices, LineItems } from '$lib/server/db/schema';
+import { Invoices } from '$lib/server/db/schema';
 import { count, desc, eq } from 'drizzle-orm';
 import { itemSchema } from '$lib/validations.js';
 import { getPaginationData } from '$lib/utils.js';
 import { initForm, sendMessage, validateAction } from '$lib/superforms';
 import { title } from './upsert/utils.js';
+import { delFile } from '$lib/server/filesystem.js';
 
 export async function load(event) {
   const form = await initForm(itemSchema);
@@ -37,10 +38,21 @@ export const actions = {
     const form = await validateAction(event, itemSchema);
     if (!form.valid) return form.error;
 
-    await db.transaction(async (tx) => {
-      await tx.delete(LineItems).where(eq(LineItems.invoiceId, form.data.id));
-      await tx.delete(Invoices).where(eq(Invoices.id, form.data.id));
+    const invoice = await db.query.Invoices.findFirst({
+      where: eq(Invoices.id, form.data.id),
+      columns: { attachmentUrls: true },
     });
+    if (!invoice) {
+      return sendMessage(form, `${title.singular} not found!`, 'error');
+    }
+
+    if (invoice.attachmentUrls?.length) {
+      await Promise.all(
+        invoice.attachmentUrls.map((file) => delFile(file.url)),
+      );
+    }
+
+    await db.delete(Invoices).where(eq(Invoices.id, form.data.id));
 
     return sendMessage(form, `${title.plural} deleted!`);
   },

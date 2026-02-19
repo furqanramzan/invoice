@@ -1,5 +1,6 @@
 import z from 'zod';
 import { resolve } from '$app/paths';
+import { multiUrlSchema, multiFileSchema } from '$lib/validations';
 
 export const title = { singular: 'Invoice', plural: 'Invoices' };
 
@@ -42,16 +43,8 @@ export const invoiceSchema = z.object({
   dateOfInvoice: z.date(),
   lineItems: z.array(lineItemSchema),
   status: invoiceStatus,
-  files: z
-    .object({ url: z.url(), name: z.string(), deleted: z.boolean().optional() })
-    .array()
-    .optional()
-    .nullable(),
-  images: z
-    .instanceof(File, { message: 'Please upload a file.' })
-    .refine((f) => f.size < 100_000_000, 'Max 100 kB upload size.')
-    .array()
-    .optional(),
+  attachmentUrls: multiUrlSchema,
+  attachments: multiFileSchema,
 });
 
 export const statuses = [
