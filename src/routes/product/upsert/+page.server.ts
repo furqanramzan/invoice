@@ -43,9 +43,9 @@ export const actions = {
 
     const productData = {
       ...data,
-      actualPrice: convertToCents(data.actualPrice * 100),
-      quotedPrice: convertCents(data.quotedPrice * 100),
-      salePrice: convertCents(data.salePrice * 100),
+      actualPrice: convertToCents(data.actualPrice),
+      quotedPrice: convertToCents(data.quotedPrice),
+      salePrice: convertToCents(data.salePrice),
     };
 
     if (id) {

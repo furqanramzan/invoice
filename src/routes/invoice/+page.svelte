@@ -86,9 +86,7 @@
             {formatCents(invoice.salePrice)}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            {invoice.receivedAmount
-              ? formatAmount(invoice.receivedAmount)
-              : '-'}
+            {invoice.receivedAmount ? formatCents(invoice.receivedAmount) : '-'}
           </Table.Cell>
           <Table.Cell class="flex shrink-0 space-x-2 p-4 text-nowrap">
             <Button
