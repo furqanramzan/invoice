@@ -7,7 +7,9 @@
     class: className,
     children,
     ...restProps
-  }: WithElementRef<HTMLAttributes<HTMLTableSectionElement>> = $props();
+  }: WithElementRef<
+    HTMLAttributes<HTMLTableSectionElement>
+  > = $props();
 </script>
 
 <tfoot

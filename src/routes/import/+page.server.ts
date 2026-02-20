@@ -1,7 +1,11 @@
 import fs from 'fs/promises';
 import path from 'path';
 import ExcelJS, { type Row } from 'exceljs';
-import { initForm, sendMessage, validateAction } from '$lib/superforms.js';
+import {
+  initForm,
+  sendMessage,
+  validateAction,
+} from '$lib/superforms.js';
 import { importSchema } from './utils.js';
 
 export async function load() {
@@ -43,7 +47,11 @@ export const actions = {
     const invoices: Array<Invoice> = [];
     let currentInvoice: Invoice | undefined;
 
-    for (let rowIndex = 3; rowIndex <= sheet.actualRowCount; rowIndex++) {
+    for (
+      let rowIndex = 3;
+      rowIndex <= sheet.actualRowCount;
+      rowIndex++
+    ) {
       const row = sheet.getRow(rowIndex);
 
       function getCell(cellNumber: number, providedRow?: Row) {
@@ -56,7 +64,8 @@ export const actions = {
               result: string;
             }
           )?.result ||
-          (providedRow.getCell(cellNumber).value as unknown as string)
+          (providedRow.getCell(cellNumber)
+            .value as unknown as string)
         );
       }
 
@@ -82,10 +91,12 @@ export const actions = {
             }
             if (!dateOfDelivery) {
               dateOfDelivery = new Date(
-                getCell(6, previousRow) || getCell(7, previousRow),
+                getCell(6, previousRow) ||
+                  getCell(7, previousRow),
               );
               dateOfInvoice = new Date(
-                getCell(7, previousRow) || getCell(6, previousRow),
+                getCell(7, previousRow) ||
+                  getCell(6, previousRow),
               );
             }
             if (location && !isNaN(dateOfDelivery.getTime())) {
@@ -154,8 +165,15 @@ export const actions = {
       }
     }
 
-    const filePath = path.resolve(process.cwd(), 'invoices.json');
-    await fs.writeFile(filePath, JSON.stringify(invoices, null, 2), 'utf-8');
+    const filePath = path.resolve(
+      process.cwd(),
+      'invoices.json',
+    );
+    await fs.writeFile(
+      filePath,
+      JSON.stringify(invoices, null, 2),
+      'utf-8',
+    );
 
     console.log('Done done');
 

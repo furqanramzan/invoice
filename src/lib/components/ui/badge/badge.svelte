@@ -20,7 +20,9 @@
     },
   });
 
-  export type BadgeVariant = VariantProps<typeof badgeVariants>['variant'];
+  export type BadgeVariant = VariantProps<
+    typeof badgeVariants
+  >['variant'];
 </script>
 
 <script lang="ts">

@@ -62,7 +62,9 @@ export async function delFile(fileUrl: string) {
   }
 
   const url = new URL(fileUrl);
-  let key = url.pathname.startsWith('/') ? url.pathname.slice(1) : url.pathname;
+  let key = url.pathname.startsWith('/')
+    ? url.pathname.slice(1)
+    : url.pathname;
   key = decodeURIComponent(key);
 
   await s3.send(

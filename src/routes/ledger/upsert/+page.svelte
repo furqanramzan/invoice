@@ -14,10 +14,17 @@
 
 <Heading
   title={title.singular}
-  link={{ route: route.list, title: `List ${title.plural}` }}
+  link={{
+    route: route.list,
+    title: `List ${title.plural}`,
+  }}
 />
 
-<Form {superform} buttonText="Compare Ledger" enctype="multipart/form-data">
+<Form
+  {superform}
+  buttonText="Compare Ledger"
+  enctype="multipart/form-data"
+>
   <DateField {superform} field="startDate" />
   <DateField {superform} field="endDate" />
   <FileField

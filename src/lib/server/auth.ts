@@ -1,7 +1,10 @@
 import { redirect, type RequestEvent } from '@sveltejs/kit';
 import { count, eq } from 'drizzle-orm';
 import { sha256 } from '@oslojs/crypto/sha2';
-import { encodeBase64url, encodeHexLowerCase } from '@oslojs/encoding';
+import {
+  encodeBase64url,
+  encodeHexLowerCase,
+} from '@oslojs/encoding';
 import { db } from '$lib/server/db';
 import { getRequestEvent } from '$app/server';
 import { Users, Sessions } from '$lib/server/db/schema';
@@ -16,8 +19,13 @@ export function generateSessionToken() {
   return token;
 }
 
-export async function createSession(token: string, userId: number) {
-  const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+export async function createSession(
+  token: string,
+  userId: number,
+) {
+  const sessionId = encodeHexLowerCase(
+    sha256(new TextEncoder().encode(token)),
+  );
   const session: Sessions = {
     id: sessionId,
     userId,
@@ -28,7 +36,9 @@ export async function createSession(token: string, userId: number) {
 }
 
 export async function validateSessionToken(token: string) {
-  const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+  const sessionId = encodeHexLowerCase(
+    sha256(new TextEncoder().encode(token)),
+  );
   const [result] = await db
     .select({
       // Adjust user table here to tweak returned data
@@ -44,7 +54,8 @@ export async function validateSessionToken(token: string) {
   }
   const { session, user } = result;
 
-  const sessionExpired = Date.now() >= session.expiresAt.getTime();
+  const sessionExpired =
+    Date.now() >= session.expiresAt.getTime();
   if (sessionExpired) {
     await db.delete(Sessions).where(eq(Sessions.id, session.id));
     return { session: null, user: null };
@@ -99,6 +110,8 @@ export function getUser() {
 }
 
 export async function getUserCount() {
-  const [{ count: users }] = await db.select({ count: count() }).from(Users);
+  const [{ count: users }] = await db
+    .select({ count: count() })
+    .from(Users);
   return users;
 }

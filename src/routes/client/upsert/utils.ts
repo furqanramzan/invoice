@@ -1,7 +1,10 @@
 import { resolve } from '$app/paths';
 import z from 'zod';
 
-export const title = { singular: 'Client', plural: 'Clients' };
+export const title = {
+  singular: 'Client',
+  plural: 'Clients',
+};
 
 export const route = {
   list: resolve('/client'),

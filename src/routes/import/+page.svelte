@@ -18,9 +18,21 @@
 
 <Heading
   title={title.singular}
-  link={{ route: route.list, title: `List ${title.plural}` }}
+  link={{
+    route: route.list,
+    title: `List ${title.plural}`,
+  }}
 />
 
-<Form {superform} buttonText={title.singular} enctype="multipart/form-data">
-  <FileField {superform} field="logo" urlField="name" label="Logo" />
+<Form
+  {superform}
+  buttonText={title.singular}
+  enctype="multipart/form-data"
+>
+  <FileField
+    {superform}
+    field="logo"
+    urlField="name"
+    label="Logo"
+  />
 </Form>

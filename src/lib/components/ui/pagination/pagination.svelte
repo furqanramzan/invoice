@@ -17,7 +17,9 @@
 
   // Helper to construct the href with existing search params
   const getPageHref = (pageNumber: number | string) => {
-    const params = new SvelteURLSearchParams(page.url.searchParams);
+    const params = new SvelteURLSearchParams(
+      page.url.searchParams,
+    );
     params.set('page', pageNumber.toString());
     return `${page.url.pathname}?${params.toString()}`;
   };
@@ -49,15 +51,22 @@
     return rangeWithDots;
   };
 
-  const pages = $derived(getVisiblePages(currentPage, totalPages));
+  const pages = $derived(
+    getVisiblePages(currentPage, totalPages),
+  );
 </script>
 
-<div class={cn('flex items-center justify-center gap-2', className)} {...rest}>
+<div
+  class={cn('flex items-center justify-center gap-2', className)}
+  {...rest}
+>
   <Button
     variant="outline"
     size="sm"
     disabled={currentPage <= 1}
-    href={currentPage > 1 ? getPageHref(currentPage - 1) : undefined}
+    href={currentPage > 1
+      ? getPageHref(currentPage - 1)
+      : undefined}
   >
     Previous
   </Button>
@@ -81,7 +90,9 @@
     variant="outline"
     size="sm"
     disabled={currentPage >= totalPages}
-    href={currentPage < totalPages ? getPageHref(currentPage + 1) : undefined}
+    href={currentPage < totalPages
+      ? getPageHref(currentPage + 1)
+      : undefined}
   >
     Next
   </Button>

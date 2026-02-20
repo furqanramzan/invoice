@@ -14,13 +14,18 @@
 
 <Heading
   title={title.plural}
-  link={{ route: route.upsert, title: `Add ${title.singular}` }}
+  link={{
+    route: route.upsert,
+    title: `Add ${title.singular}`,
+  }}
 />
 
 {#if data.users.length === 0}
   <p>No users yet. Create one!</p>
 {:else}
-  <Table.Root class={cn('border', data.users.length === 0 && 'hidden')}>
+  <Table.Root
+    class={cn('border', data.users.length === 0 && 'hidden')}
+  >
     <Table.Header>
       <Table.Row>
         <Table.Head class="p-4 text-nowrap">Email</Table.Head>
@@ -31,9 +36,15 @@
     <Table.Body>
       {#each data.users as user (user.id)}
         <Table.Row>
-          <Table.Cell class="p-4 text-nowrap">{user.email}</Table.Cell>
-          <Table.Cell class="p-4 text-nowrap">{user.name}</Table.Cell>
-          <Table.Cell class="flex shrink-0 space-x-2 p-4 text-nowrap">
+          <Table.Cell class="p-4 text-nowrap"
+            >{user.email}</Table.Cell
+          >
+          <Table.Cell class="p-4 text-nowrap"
+            >{user.name}</Table.Cell
+          >
+          <Table.Cell
+            class="flex shrink-0 space-x-2 p-4 text-nowrap"
+          >
             <Button
               href={route.upsert + `?id=${user.id}`}
               variant="outline"
@@ -63,6 +74,9 @@
   </Table.Root>
 
   {#if data.totalPages > 1}
-    <Pagination currentPage={data.currentPage} totalPages={data.totalPages} />
+    <Pagination
+      currentPage={data.currentPage}
+      totalPages={data.totalPages}
+    />
   {/if}
 {/if}

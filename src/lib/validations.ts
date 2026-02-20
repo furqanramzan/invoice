@@ -1,6 +1,8 @@
 import z from 'zod';
 
-export const itemSchema = z.object({ id: z.number().positive() });
+export const itemSchema = z.object({
+  id: z.number().positive(),
+});
 
 export const loginSchema = z.object({
   email: z.email(),
@@ -30,7 +32,11 @@ export const deleteSchema = z.object({
 export const emptySchema = z.object({});
 
 export const multiUrlSchema = z
-  .object({ url: z.url(), name: z.string(), deleted: z.boolean().optional() })
+  .object({
+    url: z.url(),
+    name: z.string(),
+    deleted: z.boolean().optional(),
+  })
   .array()
   .optional()
   .nullable();

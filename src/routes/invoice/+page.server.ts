@@ -2,22 +2,38 @@ import { db } from '$lib/server/db';
 import { Invoices } from '$lib/server/db/schema';
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm';
 import { itemSchema } from '$lib/validations.js';
-import { getPaginationData, urlSearchParamsToJson } from '$lib/utils.js';
-import { initForm, sendMessage, validateAction } from '$lib/superforms';
+import {
+  getPaginationData,
+  urlSearchParamsToJson,
+} from '$lib/utils.js';
+import {
+  initForm,
+  sendMessage,
+  validateAction,
+} from '$lib/superforms';
 import { filterSchema, title } from './upsert/utils.js';
 import { delFile } from '$lib/server/filesystem.js';
 
 export async function load(event) {
-  const form = await initForm(filterSchema, urlSearchParamsToJson(event.url));
+  const form = await initForm(
+    filterSchema,
+    urlSearchParamsToJson(event.url),
+  );
   const deleteForm = await initForm(itemSchema);
 
   const { page, offset, limit } = getPaginationData(event);
   const { data } = form;
 
   const where = and(
-    data.companyId ? eq(Invoices.companyId, data.companyId) : undefined,
-    data.clientId ? eq(Invoices.clientId, data.clientId) : undefined,
-    data.locationId ? eq(Invoices.locationId, data.locationId) : undefined,
+    data.companyId
+      ? eq(Invoices.companyId, data.companyId)
+      : undefined,
+    data.clientId
+      ? eq(Invoices.clientId, data.clientId)
+      : undefined,
+    data.locationId
+      ? eq(Invoices.locationId, data.locationId)
+      : undefined,
     data.status ? eq(Invoices.status, data.status) : undefined,
     data.invoiceNumber
       ? eq(Invoices.invoiceNumber, data.invoiceNumber)
@@ -37,20 +53,21 @@ export async function load(event) {
       : undefined,
   );
 
-  const [allInvoices, [{ count: totalInvoices }]] = await Promise.all([
-    db.query.Invoices.findMany({
-      limit,
-      offset,
-      orderBy: desc(Invoices.dateOfInvoice),
-      where: where,
-      with: {
-        company: { columns: { name: true } },
-        client: { columns: { name: true } },
-        location: { columns: { address: true } },
-      },
-    }),
-    db.select({ count: count() }).from(Invoices).where(where),
-  ]);
+  const [allInvoices, [{ count: totalInvoices }]] =
+    await Promise.all([
+      db.query.Invoices.findMany({
+        limit,
+        offset,
+        orderBy: desc(Invoices.dateOfInvoice),
+        where: where,
+        with: {
+          company: { columns: { name: true } },
+          client: { columns: { name: true } },
+          location: { columns: { address: true } },
+        },
+      }),
+      db.select({ count: count() }).from(Invoices).where(where),
+    ]);
 
   return {
     form,
@@ -72,7 +89,11 @@ export const actions = {
       columns: { attachmentUrls: true },
     });
     if (!invoice) {
-      return sendMessage(form, `${title.singular} not found!`, 'error');
+      return sendMessage(
+        form,
+        `${title.singular} not found!`,
+        'error',
+      );
     }
 
     if (invoice.attachmentUrls?.length) {
@@ -81,7 +102,9 @@ export const actions = {
       );
     }
 
-    await db.delete(Invoices).where(eq(Invoices.id, form.data.id));
+    await db
+      .delete(Invoices)
+      .where(eq(Invoices.id, form.data.id));
 
     return sendMessage(form, `${title.plural} deleted!`);
   },

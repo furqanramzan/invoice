@@ -5,9 +5,12 @@
     type FormPathLeaves,
     type FormFieldProxy,
   } from 'sveltekit-superforms';
-  import RadioInput from '../input/radio-input.svelte';
+  import RadioInput from '$lib/components/input/radio-input.svelte';
   import ErrorMessage from './error-message.svelte';
-  import type { RadioInputProps, RadioFieldType } from '../input/types';
+  import type {
+    RadioInputProps,
+    RadioFieldType,
+  } from '$lib/components/input/types';
 
   interface Props extends RadioInputProps {
     superform: SuperForm<T>;
@@ -23,6 +26,11 @@
   ) satisfies FormFieldProxy<RadioFieldType>;
 </script>
 
-<RadioInput {...restProps} {field} bind:value={$value} errors={$errors}>
+<RadioInput
+  {...restProps}
+  {field}
+  bind:value={$value}
+  errors={$errors}
+>
   <ErrorMessage errors={$errors} />
 </RadioInput>

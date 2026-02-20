@@ -21,10 +21,9 @@ export async function initForm<T extends ZodValidationSchema>(
   return await superValidate(initialData, zod4(schema));
 }
 
-export async function validateAction<T extends ZodValidationSchema>(
-  event: RequestEvent,
-  schema: T,
-) {
+export async function validateAction<
+  T extends ZodValidationSchema,
+>(event: RequestEvent, schema: T) {
   const form = await superValidate(event, zod4(schema));
 
   if (!form.valid) {
@@ -58,7 +57,10 @@ export function getSuperForm<
       toast.loading('Processing...', { id });
     },
     onResult(event) {
-      if (event.result.type === 'failure' || event.result.type === 'error') {
+      if (
+        event.result.type === 'failure' ||
+        event.result.type === 'error'
+      ) {
         console.log(event.result);
       }
 
@@ -72,12 +74,14 @@ export function getSuperForm<
         return;
       }
       if (event.result.type === 'success') {
-        const message = event.result.data?.form?.message?.text || 'Done!';
+        const message =
+          event.result.data?.form?.message?.text || 'Done!';
         toast.success(message, { id });
         return;
       }
       if (event.result.type === 'failure') {
-        const message = event.result.data?.form?.message?.text || errorMessage;
+        const message =
+          event.result.data?.form?.message?.text || errorMessage;
         toast.error(message, { id });
       }
     },
@@ -94,7 +98,12 @@ export function redirectTo(
   type: 'success' | 'error' = 'success',
 ) {
   if (message && event) {
-    return redirect(302, route, { type, message }, event.cookies);
+    return redirect(
+      302,
+      route,
+      { type, message },
+      event.cookies,
+    );
   }
   return redirect(302, route);
 }

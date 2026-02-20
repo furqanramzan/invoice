@@ -21,29 +21,45 @@
 
 <Heading
   title={title.plural}
-  link={{ route: route.upsert, title: `Add ${title.singular}` }}
+  link={{
+    route: route.upsert,
+    title: `Add ${title.singular}`,
+  }}
 />
 
 {#if data.companies.length === 0}
   <p>No companies yet. Create one!</p>
 {:else}
-  <Table.Root class={cn('border', data.companies.length === 0 && 'hidden')}>
+  <Table.Root
+    class={cn('border', data.companies.length === 0 && 'hidden')}
+  >
     <Table.Header>
       <Table.Row>
-        <Table.Head class="p-4 text-nowrap">Company Name</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Print Layout</Table.Head>
+        <Table.Head class="p-4 text-nowrap"
+          >Company Name</Table.Head
+        >
+        <Table.Head class="p-4 text-nowrap"
+          >Print Layout</Table.Head
+        >
         <Table.Head class="p-4 text-nowrap">Actions</Table.Head>
       </Table.Row>
     </Table.Header>
     <Table.Body>
       {#each data.companies as company (company.id)}
         <Table.Row>
-          <Table.Cell class="p-4 text-nowrap">{company.name}</Table.Cell>
-          <Table.Cell class="p-4 text-nowrap">{company.printLayout}</Table.Cell>
-          <Table.Cell class="flex shrink-0 space-x-2 p-4 text-nowrap">
+          <Table.Cell class="p-4 text-nowrap"
+            >{company.name}</Table.Cell
+          >
+          <Table.Cell class="p-4 text-nowrap"
+            >{company.printLayout}</Table.Cell
+          >
+          <Table.Cell
+            class="flex shrink-0 space-x-2 p-4 text-nowrap"
+          >
             <Tooltip text="Edit">
               <Button
-                href={resolve(`/company/upsert`) + `?id=${company.id}`}
+                href={resolve(`/company/upsert`) +
+                  `?id=${company.id}`}
                 variant="outline"
                 size="icon"
               >
@@ -51,7 +67,11 @@
               </Button>
             </Tooltip>
             <Tooltip text="Delete">
-              <ActionForm {superform} field="id" value={company.id}>
+              <ActionForm
+                {superform}
+                field="id"
+                value={company.id}
+              >
                 <Trash class="h-4 w-4" />
               </ActionForm>
             </Tooltip>
@@ -62,6 +82,9 @@
   </Table.Root>
 
   {#if data.totalPages > 1}
-    <Pagination currentPage={data.currentPage} totalPages={data.totalPages} />
+    <Pagination
+      currentPage={data.currentPage}
+      totalPages={data.totalPages}
+    />
   {/if}
 {/if}

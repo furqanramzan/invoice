@@ -22,7 +22,8 @@
 
   let labelText = $derived(label || titleCase(field));
   let placeholderText = $derived(
-    placeholder || `Type ${titleCase(field).toLowerCase()} here `,
+    placeholder ||
+      `Type ${titleCase(field).toLowerCase()} here `,
   );
   // svelte-ignore state_referenced_locally
   if (typeof defaultValue === 'number') {

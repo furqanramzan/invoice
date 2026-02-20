@@ -7,7 +7,11 @@ import {
 } from '$lib/server/db/schema';
 import { clientSchema, route, title } from './utils';
 import { eq, inArray } from 'drizzle-orm';
-import { initForm, redirectTo, validateAction } from '$lib/superforms';
+import {
+  initForm,
+  redirectTo,
+  validateAction,
+} from '$lib/superforms';
 
 export const load = async (event) => {
   const id = Number(event.url.searchParams.get('id'));
@@ -20,7 +24,11 @@ export const load = async (event) => {
     });
 
     if (!currentClient) {
-      return redirectTo(route.list, event, `${title.singular} not found!`);
+      return redirectTo(
+        route.list,
+        event,
+        `${title.singular} not found!`,
+      );
     }
   }
 
@@ -37,12 +45,16 @@ export const actions = {
     const form = await validateAction(event, clientSchema);
     if (!form.valid) return form.error;
 
-    const { locations: locationsEntry, ...clientData } = form.data;
+    const { locations: locationsEntry, ...clientData } =
+      form.data;
     let { id } = form.data;
 
     await db.transaction(async (tx) => {
       if (id) {
-        await tx.update(Clients).set(clientData).where(eq(Clients.id, id));
+        await tx
+          .update(Clients)
+          .set(clientData)
+          .where(eq(Clients.id, id));
       } else {
         const [client] = await tx
           .insert(Clients)
@@ -52,14 +64,19 @@ export const actions = {
       }
 
       const newLocations = locationsEntry.filter((x) => !x.id);
-      const updateLocations = locationsEntry.filter((x) => x.id && !x.deleted);
+      const updateLocations = locationsEntry.filter(
+        (x) => x.id && !x.deleted,
+      );
       const deleteLocations = locationsEntry
         .filter((x) => x.deleted)
         .map((x) => x.id || 0);
       if (newLocations.length) {
-        await tx
-          .insert(Locations)
-          .values(newLocations.map((x) => ({ ...x, clientId: id || 0 })));
+        await tx.insert(Locations).values(
+          newLocations.map((x) => ({
+            ...x,
+            clientId: id || 0,
+          })),
+        );
       }
       if (updateLocations.length) {
         await Promise.all(

@@ -7,7 +7,9 @@
     class: className,
     children,
     ...restProps
-  }: WithElementRef<HTMLAttributes<HTMLTableRowElement>> = $props();
+  }: WithElementRef<
+    HTMLAttributes<HTMLTableRowElement>
+  > = $props();
 </script>
 
 <tr

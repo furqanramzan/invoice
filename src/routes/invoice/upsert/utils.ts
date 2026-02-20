@@ -2,12 +2,18 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import z from 'zod';
 import { resolve } from '$app/paths';
-import { multiUrlSchema, multiFileSchema } from '$lib/validations';
+import {
+  multiUrlSchema,
+  multiFileSchema,
+} from '$lib/validations';
 import { formatAmount, splitAfterChars } from '$lib/utils';
 import type { Client, Company } from '$lib/server/db/schema';
 import { toast } from 'svelte-sonner';
 
-export const title = { singular: 'Invoice', plural: 'Invoices' };
+export const title = {
+  singular: 'Invoice',
+  plural: 'Invoices',
+};
 
 export const route = {
   list: resolve('/invoice'),
@@ -94,7 +100,10 @@ export async function exportPDF(
   ]);
   const invoiceNumber = `${client.invoiceNumberInitial}-${invoice.invoiceNumber}`;
   const fileName = `${invoiceNumber} ${invoice.dateOfInvoice.toDateString().replaceAll(' ', '-')} ${company.name} ${invoice.lineItems
-    .sort((a, b) => b.salePrice * b.quantity - a.salePrice * a.quantity)
+    .sort(
+      (a, b) =>
+        b.salePrice * b.quantity - a.salePrice * a.quantity,
+    )
     .splice(0, 2)
     .map((x) => x.name)
     .join(', ')}.pdf`;
@@ -123,7 +132,10 @@ export async function exportPDF(
     currentY += lineHeight;
 
     // 2. Address (Handling potential multi-line)
-    const addressLines = splitAfterChars(` ${company.address}`, 45);
+    const addressLines = splitAfterChars(
+      ` ${company.address}`,
+      45,
+    );
     addressLines.forEach((line, index) => {
       if (index === 0) {
         dddt('Add: ', line, 130, currentY);
@@ -179,7 +191,12 @@ export async function exportPDF(
     dddt('M/s: ', client.name, 15, currentY);
     currentY += lineGap;
 
-    dddt('Date: ', invoice.dateOfDelivery.toDateString(), 160, 60);
+    dddt(
+      'Date: ',
+      invoice.dateOfDelivery.toDateString(),
+      160,
+      60,
+    );
     dddt('Invoice CS: ', invoiceNumber, 160, 67);
 
     // optional fields
@@ -201,7 +218,15 @@ export async function exportPDF(
     // --- Items Table (Mimicking Excel Grid) ---
     autoTable(doc, {
       startY: currentY,
-      head: [['S.NO', 'DESCRIPTION', 'QTY', 'UNIT PRICE', 'TOTAL UNIT PRICE']],
+      head: [
+        [
+          'S.NO',
+          'DESCRIPTION',
+          'QTY',
+          'UNIT PRICE',
+          'TOTAL UNIT PRICE',
+        ],
+      ],
       body,
       foot: [['', 'Total Amount', '', '', formatAmount(total)]],
       theme: 'grid',
@@ -238,7 +263,11 @@ export async function exportPDF(
     doc.setFont('times', 'bold');
     doc.text('Note:', 15, finalY);
     doc.setFont('times', 'normal');
-    doc.text('1. All the prices mentioned are in PKR.', 15, finalY + 5);
+    doc.text(
+      '1. All the prices mentioned are in PKR.',
+      15,
+      finalY + 5,
+    );
 
     doc.setFontSize(10);
     doc.setFont('times', 'bold');
@@ -335,7 +364,9 @@ export async function exportPDF(
     // --- Main Items Table ---
     autoTable(doc, {
       startY: finalY + 8,
-      head: [['S.No.', 'Item Description', 'Qty', 'Rate', 'Amount']],
+      head: [
+        ['S.No.', 'Item Description', 'Qty', 'Rate', 'Amount'],
+      ],
       body,
       foot: [['', '', '', 'Total.', formatAmount(total)]],
       theme: 'grid',

@@ -34,7 +34,10 @@
     {@render children()}
   </div>
   <div class="flex gap-2">
-    <Button type="submit" disabled={$submitting || !isTainted($tainted)}>
+    <Button
+      type="submit"
+      disabled={$submitting || !isTainted($tainted)}
+    >
       {buttonText || method === 'post' ? 'Save' : 'Apply'}
     </Button>
     {@render afterButton?.()}

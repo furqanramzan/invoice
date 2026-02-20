@@ -1,4 +1,8 @@
-import { redirect, type Handle, type RequestEvent } from '@sveltejs/kit';
+import {
+  redirect,
+  type Handle,
+  type RequestEvent,
+} from '@sveltejs/kit';
 import * as auth from '$lib/server/auth';
 import { resolve as resolvePath } from '$app/paths';
 
@@ -20,10 +24,15 @@ const handleAuth: Handle = async ({ event, resolve }) => {
     return redirect(302, resolvePath('/invoice'));
   }
 
-  const { session, user } = await auth.validateSessionToken(sessionToken);
+  const { session, user } =
+    await auth.validateSessionToken(sessionToken);
 
   if (session) {
-    auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+    auth.setSessionTokenCookie(
+      event,
+      sessionToken,
+      session.expiresAt,
+    );
   } else {
     auth.deleteSessionTokenCookie(event);
   }

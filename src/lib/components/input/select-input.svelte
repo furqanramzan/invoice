@@ -17,7 +17,9 @@
     default: defaultValue,
   }: SelectInputProps = $props();
 
-  const selectedOption = $derived(options.find((f) => f.value === value));
+  const selectedOption = $derived(
+    options.find((f) => f.value === value),
+  );
   const triggerContent = $derived(
     selectedOption?.label ||
       titleCase(selectedOption?.value.toString() || '') ||
@@ -55,12 +57,18 @@
         aria-invalid={errors?.length ? 'true' : undefined}
       >
         {#if allowClear && value}
-          <Select.Item value={null as unknown as string} label="Clear">
+          <Select.Item
+            value={null as unknown as string}
+            label="Clear"
+          >
             Clear
           </Select.Item>
         {/if}
         {#each options as option (option.value)}
-          <Select.Item value={option.value as string} label={option.label}>
+          <Select.Item
+            value={option.value as string}
+            label={option.label}
+          >
             {option.label || titleCase(option.value.toString())}
           </Select.Item>
         {/each}

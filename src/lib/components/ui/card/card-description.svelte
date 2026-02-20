@@ -7,7 +7,9 @@
     class: className,
     children,
     ...restProps
-  }: WithElementRef<HTMLAttributes<HTMLParagraphElement>> = $props();
+  }: WithElementRef<
+    HTMLAttributes<HTMLParagraphElement>
+  > = $props();
 </script>
 
 <p

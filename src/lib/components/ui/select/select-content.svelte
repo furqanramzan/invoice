@@ -16,7 +16,9 @@
     preventScroll = true,
     ...restProps
   }: WithoutChild<SelectPrimitive.ContentProps> & {
-    portalProps?: WithoutChildrenOrChild<ComponentProps<typeof SelectPortal>>;
+    portalProps?: WithoutChildrenOrChild<
+      ComponentProps<typeof SelectPortal>
+    >;
   } = $props();
 </script>
 

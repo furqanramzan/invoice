@@ -1,7 +1,10 @@
 import z from 'zod';
 import { resolve } from '$app/paths';
 
-export const title = { singular: 'Product', plural: 'Products' };
+export const title = {
+  singular: 'Product',
+  plural: 'Products',
+};
 
 export const route = {
   list: resolve('/product'),
@@ -17,5 +20,7 @@ export const productSchema = z.object({
   quotedPrice: z
     .number()
     .min(0, { message: 'Quoted price cannot be negative' }),
-  salePrice: z.number().min(0, { message: 'Sale price cannot be negative' }),
+  salePrice: z
+    .number()
+    .min(0, { message: 'Sale price cannot be negative' }),
 });

@@ -1,10 +1,17 @@
 <script lang="ts">
   import * as Table from '$lib/components/ui/table';
-  import { Button, buttonVariants } from '$lib/components/ui/button';
+  import {
+    Button,
+    buttonVariants,
+  } from '$lib/components/ui/button';
   import Pencil from '@lucide/svelte/icons/pencil';
   import { Pagination } from '$lib/components/ui/pagination';
   import { formatCents, formatDate } from '$lib/utils';
-  import { payLedgerSchema, route, title } from './upsert/utils.js';
+  import {
+    payLedgerSchema,
+    route,
+    title,
+  } from './upsert/utils.js';
   import Heading from '$lib/components/heading.svelte';
   import { getSuperForm } from '$lib/superforms.js';
   import { CreditCard } from '@lucide/svelte';
@@ -21,7 +28,10 @@
 
 <Heading
   title={title.plural}
-  link={{ route: route.upsert, title: `Add ${title.singular}` }}
+  link={{
+    route: route.upsert,
+    title: `Add ${title.singular}`,
+  }}
 />
 
 {#if data.invoices.length === 0}
@@ -32,10 +42,17 @@
       <Table.Row>
         <Table.Head class="p-4 text-nowrap">Company</Table.Head>
         <Table.Head class="p-4 text-nowrap">Client</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Invoice #</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Delivery Date</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Invoice Date</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Sale Price</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Invoice #</Table.Head
+        >
+        <Table.Head class="p-4 text-nowrap"
+          >Delivery Date</Table.Head
+        >
+        <Table.Head class="p-4 text-nowrap"
+          >Invoice Date</Table.Head
+        >
+        <Table.Head class="p-4 text-nowrap"
+          >Sale Price</Table.Head
+        >
         <Table.Head class="p-4 text-nowrap">Received</Table.Head>
         <Table.Head class="p-4 text-nowrap">Actions</Table.Head>
       </Table.Row>
@@ -62,9 +79,13 @@
             {formatCents(invoice.salePrice)}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            {invoice.receivedAmount ? formatCents(invoice.receivedAmount) : '-'}
+            {invoice.receivedAmount
+              ? formatCents(invoice.receivedAmount)
+              : '-'}
           </Table.Cell>
-          <Table.Cell class="flex shrink-0 space-x-2 p-4 text-nowrap">
+          <Table.Cell
+            class="flex shrink-0 space-x-2 p-4 text-nowrap"
+          >
             <Tooltip text="Edit">
               <Button
                 href={route.invoiceUpsert + `?id=${invoice.id}`}
@@ -78,7 +99,10 @@
               <Dialog.Root>
                 <Dialog.Trigger
                   type="button"
-                  class={buttonVariants({ variant: 'success', size: 'icon' })}
+                  class={buttonVariants({
+                    variant: 'success',
+                    size: 'icon',
+                  })}
                 >
                   <CreditCard class="h-4 w-4" />
                 </Dialog.Trigger>
@@ -91,7 +115,9 @@
                   >
                     <Dialog.Header>
                       <Dialog.Title>
-                        {invoice.company.name} - {invoice.client.name} - {invoice.invoiceNumber}
+                        {invoice.company.name} - {invoice.client
+                          .name} -
+                        {invoice.invoiceNumber}
                       </Dialog.Title>
                     </Dialog.Header>
                     <div class="grid gap-4">
@@ -106,11 +132,16 @@
                     <Dialog.Footer>
                       <Dialog.Close
                         type="button"
-                        class={buttonVariants({ variant: 'outline' })}
+                        class={buttonVariants({
+                          variant: 'outline',
+                        })}
                       >
                         Cancel
                       </Dialog.Close>
-                      <Button disabled={$submitting} type="submit">
+                      <Button
+                        disabled={$submitting}
+                        type="submit"
+                      >
                         Mark as paid
                       </Button>
                     </Dialog.Footer>
@@ -125,6 +156,9 @@
   </Table.Root>
 
   {#if data.totalPages > 1}
-    <Pagination currentPage={data.currentPage} totalPages={data.totalPages} />
+    <Pagination
+      currentPage={data.currentPage}
+      totalPages={data.totalPages}
+    />
   {/if}
 {/if}

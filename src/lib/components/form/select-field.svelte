@@ -5,9 +5,12 @@
     type FormPathLeaves,
     type FormFieldProxy,
   } from 'sveltekit-superforms';
-  import SelectInput from '../input/select-input.svelte';
+  import SelectInput from '$lib/components/input/select-input.svelte';
   import ErrorMessage from './error-message.svelte';
-  import type { SelectInputProps, SelectFieldType } from '../input/types';
+  import type {
+    SelectInputProps,
+    SelectFieldType,
+  } from '$lib/components/input/types';
 
   interface Props extends SelectInputProps {
     superform: SuperForm<T>;

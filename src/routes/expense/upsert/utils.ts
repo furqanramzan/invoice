@@ -1,8 +1,14 @@
 import z from 'zod';
 import { resolve } from '$app/paths';
-import { multiUrlSchema, multiFileSchema } from '$lib/validations';
+import {
+  multiUrlSchema,
+  multiFileSchema,
+} from '$lib/validations';
 
-export const title = { singular: 'Expense', plural: 'Expenses' };
+export const title = {
+  singular: 'Expense',
+  plural: 'Expenses',
+};
 
 export const route = {
   list: resolve('/expense'),
@@ -12,7 +18,9 @@ export const route = {
 export const expenseSchema = z.object({
   id: z.number().positive().optional(),
   title: z.string().min(1, { message: 'Title is required' }),
-  amount: z.number().min(0, { message: 'Amount cannot be negative' }),
+  amount: z
+    .number()
+    .min(0, { message: 'Amount cannot be negative' }),
   date: z.date(),
   description: z.string().optional().nullable(),
   attachmentUrls: multiUrlSchema,

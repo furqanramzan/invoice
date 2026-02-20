@@ -14,18 +14,24 @@
   let isEditing = $derived(!!data.currentClient);
 
   // svelte-ignore state_referenced_locally
-  const superform = getSuperForm(clientSchema, data.form, { dataType: 'json' });
+  const superform = getSuperForm(clientSchema, data.form, {
+    dataType: 'json',
+  });
   const { form } = superform;
 </script>
 
 <Heading
   title={(isEditing ? 'Edit ' : 'New ') + title.singular}
-  link={{ route: route.list, title: `List ${title.plural}` }}
+  link={{
+    route: route.list,
+    title: `List ${title.plural}`,
+  }}
 />
 
 <Form
   {superform}
-  buttonText={(isEditing ? 'Update ' : 'Create ') + title.singular}
+  buttonText={(isEditing ? 'Update ' : 'Create ') +
+    title.singular}
 >
   {#if isEditing}
     <HiddenField {superform} field="id" />
@@ -45,8 +51,10 @@
         type="button"
         disabled={$form.locations.length < 1}
         onclick={() =>
-          ($form.locations = [...$form.locations, { address: '' }])}
-        ><Plus /></Button
+          ($form.locations = [
+            ...$form.locations,
+            { address: '' },
+          ])}><Plus /></Button
       >
     </div>
     <div class="space-y-2" id="locations">
@@ -61,7 +69,8 @@
             <Button
               size="icon-sm"
               type="button"
-              disabled={$form.locations.filter((x) => !x.deleted).length < 2}
+              disabled={$form.locations.filter((x) => !x.deleted)
+                .length < 2}
               onclick={() => {
                 $form.locations[index].deleted = true;
                 $form.locations = $form.locations;

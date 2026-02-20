@@ -1,7 +1,11 @@
 import { db } from '$lib/server/db';
 import { Companies, Invoices } from '$lib/server/db/schema';
 import { count, desc, eq } from 'drizzle-orm';
-import { initForm, sendMessage, validateAction } from '$lib/superforms.js';
+import {
+  initForm,
+  sendMessage,
+  validateAction,
+} from '$lib/superforms.js';
 import { title } from './upsert/utils.js';
 import { getPaginationData } from '$lib/utils.js';
 import { delFile } from '$lib/server/filesystem.js';
@@ -12,14 +16,15 @@ export async function load(event) {
 
   const { page, offset, limit } = getPaginationData(event);
 
-  const [allCompanies, [{ count: totalCompanies }]] = await Promise.all([
-    db.query.Companies.findMany({
-      limit,
-      offset,
-      orderBy: desc(Companies.createdAt),
-    }),
-    db.select({ count: count() }).from(Companies),
-  ]);
+  const [allCompanies, [{ count: totalCompanies }]] =
+    await Promise.all([
+      db.query.Companies.findMany({
+        limit,
+        offset,
+        orderBy: desc(Companies.createdAt),
+      }),
+      db.select({ count: count() }).from(Companies),
+    ]);
 
   return {
     form,
@@ -40,7 +45,11 @@ export const actions = {
       columns: { id: true },
     });
     if (associated) {
-      return sendMessage(form, 'Cannot delete: linked to invoices!', 'error');
+      return sendMessage(
+        form,
+        'Cannot delete: linked to invoices!',
+        'error',
+      );
     }
 
     const companyToDelete = await db.query.Companies.findFirst({
@@ -51,7 +60,9 @@ export const actions = {
       await delFile(companyToDelete.logoUrl);
     }
 
-    await db.delete(Companies).where(eq(Companies.id, form.data.id));
+    await db
+      .delete(Companies)
+      .where(eq(Companies.id, form.data.id));
 
     return sendMessage(form, `${title.singular} deleted!`);
   },

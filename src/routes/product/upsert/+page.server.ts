@@ -2,7 +2,11 @@ import { db } from '$lib/server/db';
 import { Products } from '$lib/server/db/schema';
 import { productSchema, route, title } from './utils';
 import { eq } from 'drizzle-orm';
-import { initForm, redirectTo, validateAction } from '$lib/superforms.js';
+import {
+  initForm,
+  redirectTo,
+  validateAction,
+} from '$lib/superforms.js';
 import { convertCents, convertToCents } from '$lib/utils.js';
 
 export const load = async (event) => {
@@ -15,7 +19,11 @@ export const load = async (event) => {
     });
 
     if (!currentProduct) {
-      return redirectTo(route.list, event, `${title.singular} not exists!`);
+      return redirectTo(
+        route.list,
+        event,
+        `${title.singular} not exists!`,
+      );
     }
   }
 

@@ -19,12 +19,16 @@
 
 <Heading
   title={(isEditing ? 'Edit ' : 'New ') + title.singular}
-  link={{ route: route.list, title: `List ${title.plural}` }}
+  link={{
+    route: route.list,
+    title: `List ${title.plural}`,
+  }}
 />
 
 <Form
   {superform}
-  buttonText={(isEditing ? 'Update ' : 'Create ') + title.singular}
+  buttonText={(isEditing ? 'Update ' : 'Create ') +
+    title.singular}
 >
   {#if isEditing}
     <HiddenField {superform} field="id" />

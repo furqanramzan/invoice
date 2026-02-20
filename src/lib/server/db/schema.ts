@@ -1,4 +1,8 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import {
+  integer,
+  sqliteTable,
+  text,
+} from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
 
 export const Users = sqliteTable('users', {
@@ -18,7 +22,9 @@ export const Sessions = sqliteTable('sessions', {
   userId: integer('user_id', { mode: 'number' })
     .notNull()
     .references(() => Users.id, { onDelete: 'cascade' }),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  expiresAt: integer('expires_at', {
+    mode: 'timestamp',
+  }).notNull(),
 });
 
 export const Products = sqliteTable('products', {
@@ -32,30 +38,43 @@ export const Products = sqliteTable('products', {
     .notNull(),
 });
 
-export const ProductsRelations = relations(Products, ({ many }) => ({
-  lineItems: many(LineItems),
-}));
+export const ProductsRelations = relations(
+  Products,
+  ({ many }) => ({
+    lineItems: many(LineItems),
+  }),
+);
 
 export const Invoices = sqliteTable('invoices', {
   id: integer('id', { mode: 'number' }).primaryKey(),
   companyId: integer('company_id', { mode: 'number' })
     .notNull()
-    .references(() => Companies.id, { onDelete: 'cascade' }),
+    .references(() => Companies.id, {
+      onDelete: 'cascade',
+    }),
   clientId: integer('client_id', { mode: 'number' })
     .notNull()
     .references(() => Clients.id, { onDelete: 'cascade' }),
   locationId: integer('location_id', { mode: 'number' })
     .notNull()
-    .references(() => Locations.id, { onDelete: 'cascade' }),
+    .references(() => Locations.id, {
+      onDelete: 'cascade',
+    }),
   invoiceNumber: integer('invoice_number').notNull(),
-  dateOfDelivery: integer('date_of_delivery', { mode: 'timestamp' }).notNull(),
-  dateOfInvoice: integer('date_of_invoice', { mode: 'timestamp' }).notNull(),
+  dateOfDelivery: integer('date_of_delivery', {
+    mode: 'timestamp',
+  }).notNull(),
+  dateOfInvoice: integer('date_of_invoice', {
+    mode: 'timestamp',
+  }).notNull(),
   status: text('status').notNull().default('draft'),
   actualPrice: integer('actual_price').notNull(),
   quotedPrice: integer('quoted_price').notNull(),
   salePrice: integer('sale_price').notNull(),
   receivedAmount: integer('received_amount'),
-  attachmentUrls: text('attachment_urls', { mode: 'json' }).$type<
+  attachmentUrls: text('attachment_urls', {
+    mode: 'json',
+  }).$type<
     Array<{ url: string; name: string; deleted?: boolean }>
   >(),
   remarks: text('remarks'),
@@ -64,21 +83,24 @@ export const Invoices = sqliteTable('invoices', {
     .notNull(),
 });
 
-export const InvoicesRelations = relations(Invoices, ({ many, one }) => ({
-  lineItems: many(LineItems),
-  company: one(Companies, {
-    fields: [Invoices.companyId],
-    references: [Companies.id],
+export const InvoicesRelations = relations(
+  Invoices,
+  ({ many, one }) => ({
+    lineItems: many(LineItems),
+    company: one(Companies, {
+      fields: [Invoices.companyId],
+      references: [Companies.id],
+    }),
+    client: one(Clients, {
+      fields: [Invoices.clientId],
+      references: [Clients.id],
+    }),
+    location: one(Locations, {
+      fields: [Invoices.locationId],
+      references: [Locations.id],
+    }),
   }),
-  client: one(Clients, {
-    fields: [Invoices.clientId],
-    references: [Clients.id],
-  }),
-  location: one(Locations, {
-    fields: [Invoices.locationId],
-    references: [Locations.id],
-  }),
-}));
+);
 
 export const LineItems = sqliteTable('line_items', {
   id: integer('id', { mode: 'number' }).primaryKey(),
@@ -99,16 +121,19 @@ export const LineItems = sqliteTable('line_items', {
     .notNull(),
 });
 
-export const LineItemsRelations = relations(LineItems, ({ one }) => ({
-  invoice: one(Invoices, {
-    fields: [LineItems.invoiceId],
-    references: [Invoices.id],
+export const LineItemsRelations = relations(
+  LineItems,
+  ({ one }) => ({
+    invoice: one(Invoices, {
+      fields: [LineItems.invoiceId],
+      references: [Invoices.id],
+    }),
+    product: one(Products, {
+      fields: [LineItems.productId],
+      references: [Products.id],
+    }),
   }),
-  product: one(Products, {
-    fields: [LineItems.productId],
-    references: [Products.id],
-  }),
-}));
+);
 
 export const Companies = sqliteTable('companies', {
   id: integer('id', { mode: 'number' }).primaryKey(),
@@ -144,16 +169,22 @@ export const Locations = sqliteTable('locations', {
     .references(() => Clients.id, { onDelete: 'cascade' }),
 });
 
-export const ClientsRelations = relations(Clients, ({ many }) => ({
-  locations: many(Locations),
-}));
-
-export const LocationsRelations = relations(Locations, ({ one }) => ({
-  client: one(Clients, {
-    fields: [Locations.clientId],
-    references: [Clients.id],
+export const ClientsRelations = relations(
+  Clients,
+  ({ many }) => ({
+    locations: many(Locations),
   }),
-}));
+);
+
+export const LocationsRelations = relations(
+  Locations,
+  ({ one }) => ({
+    client: one(Clients, {
+      fields: [Locations.clientId],
+      references: [Clients.id],
+    }),
+  }),
+);
 
 export const Expenses = sqliteTable('expenses', {
   id: integer('id', { mode: 'number' }).primaryKey(),
@@ -161,7 +192,9 @@ export const Expenses = sqliteTable('expenses', {
   amount: integer('amount').notNull(),
   date: integer('date', { mode: 'timestamp' }).notNull(),
   description: text('description'),
-  attachmentUrls: text('attachment_urls', { mode: 'json' }).$type<
+  attachmentUrls: text('attachment_urls', {
+    mode: 'json',
+  }).$type<
     Array<{ url: string; name: string; deleted?: boolean }>
   >(),
   createdAt: integer('created_at', { mode: 'timestamp' })

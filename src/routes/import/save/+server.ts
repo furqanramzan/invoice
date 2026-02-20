@@ -13,7 +13,10 @@ import {
 import { json } from '@sveltejs/kit';
 
 export async function POST() {
-  const [firstCompany] = await db.select().from(Companies).limit(1);
+  const [firstCompany] = await db
+    .select()
+    .from(Companies)
+    .limit(1);
   if (!firstCompany) {
     return json({ error: 'No company found in database' });
   }
@@ -28,7 +31,9 @@ export async function POST() {
     .where(eq(Locations.clientId, firstClient.id))
     .limit(1);
   if (!firstLocation) {
-    return json({ error: 'No location found for the first client.' });
+    return json({
+      error: 'No location found for the first client.',
+    });
   }
   interface Invoice {
     location?: string;
@@ -65,12 +70,16 @@ export async function POST() {
   }> = [];
 
   await db.transaction(async (tx) => {
-    for (const invoice of invoices.filter((x) => x.lineItems.length)) {
+    for (const invoice of invoices.filter(
+      (x) => x.lineItems.length,
+    )) {
       let locationId = firstLocation.id;
       if (invoice.location) {
-        const foundLocation = await tx.query.Locations.findFirst({
-          where: eq(Locations.address, invoice.location),
-        });
+        const foundLocation = await tx.query.Locations.findFirst(
+          {
+            where: eq(Locations.address, invoice.location),
+          },
+        );
         if (foundLocation) {
           locationId = foundLocation.id;
         } else {
@@ -95,7 +104,9 @@ export async function POST() {
       > = [];
 
       for (const item of invoice.lineItems) {
-        let currentProduct = existingProducts.find((p) => p.name === item.name);
+        let currentProduct = existingProducts.find(
+          (p) => p.name === item.name,
+        );
 
         if (currentProduct) {
           if (
@@ -138,7 +149,9 @@ export async function POST() {
         }
 
         if (!currentProduct) {
-          throw new Error('currentProduct is undefined after creation attempt');
+          throw new Error(
+            'currentProduct is undefined after creation attempt',
+          );
         }
 
         lineItemsToInsertForInvoice.push({

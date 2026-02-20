@@ -7,9 +7,12 @@
     arrayProxy,
     type FormPathArrays,
   } from 'sveltekit-superforms';
-  import MultiFileInput from '../input/multi-file-input.svelte';
+  import MultiFileInput from '$lib/components/input/multi-file-input.svelte';
   import ErrorMessage from './error-message.svelte';
-  import type { FileUrls, MultiFileInputProps } from '../input/types';
+  import type {
+    FileUrls,
+    MultiFileInputProps,
+  } from '$lib/components/input/types';
 
   interface Props extends MultiFileInputProps {
     superform: SuperForm<T>;
@@ -17,14 +20,18 @@
     urlsField: FormPathArrays<T, FileUrls>;
   }
 
-  let { superform, field, urlsField, ...restProps }: Props = $props();
+  let { superform, field, urlsField, ...restProps }: Props =
+    $props();
 
   // svelte-ignore state_referenced_locally
   const { form } = superform;
 
   // svelte-ignore state_referenced_locally
-  // @ts-expect-error it's working fine
-  const { errors, constraints } = formFieldProxy(superform, field);
+  const { errors, constraints } = formFieldProxy(
+    superform,
+    // @ts-expect-error it's working fine
+    field,
+  );
   // svelte-ignore state_referenced_locally
   // @ts-expect-error it's working fine
   const files = filesProxy(form, field);

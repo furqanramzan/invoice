@@ -2,7 +2,11 @@ import { db } from '$lib/server/db';
 import { Expenses } from '$lib/server/db/schema';
 import { expenseSchema, route, title } from './utils';
 import { eq } from 'drizzle-orm';
-import { initForm, redirectTo, validateAction } from '$lib/superforms.js';
+import {
+  initForm,
+  redirectTo,
+  validateAction,
+} from '$lib/superforms.js';
 import { convertCents, convertToCents } from '$lib/utils.js';
 import { delFile, putFile } from '$lib/server/filesystem';
 
@@ -16,7 +20,11 @@ export const load = async (event) => {
     });
 
     if (!currentExpense) {
-      return redirectTo(route.list, event, `${title.singular} not found!`);
+      return redirectTo(
+        route.list,
+        event,
+        `${title.singular} not found!`,
+      );
     }
   }
 
@@ -52,10 +60,16 @@ export const actions = {
         ...(
           await Promise.all(
             attachments.map((image) =>
-              putFile(`expenses/${crypto.randomUUID()}-${image.name}`, image),
+              putFile(
+                `expenses/${crypto.randomUUID()}-${image.name}`,
+                image,
+              ),
             ),
           )
-        ).map((x, index) => ({ url: x, name: attachments[index].name })),
+        ).map((x, index) => ({
+          url: x,
+          name: attachments[index].name,
+        })),
       ];
     }
 
@@ -65,9 +79,10 @@ export const actions = {
           .filter((x) => x.deleted)
           .map((file) => delFile(file.url)),
       );
-      expenseData.attachmentUrls = expenseData.attachmentUrls.filter(
-        (file) => !file.deleted,
-      );
+      expenseData.attachmentUrls =
+        expenseData.attachmentUrls.filter(
+          (file) => !file.deleted,
+        );
     }
 
     if (id) {

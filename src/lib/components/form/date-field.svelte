@@ -5,9 +5,9 @@
     type FormPathLeaves,
     dateProxy,
   } from 'sveltekit-superforms';
-  import DateInput from '../input/date-input.svelte';
+  import DateInput from '$lib/components/input/date-input.svelte';
   import ErrorMessage from './error-message.svelte';
-  import type { DateInputProps } from '../input/types';
+  import type { DateInputProps } from '$lib/components/input/types';
 
   interface Props extends DateInputProps {
     superform: SuperForm<T>;
@@ -19,7 +19,10 @@
   let { form } = superform;
 
   // svelte-ignore state_referenced_locally
-  const { errors, constraints } = formFieldProxy(superform, field);
+  const { errors, constraints } = formFieldProxy(
+    superform,
+    field,
+  );
   // svelte-ignore state_referenced_locally
   const value = dateProxy(form, field, { format: 'date' });
 </script>

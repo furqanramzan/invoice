@@ -8,7 +8,15 @@ import { snakeCase } from 'text-case';
 import { compareLedgerSchema, route } from './utils.js';
 import pkg from 'xlsx';
 import { db } from '$lib/server/db/index.js';
-import { and, gte, inArray, lte, ne, or, sql } from 'drizzle-orm';
+import {
+  and,
+  gte,
+  inArray,
+  lte,
+  ne,
+  or,
+  sql,
+} from 'drizzle-orm';
 import { Invoices } from '$lib/server/db/schema.js';
 import { convertCents, convertToCents } from '$lib/utils.js';
 import type { InvoiceStatus } from '../../invoice/upsert/utils.js';
@@ -31,7 +39,10 @@ export async function load() {
 
 export const actions = {
   async default(event) {
-    const form = await validateAction(event, compareLedgerSchema);
+    const form = await validateAction(
+      event,
+      compareLedgerSchema,
+    );
     if (!form.valid) return form.error;
 
     const buffer = await form.data.file.arrayBuffer();
@@ -42,10 +53,9 @@ export const actions = {
       .sheet_to_json(sheet, { raw: false })
       .map((row) =>
         Object.fromEntries(
-          Object.entries(row as Record<string, unknown>).map(([k, v]) => [
-            snakeCase(k),
-            v,
-          ]),
+          Object.entries(row as Record<string, unknown>).map(
+            ([k, v]) => [snakeCase(k), v],
+          ),
         ),
       ) as Array<{
       offset_invoice_number?: string;
@@ -77,14 +87,22 @@ export const actions = {
           ),
         );
         const invoiceNumber = Number(x.offset_invoice_number);
-        const amount = Number(x.amount_settled.replaceAll(',', ''));
-        ledgerInvoices.set(invoiceNumber, { invoiceNumber, amount });
+        const amount = Number(
+          x.amount_settled.replaceAll(',', ''),
+        );
+        ledgerInvoices.set(invoiceNumber, {
+          invoiceNumber,
+          amount,
+        });
       });
 
     const invoices = await db.query.Invoices.findMany({
       where: and(
         or(
-          inArray(Invoices.invoiceNumber, Array.from(ledgerInvoices.keys())),
+          inArray(
+            Invoices.invoiceNumber,
+            Array.from(ledgerInvoices.keys()),
+          ),
           and(
             gte(Invoices.dateOfInvoice, form.data.startDate),
             lte(Invoices.dateOfInvoice, form.data.endDate),
@@ -100,17 +118,29 @@ export const actions = {
     });
 
     const paidInvoices = invoices.filter((invoice) => {
-      const ledgerInvoice = ledgerInvoices.get(invoice.invoiceNumber);
+      const ledgerInvoice = ledgerInvoices.get(
+        invoice.invoiceNumber,
+      );
       if (!ledgerInvoice) {
         return false;
       }
-      return ledgerInvoice.amount === convertCents(invoice.salePrice);
+      return (
+        ledgerInvoice.amount === convertCents(invoice.salePrice)
+      );
     });
     const unpaidInvoices = invoices
-      .filter((invoice) => !paidInvoices.some((x) => x.id === invoice.id))
+      .filter(
+        (invoice) =>
+          !paidInvoices.some((x) => x.id === invoice.id),
+      )
       .map((invoice) => {
-        const ledgerInvoice = ledgerInvoices.get(invoice.invoiceNumber);
-        return { ...invoice, receivedAmount: ledgerInvoice?.amount || 0 };
+        const ledgerInvoice = ledgerInvoices.get(
+          invoice.invoiceNumber,
+        );
+        return {
+          ...invoice,
+          receivedAmount: ledgerInvoice?.amount || 0,
+        };
       });
 
     await db.transaction(async (tx) => {

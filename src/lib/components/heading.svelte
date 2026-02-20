@@ -11,7 +11,9 @@
 </script>
 
 <div class="flex items-center justify-between">
-  <h1 class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
+  <h1
+    class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance"
+  >
     {title}
   </h1>
   {#if link}

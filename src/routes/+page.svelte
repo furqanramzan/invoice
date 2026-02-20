@@ -8,7 +8,8 @@
   let { data } = $props();
 
   // svelte-ignore state_referenced_locally
-  const { form, errors, submitting, message, enhance } = superForm(data.form);
+  const { form, errors, submitting, message, enhance } =
+    superForm(data.form);
 </script>
 
 <Card.Root class="mx-auto w-full max-w-sm">
@@ -31,7 +32,9 @@
           bind:value={$form.email}
         />
         {#if $errors.email}
-          <p class="text-sm text-red-500">{$errors.email}</p>
+          <p class="text-sm text-red-500">
+            {$errors.email}
+          </p>
         {/if}
       </div>
       <div class="grid gap-2">
@@ -44,10 +47,14 @@
           bind:value={$form.password}
         />
         {#if $errors.password}
-          <p class="text-sm text-red-500">{$errors.password}</p>
+          <p class="text-sm text-red-500">
+            {$errors.password}
+          </p>
         {/if}
       </div>
-      <Button disabled={$submitting} type="submit" class="w-full">Login</Button>
+      <Button disabled={$submitting} type="submit" class="w-full"
+        >Login</Button
+      >
     </form>
     {#if $message}
       <p class="text-sm text-red-500">{$message}</p>

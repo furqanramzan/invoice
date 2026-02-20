@@ -1,8 +1,17 @@
 import { db } from '$lib/server/db';
 import { Companies, type Company } from '$lib/server/db/schema';
-import { companySchema, route, title, type PrintLayout } from './utils';
+import {
+  companySchema,
+  route,
+  title,
+  type PrintLayout,
+} from './utils';
 import { eq } from 'drizzle-orm';
-import { initForm, redirectTo, validateAction } from '$lib/superforms';
+import {
+  initForm,
+  redirectTo,
+  validateAction,
+} from '$lib/superforms';
 import { delFile, putFile } from '$lib/server/filesystem.js';
 
 export const load = async (event) => {
@@ -15,7 +24,11 @@ export const load = async (event) => {
     });
 
     if (!currentCompany) {
-      return redirectTo(route.list, event, `${title.singular} not found!`);
+      return redirectTo(
+        route.list,
+        event,
+        `${title.singular} not found!`,
+      );
     }
   }
 
@@ -24,7 +37,8 @@ export const load = async (event) => {
     currentCompany
       ? {
           ...currentCompany,
-          printLayout: currentCompany.printLayout as unknown as PrintLayout,
+          printLayout:
+            currentCompany.printLayout as unknown as PrintLayout,
         }
       : undefined,
   );
@@ -45,7 +59,10 @@ export const actions = {
     }
     const { id, logo, ...companyData } = form.data;
 
-    if (currentCompany?.logoUrl && (logo || !companyData.logoUrl)) {
+    if (
+      currentCompany?.logoUrl &&
+      (logo || !companyData.logoUrl)
+    ) {
       await delFile(currentCompany.logoUrl);
     }
     if (logo) {
@@ -56,7 +73,10 @@ export const actions = {
     }
 
     if (id) {
-      await db.update(Companies).set(companyData).where(eq(Companies.id, id));
+      await db
+        .update(Companies)
+        .set(companyData)
+        .where(eq(Companies.id, id));
     } else {
       await db.insert(Companies).values(companyData);
     }

@@ -21,7 +21,8 @@
 
   let labelText = $derived(label || titleCase(field));
   let placeholderText = $derived(
-    placeholder || `Type ${titleCase(field).toLowerCase()} here `,
+    placeholder ||
+      `Type ${titleCase(field).toLowerCase()} here `,
   );
 </script>
 
@@ -37,7 +38,11 @@
         type="button"
         onclick={() => (urlValue = null)}><Trash /></Button
       >
-      <input type="hidden" name="dummy-url-field" value={urlValue} />
+      <input
+        type="hidden"
+        name="dummy-url-field"
+        value={urlValue}
+      />
     {/if}
   </div>
   <Input

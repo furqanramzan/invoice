@@ -20,7 +20,10 @@
 
 <Heading
   title={title.plural}
-  link={{ route: route.upsert, title: `Add ${title.singular}` }}
+  link={{
+    route: route.upsert,
+    title: `Add ${title.singular}`,
+  }}
 />
 
 {#if data.expenses.length === 0}
@@ -32,14 +35,18 @@
         <Table.Head class="p-4 text-nowrap">Title</Table.Head>
         <Table.Head class="p-4 text-nowrap">Amount</Table.Head>
         <Table.Head class="p-4 text-nowrap">Date</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Description</Table.Head>
+        <Table.Head class="p-4 text-nowrap"
+          >Description</Table.Head
+        >
         <Table.Head class="p-4 text-nowrap">Actions</Table.Head>
       </Table.Row>
     </Table.Header>
     <Table.Body>
       {#each data.expenses as expense (expense.id)}
         <Table.Row>
-          <Table.Cell class="p-4 text-nowrap">{expense.title}</Table.Cell>
+          <Table.Cell class="p-4 text-nowrap"
+            >{expense.title}</Table.Cell
+          >
           <Table.Cell class="p-4 text-nowrap">
             {formatCents(expense.amount)}
           </Table.Cell>
@@ -49,7 +56,9 @@
           <Table.Cell class="p-4 text-nowrap"
             >{expense.description || '-'}</Table.Cell
           >
-          <Table.Cell class="flex shrink-0 space-x-2 p-4 text-nowrap">
+          <Table.Cell
+            class="flex shrink-0 space-x-2 p-4 text-nowrap"
+          >
             <Tooltip text="Edit">
               <Button
                 href={route.upsert + `?id=${expense.id}`}
@@ -60,7 +69,11 @@
               </Button>
             </Tooltip>
             <Tooltip text="Delete">
-              <ActionForm {superform} field="id" value={expense.id}>
+              <ActionForm
+                {superform}
+                field="id"
+                value={expense.id}
+              >
                 <Trash class="h-4 w-4" />
               </ActionForm>
             </Tooltip>
@@ -71,6 +84,9 @@
   </Table.Root>
 
   {#if data.totalPages > 1}
-    <Pagination currentPage={data.currentPage} totalPages={data.totalPages} />
+    <Pagination
+      currentPage={data.currentPage}
+      totalPages={data.totalPages}
+    />
   {/if}
 {/if}

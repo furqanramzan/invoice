@@ -2,7 +2,8 @@
   import * as Tooltip from '$lib/components/ui/tooltip/index.js';
   import type { Snippet } from 'svelte';
 
-  const { text, children }: { children: Snippet; text: string } = $props();
+  const { text, children }: { children: Snippet; text: string } =
+    $props();
 </script>
 
 <Tooltip.Provider>

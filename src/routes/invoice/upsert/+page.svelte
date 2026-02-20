@@ -1,9 +1,16 @@
 <script lang="ts">
   import Plus from '@lucide/svelte/icons/plus';
 
-  import { Button, buttonVariants } from '$lib/components/ui/button';
+  import {
+    Button,
+    buttonVariants,
+  } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
-  import { exportPDF, invoiceSchema, statuses } from './utils.js';
+  import {
+    exportPDF,
+    invoiceSchema,
+    statuses,
+  } from './utils.js';
   import * as Table from '$lib/components/ui/table/index.js';
   import type { Product } from '$lib/server/db/schema.js';
   import { route, title } from './utils.js';
@@ -11,7 +18,11 @@
   import { getSuperForm } from '$lib/superforms.js';
   import HiddenField from '$lib/components/form/hidden-field.svelte';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
-  import { formatAmount, formatCents, randomInt } from '$lib/utils.js';
+  import {
+    formatAmount,
+    formatCents,
+    randomInt,
+  } from '$lib/utils.js';
   import DateField from '$lib/components/form/date-field.svelte';
   import NumberField from '$lib/components/form/number-field.svelte';
   import MultiFileField from '$lib/components/form/multi-file-field.svelte';
@@ -27,7 +38,14 @@
   const superform = getSuperForm(invoiceSchema, data.form, {
     dataType: 'json',
   });
-  const { form, isTainted, tainted, errors, enhance, submitting } = superform;
+  const {
+    form,
+    isTainted,
+    tainted,
+    errors,
+    enhance,
+    submitting,
+  } = superform;
 
   let locations = $derived(
     data.locations.filter((x) => x.clientId === $form.clientId),
@@ -45,7 +63,10 @@
 
   function handleDragOver(event: DragEvent, index: number) {
     event.preventDefault();
-    if (draggedItemIndex !== null && draggedItemIndex !== index) {
+    if (
+      draggedItemIndex !== null &&
+      draggedItemIndex !== index
+    ) {
       // Add a visual indicator for drag-over target
       const targetRow = event.currentTarget as HTMLElement;
       targetRow.classList.add('drag-over');
@@ -53,12 +74,16 @@
   }
 
   function handleDragLeave(event: DragEvent) {
-    (event.currentTarget as HTMLElement).classList.remove('drag-over');
+    (event.currentTarget as HTMLElement).classList.remove(
+      'drag-over',
+    );
   }
 
   function handleDrop(event: DragEvent, index: number) {
     event.preventDefault();
-    (event.currentTarget as HTMLElement).classList.remove('drag-over');
+    (event.currentTarget as HTMLElement).classList.remove(
+      'drag-over',
+    );
     if (draggedItemIndex === null) return;
 
     const draggedIndex = draggedItemIndex;
@@ -99,20 +124,30 @@
     ];
     setTimeout(
       () =>
-        document.getElementById(`name-${$form.lineItems.length - 1}`)?.focus(),
+        document
+          .getElementById(`name-${$form.lineItems.length - 1}`)
+          ?.focus(),
       50,
     );
   }
 
   function removeLineItem(index: number) {
-    $form.lineItems = $form.lineItems.filter((_, i) => i !== index);
+    $form.lineItems = $form.lineItems.filter(
+      (_, i) => i !== index,
+    );
   }
 
   let total = $derived(
-    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.salePrice, 0),
+    $form.lineItems.reduce(
+      (acc, p) => acc + p.quantity * p.salePrice,
+      0,
+    ),
   );
   let quotedPrice = $derived(
-    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.quotedPrice, 0),
+    $form.lineItems.reduce(
+      (acc, p) => acc + p.quantity * p.quotedPrice,
+      0,
+    ),
   );
   let totalQuotedProfit = $derived(
     quotedPrice === 0
@@ -120,7 +155,10 @@
       : Math.floor(((total - quotedPrice) / quotedPrice) * 100),
   );
   let actualPrice = $derived(
-    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.actualPrice, 0),
+    $form.lineItems.reduce(
+      (acc, p) => acc + p.quantity * p.actualPrice,
+      0,
+    ),
   );
   let totalActualProfit = $derived(
     actualPrice === 0
@@ -128,18 +166,32 @@
       : Math.floor(((total - actualPrice) / actualPrice) * 100),
   );
   let salePrice = $derived(
-    $form.lineItems.reduce((acc, p) => acc + p.quantity * p.salePrice, 0),
+    $form.lineItems.reduce(
+      (acc, p) => acc + p.quantity * p.salePrice,
+      0,
+    ),
   );
-  let company = $derived(data.companies.find((x) => x.id === $form.companyId));
-  let client = $derived(data.clients.find((x) => x.id === $form.clientId));
+  let company = $derived(
+    data.companies.find((x) => x.id === $form.companyId),
+  );
+  let client = $derived(
+    data.clients.find((x) => x.id === $form.clientId),
+  );
   let invoiceNumber = $derived(
-    (data.invoiceNumbers.find((x) => x.companyId === $form.companyId)
-      ?.invoiceNumber || 0) + 1,
+    (data.invoiceNumbers.find(
+      (x) => x.companyId === $form.companyId,
+    )?.invoiceNumber || 0) + 1,
   );
 
-  let searchTerm: string[] = $state($form.lineItems.map(() => ''));
-  let suggestions: Product[][] = $state($form.lineItems.map(() => []));
-  let activeSuggestionIndex: number[] = $state($form.lineItems.map(() => -1)); // -1 means no suggestion is active
+  let searchTerm: string[] = $state(
+    $form.lineItems.map(() => ''),
+  );
+  let suggestions: Product[][] = $state(
+    $form.lineItems.map(() => []),
+  );
+  let activeSuggestionIndex: number[] = $state(
+    $form.lineItems.map(() => -1),
+  ); // -1 means no suggestion is active
 
   function handleInput(index: number, value: string) {
     searchTerm[index] = value;
@@ -157,8 +209,10 @@
   function selectSuggestion(index: number, product: Product) {
     $form.lineItems[index].id = product.id;
     $form.lineItems[index].name = product.name;
-    $form.lineItems[index].quotedPrice = product.quotedPrice / 100;
-    $form.lineItems[index].actualPrice = product.actualPrice / 100;
+    $form.lineItems[index].quotedPrice =
+      product.quotedPrice / 100;
+    $form.lineItems[index].actualPrice =
+      product.actualPrice / 100;
     $form.lineItems[index].salePrice = product.salePrice / 100;
     $form.lineItems[index].productId = product.id;
     searchTerm[index] = '';
@@ -221,10 +275,18 @@
 
 <Heading
   title={(isEditing ? 'Edit ' : 'New ') + title.singular}
-  link={{ route: route.list, title: `List ${title.plural}` }}
+  link={{
+    route: route.list,
+    title: `List ${title.plural}`,
+  }}
 />
 
-<form enctype="multipart/form-data" class="space-y-4" method="POST" use:enhance>
+<form
+  enctype="multipart/form-data"
+  class="space-y-4"
+  method="POST"
+  use:enhance
+>
   {#if isEditing}
     <HiddenField {superform} field="id" />
   {/if}
@@ -234,7 +296,10 @@
       {superform}
       field="companyId"
       label="Company"
-      options={data.companies.map((x) => ({ label: x.name, value: x.id }))}
+      options={data.companies.map((x) => ({
+        label: x.name,
+        value: x.id,
+      }))}
       onchange={() => {
         if (isEditing) {
           return;
@@ -246,7 +311,10 @@
       {superform}
       field="clientId"
       label="Client"
-      options={data.clients.map((x) => ({ label: x.name, value: x.id }))}
+      options={data.clients.map((x) => ({
+        label: x.name,
+        value: x.id,
+      }))}
     />
     <SelectField
       {superform}
@@ -292,17 +360,31 @@
     <h2 class="text-lg font-semibold">Products</h2>
   </div>
   <p>Drag and drop to reorder them.</p>
-  <Table.Root yVisible class="max-w-full overflow-x-scroll border">
+  <Table.Root
+    yVisible
+    class="max-w-full overflow-x-scroll border"
+  >
     <Table.Header>
       <Table.Row>
         <Table.Head class="py-4 text-nowrap"></Table.Head>
         <Table.Head class="py-4 text-nowrap">#</Table.Head>
-        <Table.Head class="w-2/5 py-4 text-nowrap">Name</Table.Head>
-        <Table.Head class="py-4 text-nowrap">Quantity</Table.Head>
-        <Table.Head class="py-4 text-nowrap">Actual cost</Table.Head>
-        <Table.Head class="py-4 text-nowrap">Quoted cost</Table.Head>
-        <Table.Head class="py-4 text-nowrap">Sale price</Table.Head>
-        <Table.Head class="py-4 text-nowrap">Received amount</Table.Head>
+        <Table.Head class="w-2/5 py-4 text-nowrap"
+          >Name</Table.Head
+        >
+        <Table.Head class="py-4 text-nowrap">Quantity</Table.Head
+        >
+        <Table.Head class="py-4 text-nowrap"
+          >Actual cost</Table.Head
+        >
+        <Table.Head class="py-4 text-nowrap"
+          >Quoted cost</Table.Head
+        >
+        <Table.Head class="py-4 text-nowrap"
+          >Sale price</Table.Head
+        >
+        <Table.Head class="py-4 text-nowrap"
+          >Received amount</Table.Head
+        >
         <Table.Head class="py-4 text-nowrap">Profit</Table.Head>
         <Table.Head class="py-4 text-nowrap">Total</Table.Head>
       </Table.Row>
@@ -329,7 +411,10 @@
             <Dialog.Root>
               <Dialog.Trigger
                 type="button"
-                class={buttonVariants({ variant: 'outline', size: 'icon-sm' })}
+                class={buttonVariants({
+                  variant: 'outline',
+                  size: 'icon-sm',
+                })}
               >
                 {#if lineItem.remarks}
                   <NotebookPen class="h-4 w-4" />
@@ -362,16 +447,24 @@
                   name="products[{index}].name"
                   bind:value={$form.lineItems[index].name}
                   oninput={(e) =>
-                    handleInput(index, (e.target as HTMLInputElement).value)}
+                    handleInput(
+                      index,
+                      (e.target as HTMLInputElement).value,
+                    )}
                   onfocus={(e) =>
-                    handleInput(index, (e.target as HTMLInputElement).value)}
+                    handleInput(
+                      index,
+                      (e.target as HTMLInputElement).value,
+                    )}
                   onkeydown={(e) => handleKeydown(index, e)}
                   onblur={() => (suggestions = [])}
                   autocomplete="off"
                   disabled={!!lineItem.productId}
                 />
                 {#if $errors.lineItems?.[index]?.name}
-                  <p class="text-red-500">{$errors.lineItems[index].name}</p>
+                  <p class="text-red-500">
+                    {$errors.lineItems[index].name}
+                  </p>
                 {/if}
 
                 {#if suggestions[index]?.length > 0}
@@ -394,13 +487,15 @@
                           activeSuggestionIndex[index]}
                         class:dark:bg-zinc-800={sIndex ===
                           activeSuggestionIndex[index]}
-                        onmousedown={() => selectSuggestion(index, suggestion)}
+                        onmousedown={() =>
+                          selectSuggestion(index, suggestion)}
                       >
                         {suggestion.name}
-                        <span class="text-sm text-gray-500 dark:text-zinc-400">
-                          ({formatCents(suggestion.actualPrice)}) ({formatCents(
-                            suggestion.salePrice,
-                          )})
+                        <span
+                          class="text-sm text-gray-500 dark:text-zinc-400"
+                        >
+                          ({formatCents(suggestion.actualPrice)})
+                          ({formatCents(suggestion.salePrice)})
                         </span>
                       </li>
                     {/each}
@@ -477,11 +572,13 @@
                 }
                 $form.receivedAmount = $form.lineItems.reduce(
                   (totalReceived, lineItem) =>
-                    totalReceived + (lineItem.receivedPrice || 0),
+                    totalReceived +
+                    (lineItem.receivedPrice || 0),
                   0,
                 );
                 if (!$form.receivedAmount) {
-                  $form.receivedAmount = data.currentInvoice?.receivedAmount;
+                  $form.receivedAmount =
+                    data.currentInvoice?.receivedAmount;
                 }
               }}
             />
@@ -498,18 +595,29 @@
             {/if}
           </Table.Cell>
           <Table.Cell class="w-36 py-2 text-nowrap">
-            {formatAmount(lineItem.quantity * lineItem.salePrice)}
+            {formatAmount(
+              lineItem.quantity * lineItem.salePrice,
+            )}
           </Table.Cell>
         </Table.Row>
       {/each}
     </Table.Body>
   </Table.Root>
 
-  <MultiFileField {superform} field="attachments" urlsField="attachmentUrls" />
+  <MultiFileField
+    {superform}
+    field="attachments"
+    urlsField="attachmentUrls"
+  />
 
   <div class="flex gap-2">
-    <Button disabled={$submitting || !isTainted($tainted)} type="submit">
-      {isEditing ? `Update ${title.singular}` : `Create ${title.singular}`}
+    <Button
+      disabled={$submitting || !isTainted($tainted)}
+      type="submit"
+    >
+      {isEditing
+        ? `Update ${title.singular}`
+        : `Create ${title.singular}`}
     </Button>
     <Button
       type="button"

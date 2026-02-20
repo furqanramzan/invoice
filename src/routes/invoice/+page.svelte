@@ -6,7 +6,12 @@
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Pagination } from '$lib/components/ui/pagination';
   import { formatCents, formatDate } from '$lib/utils';
-  import { filterSchema, route, statuses, title } from './upsert/utils.js';
+  import {
+    filterSchema,
+    route,
+    statuses,
+    title,
+  } from './upsert/utils.js';
   import Heading from '$lib/components/heading.svelte';
   import ActionForm from '$lib/components/form/action-form.svelte';
   import { titleCase } from 'text-case';
@@ -25,12 +30,18 @@
   const { form } = superform;
 
   // svelte-ignore state_referenced_locally
-  const deleteSuperform = getSuperForm(emptySchema, data.deleteForm);
+  const deleteSuperform = getSuperForm(
+    emptySchema,
+    data.deleteForm,
+  );
 </script>
 
 <Heading
   title={title.plural}
-  link={{ route: route.upsert, title: `Add ${title.singular}` }}
+  link={{
+    route: route.upsert,
+    title: `Add ${title.singular}`,
+  }}
 />
 
 <Form
@@ -42,13 +53,19 @@
     {superform}
     field="companyId"
     label="Company"
-    options={data.companies.map((c) => ({ label: c.name, value: c.id }))}
+    options={data.companies.map((c) => ({
+      label: c.name,
+      value: c.id,
+    }))}
   />
   <SelectField
     {superform}
     field="clientId"
     label="Client"
-    options={data.clients.map((cl) => ({ label: cl.name, value: cl.id }))}
+    options={data.clients.map((cl) => ({
+      label: cl.name,
+      value: cl.id,
+    }))}
   />
   <SelectField
     {superform}
@@ -62,7 +79,12 @@
   <DateField {superform} field="endDateOfDelivery" />
   <DateField {superform} field="startDateOfInvoice" />
   <DateField {superform} field="endDateOfInvoice" />
-  <SelectField allowClear {superform} field="status" options={statuses} />
+  <SelectField
+    allowClear
+    {superform}
+    field="status"
+    options={statuses}
+  />
   <NumberField
     {superform}
     field="invoiceNumber"
@@ -98,12 +120,23 @@
         <Table.Head class="p-4 text-nowrap">Client</Table.Head>
         <Table.Head class="p-4 text-nowrap">Location</Table.Head>
         <Table.Head class="p-4 text-nowrap">Status</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Invoice #</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Delivery Date</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Invoice Date</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Actual Price</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Quoted Price</Table.Head>
-        <Table.Head class="p-4 text-nowrap">Sale Price</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Invoice #</Table.Head
+        >
+        <Table.Head class="p-4 text-nowrap"
+          >Delivery Date</Table.Head
+        >
+        <Table.Head class="p-4 text-nowrap"
+          >Invoice Date</Table.Head
+        >
+        <Table.Head class="p-4 text-nowrap"
+          >Actual Price</Table.Head
+        >
+        <Table.Head class="p-4 text-nowrap"
+          >Quoted Price</Table.Head
+        >
+        <Table.Head class="p-4 text-nowrap"
+          >Sale Price</Table.Head
+        >
         <Table.Head class="p-4 text-nowrap">Received</Table.Head>
         <Table.Head class="p-4 text-nowrap">Actions</Table.Head>
       </Table.Row>
@@ -122,17 +155,27 @@
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
             {#if invoice.status === 'draft'}
-              <Badge class="bg-purple-500">{titleCase(invoice.status)}</Badge>
+              <Badge class="bg-purple-500"
+                >{titleCase(invoice.status)}</Badge
+              >
             {:else if invoice.status === 'processing'}
-              <Badge class="bg-yellow-500">{titleCase(invoice.status)}</Badge>
+              <Badge class="bg-yellow-500"
+                >{titleCase(invoice.status)}</Badge
+              >
             {:else if invoice.status === 'delivered'}
-              <Badge class="bg-blue-500">{titleCase(invoice.status)}</Badge>
+              <Badge class="bg-blue-500"
+                >{titleCase(invoice.status)}</Badge
+              >
             {:else if invoice.status === 'delivery_acknowledged'}
               <Badge class="bg-teal-500">Acknowledged</Badge>
             {:else if invoice.status === 'disputed'}
-              <Badge class="bg-red-500">{titleCase(invoice.status)}</Badge>
+              <Badge class="bg-red-500"
+                >{titleCase(invoice.status)}</Badge
+              >
             {:else if invoice.status === 'paid'}
-              <Badge class="bg-green-500">{titleCase(invoice.status)}</Badge>
+              <Badge class="bg-green-500"
+                >{titleCase(invoice.status)}</Badge
+              >
             {/if}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
@@ -154,9 +197,13 @@
             {formatCents(invoice.salePrice)}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            {invoice.receivedAmount ? formatCents(invoice.receivedAmount) : '-'}
+            {invoice.receivedAmount
+              ? formatCents(invoice.receivedAmount)
+              : '-'}
           </Table.Cell>
-          <Table.Cell class="flex shrink-0 space-x-2 p-4 text-nowrap">
+          <Table.Cell
+            class="flex shrink-0 space-x-2 p-4 text-nowrap"
+          >
             <Tooltip text="Edit">
               <Button
                 href={route.upsert + `?id=${invoice.id}`}
@@ -183,6 +230,9 @@
   </Table.Root>
 
   {#if data.totalPages > 1}
-    <Pagination currentPage={data.currentPage} totalPages={data.totalPages} />
+    <Pagination
+      currentPage={data.currentPage}
+      totalPages={data.totalPages}
+    />
   {/if}
 {/if}

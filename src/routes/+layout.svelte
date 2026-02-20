@@ -27,23 +27,42 @@
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
 <ModeWatcher />
-<Toaster position="top-center" expand={true} richColors closeButton />
+<Toaster
+  position="top-center"
+  expand={true}
+  richColors
+  closeButton
+/>
 
 <nav class="flex bg-gray-100 p-4 dark:bg-gray-900">
   <div class="mx-auto max-w-7xl min-w-7xl">
     <div class="flex items-center justify-between">
       <div class="flex items-center space-x-4">
-        <a href={resolve('/')} class="text-lg font-bold">Invoice App</a>
+        <a href={resolve('/')} class="text-lg font-bold"
+          >Invoice App</a
+        >
       </div>
       <div class="flex items-center space-x-4">
-        <a href={resolve('/invoice')} class="text-sm">Invoices</a>
-        <a href={resolve('/invoice/upsert')} class="text-sm">Create Invoice</a>
-        <a href={resolve('/expense')} class="text-sm">Expenses</a>
+        <a href={resolve('/invoice')} class="text-sm">Invoices</a
+        >
+        <a href={resolve('/invoice/upsert')} class="text-sm"
+          >Create Invoice</a
+        >
+        <a href={resolve('/expense')} class="text-sm">Expenses</a
+        >
         <a href={resolve('/ledger')} class="text-sm">Ledger</a>
-        <a href={resolve('/product')} class="text-sm">Products</a>
-        <a href={resolve('/company')} class="text-sm">Companies</a>
+        <a href={resolve('/product')} class="text-sm">Products</a
+        >
+        <a href={resolve('/company')} class="text-sm"
+          >Companies</a
+        >
         <a href={resolve('/client')} class="text-sm">Clients</a>
-        <form method="post" action="/logout" class="text-sm" use:enhance>
+        <form
+          method="post"
+          action="/logout"
+          class="text-sm"
+          use:enhance
+        >
           <button>Sign out</button>
         </form>
         <DarkMode />

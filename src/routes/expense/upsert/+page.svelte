@@ -22,13 +22,17 @@
 
 <Heading
   title={(isEditing ? 'Edit ' : 'New ') + title.singular}
-  link={{ route: route.list, title: `List ${title.plural}` }}
+  link={{
+    route: route.list,
+    title: `List ${title.plural}`,
+  }}
 />
 
 <Form
   {superform}
   enctype="multipart/form-data"
-  buttonText={(isEditing ? 'Update ' : 'Create ') + title.singular}
+  buttonText={(isEditing ? 'Update ' : 'Create ') +
+    title.singular}
 >
   {#if isEditing}
     <HiddenField {superform} field="id" />
@@ -38,5 +42,9 @@
   <NumberField {superform} field="amount" />
   <DateField {superform} field="date" />
   <TextAreaField {superform} field="description" />
-  <MultiFileField {superform} field="attachments" urlsField="attachmentUrls" />
+  <MultiFileField
+    {superform}
+    field="attachments"
+    urlsField="attachmentUrls"
+  />
 </Form>

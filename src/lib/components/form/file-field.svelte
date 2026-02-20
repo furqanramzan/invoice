@@ -7,9 +7,9 @@
     type FormFieldProxy,
     type FormPathLeaves,
   } from 'sveltekit-superforms';
-  import FileInput from '../input/file-input.svelte';
+  import FileInput from '$lib/components/input/file-input.svelte';
   import ErrorMessage from './error-message.svelte';
-  import type { FileInputProps } from '../input/types';
+  import type { FileInputProps } from '$lib/components/input/types';
 
   interface Props extends FileInputProps {
     superform: SuperForm<T>;
@@ -17,13 +17,17 @@
     urlField: FormPathLeaves<T, string | null>;
   }
 
-  let { superform, field, urlField, ...restProps }: Props = $props();
+  let { superform, field, urlField, ...restProps }: Props =
+    $props();
 
   // svelte-ignore state_referenced_locally
   const { form } = superform;
   // svelte-ignore state_referenced_locally
-  // @ts-expect-error it's working fine
-  const { errors, constraints } = formFieldProxy(superform, field);
+  const { errors, constraints } = formFieldProxy(
+    superform,
+    // @ts-expect-error it's working fine
+    field,
+  );
   // @ts-expect-error it's working fine
   const file = fileProxy(form, 'image');
   // svelte-ignore state_referenced_locally

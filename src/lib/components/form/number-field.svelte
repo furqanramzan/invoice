@@ -5,9 +5,12 @@
     type FormPathLeaves,
     type FormFieldProxy,
   } from 'sveltekit-superforms';
-  import NumberInput from '../input/number-input.svelte';
+  import NumberInput from '$lib/components/input/number-input.svelte';
   import ErrorMessage from './error-message.svelte';
-  import type { NumberInputProps, NumberFieldType } from '../input/types';
+  import type {
+    NumberInputProps,
+    NumberFieldType,
+  } from '$lib/components/input/types';
 
   interface Props extends NumberInputProps {
     superform: SuperForm<T>;

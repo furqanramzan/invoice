@@ -32,8 +32,8 @@ export type NumberFieldType = number;
 export type NumberInputProps = BaseInputProps & {
   value?: NumberFieldType;
   default?: NumberFieldType;
-  min?: number;
-  max?: number;
+  min?: number | string;
+  max?: number | string;
   onchange?: (value?: NumberFieldType) => void;
   onblur?: (value?: NumberFieldType) => void;
 };

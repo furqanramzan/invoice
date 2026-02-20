@@ -1,7 +1,10 @@
 import { resolve } from '$app/paths';
 import z from 'zod';
 
-export const title = { singular: 'Company', plural: 'Companies' };
+export const title = {
+  singular: 'Company',
+  plural: 'Companies',
+};
 
 export const route = {
   list: resolve('/company'),
@@ -20,7 +23,10 @@ export const companySchema = z.object({
   phone: z.string(),
   logo: z
     .instanceof(File, { message: 'Please upload a file.' })
-    .refine((f) => f.size < 100_000_000, 'Max 100 MB upload size.')
+    .refine(
+      (f) => f.size < 100_000_000,
+      'Max 100 MB upload size.',
+    )
     .optional(),
   logoUrl: z.string().nullable().optional(),
   printLayout: printLayoutEnum,

@@ -4,9 +4,18 @@ import {
   LineItems,
   Products as productsSchema,
 } from '$lib/server/db/schema';
-import { invoiceSchema, route, title, type InvoiceStatus } from './utils';
+import {
+  invoiceSchema,
+  route,
+  title,
+  type InvoiceStatus,
+} from './utils';
 import { eq, sql } from 'drizzle-orm';
-import { initForm, validateAction, redirectTo } from '$lib/superforms';
+import {
+  initForm,
+  validateAction,
+  redirectTo,
+} from '$lib/superforms';
 import { delFile, putFile } from '$lib/server/filesystem.js';
 import { convertCents, convertToCents } from '$lib/utils.js';
 
@@ -27,14 +36,19 @@ export const load = async (event) => {
     });
 
     if (!currentInvoice) {
-      return redirectTo(route.list, event, `${title.singular} not exists!`);
+      return redirectTo(
+        route.list,
+        event,
+        `${title.singular} not exists!`,
+      );
     }
   }
 
-  const [{ clients, companies, locations }, products] = await Promise.all([
-    event.parent(),
-    db.query.Products.findMany(),
-  ]);
+  const [{ clients, companies, locations }, products] =
+    await Promise.all([
+      event.parent(),
+      db.query.Products.findMany(),
+    ]);
   const transactionIndex = products.findIndex(
     (x) => x.name === 'Transportation',
   );
@@ -53,34 +67,41 @@ export const load = async (event) => {
     .from(Invoices)
     .groupBy(Invoices.companyId, Invoices.clientId);
   const invoiceNumber =
-    (invoiceNumbers.find((x) => x.companyId === companies.at(0)?.id)
-      ?.invoiceNumber || 0) + 1;
+    (invoiceNumbers.find(
+      (x) => x.companyId === companies.at(0)?.id,
+    )?.invoiceNumber || 0) + 1;
 
   const form = await initForm(
     invoiceSchema,
     currentInvoice
       ? {
           ...currentInvoice,
-          status: currentInvoice.status as unknown as InvoiceStatus,
+          status:
+            currentInvoice.status as unknown as InvoiceStatus,
           receivedAmount: currentInvoice.receivedAmount
             ? convertCents(currentInvoice.receivedAmount)
             : undefined,
-          lineItems: currentInvoice.lineItems.map((lineItem) => ({
-            ...lineItem,
-            id: lineItem.product.id,
-            name: lineItem.product.name,
-            actualPrice: convertCents(lineItem.actualPrice),
-            quotedPrice: convertCents(lineItem.quotedPrice),
-            salePrice: convertCents(lineItem.salePrice),
-            receivedPrice: convertCents(lineItem.receivedPrice),
-          })),
+          lineItems: currentInvoice.lineItems.map(
+            (lineItem) => ({
+              ...lineItem,
+              id: lineItem.product.id,
+              name: lineItem.product.name,
+              actualPrice: convertCents(lineItem.actualPrice),
+              quotedPrice: convertCents(lineItem.quotedPrice),
+              salePrice: convertCents(lineItem.salePrice),
+              receivedPrice: convertCents(
+                lineItem.receivedPrice,
+              ),
+            }),
+          ),
         }
       : {
           invoiceNumber,
           companyId: companies.at(0)?.id,
           clientId: clients.at(0)?.id,
-          locationId: locations.find((x) => x.clientId === clients.at(0)?.id)
-            ?.id,
+          locationId: locations.find(
+            (x) => x.clientId === clients.at(0)?.id,
+          )?.id,
           dateOfDelivery: new Date(),
           dateOfInvoice: new Date(),
           status: 'draft',
@@ -104,7 +125,12 @@ export const actions = {
     const form = await validateAction(event, invoiceSchema);
     if (!form.valid) return form.error;
 
-    const { id, lineItems: products, attachments, ...invoiceData } = form.data;
+    const {
+      id,
+      lineItems: products,
+      attachments,
+      ...invoiceData
+    } = form.data;
 
     await db.transaction(async (tx) => {
       const processedProducts = await Promise.all(
@@ -132,7 +158,10 @@ export const actions = {
       );
 
       const salePrice = convertToCents(
-        processedProducts.reduce((acc, p) => acc + p.quantity * p.salePrice, 0),
+        processedProducts.reduce(
+          (acc, p) => acc + p.quantity * p.salePrice,
+          0,
+        ),
       );
       const actualPrice = convertToCents(
         processedProducts.reduce(
@@ -154,7 +183,9 @@ export const actions = {
         );
       }
       if (invoiceData.receivedAmount) {
-        invoiceData.receivedAmount = convertToCents(invoiceData.receivedAmount);
+        invoiceData.receivedAmount = convertToCents(
+          invoiceData.receivedAmount,
+        );
       }
       if (attachments?.length) {
         invoiceData.attachmentUrls = [
@@ -162,10 +193,16 @@ export const actions = {
           ...(
             await Promise.all(
               attachments.map((image) =>
-                putFile(`invoices/${crypto.randomUUID()}-${image.name}`, image),
+                putFile(
+                  `invoices/${crypto.randomUUID()}-${image.name}`,
+                  image,
+                ),
               ),
             )
-          ).map((x, index) => ({ url: x, name: attachments[index].name })),
+          ).map((x, index) => ({
+            url: x,
+            name: attachments[index].name,
+          })),
         ];
       }
       if (invoiceData.attachmentUrls?.some((x) => x.deleted)) {
@@ -174,9 +211,10 @@ export const actions = {
             .filter((x) => x.deleted)
             .map((file) => delFile(file.url)),
         );
-        invoiceData.attachmentUrls = invoiceData.attachmentUrls.filter(
-          (file) => !file.deleted,
-        );
+        invoiceData.attachmentUrls =
+          invoiceData.attachmentUrls.filter(
+            (file) => !file.deleted,
+          );
       }
 
       const data = {
@@ -189,10 +227,15 @@ export const actions = {
       };
 
       if (id) {
-        await tx.update(Invoices).set(data).where(eq(Invoices.id, id));
+        await tx
+          .update(Invoices)
+          .set(data)
+          .where(eq(Invoices.id, id));
 
         // Delete existing line items for this invoice
-        await tx.delete(LineItems).where(eq(LineItems.invoiceId, id));
+        await tx
+          .delete(LineItems)
+          .where(eq(LineItems.invoiceId, id));
       } else {
         const [newInvoice] = await tx
           .insert(Invoices)

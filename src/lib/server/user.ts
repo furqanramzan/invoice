@@ -32,7 +32,10 @@ export async function saveUser(data: RegisterSchema) {
     if (passwordHash) {
       updateData.passwordHash = passwordHash;
     }
-    await db.update(table.Users).set(updateData).where(eq(table.Users.id, id));
+    await db
+      .update(table.Users)
+      .set(updateData)
+      .where(eq(table.Users.id, id));
 
     return { id };
   }
@@ -50,8 +53,15 @@ export async function saveUser(data: RegisterSchema) {
   return newUser;
 }
 
-export async function createSessionToken(event: RequestEvent, userId: number) {
+export async function createSessionToken(
+  event: RequestEvent,
+  userId: number,
+) {
   const sessionToken = auth.generateSessionToken();
   const session = await auth.createSession(sessionToken, userId);
-  auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+  auth.setSessionTokenCookie(
+    event,
+    sessionToken,
+    session.expiresAt,
+  );
 }

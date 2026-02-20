@@ -3,7 +3,11 @@ import { Expenses } from '$lib/server/db/schema';
 import { count, desc, eq } from 'drizzle-orm';
 import { itemSchema } from '$lib/validations.js'; // Assuming itemSchema is a generic schema for ID deletion
 import { getPaginationData } from '$lib/utils.js';
-import { initForm, sendMessage, validateAction } from '$lib/superforms';
+import {
+  initForm,
+  sendMessage,
+  validateAction,
+} from '$lib/superforms';
 import { title } from './upsert/utils.js';
 import { delFile } from '$lib/server/filesystem.js';
 
@@ -12,14 +16,15 @@ export async function load(event) {
 
   const { page, offset, limit } = getPaginationData(event);
 
-  const [allExpenses, [{ count: totalExpenses }]] = await Promise.all([
-    db.query.Expenses.findMany({
-      limit,
-      offset,
-      orderBy: desc(Expenses.createdAt),
-    }),
-    db.select({ count: count() }).from(Expenses),
-  ]);
+  const [allExpenses, [{ count: totalExpenses }]] =
+    await Promise.all([
+      db.query.Expenses.findMany({
+        limit,
+        offset,
+        orderBy: desc(Expenses.createdAt),
+      }),
+      db.select({ count: count() }).from(Expenses),
+    ]);
 
   return {
     form,
@@ -39,7 +44,11 @@ export const actions = {
       columns: { attachmentUrls: true },
     });
     if (!expense) {
-      return sendMessage(form, `${title.singular} not found!`, 'error');
+      return sendMessage(
+        form,
+        `${title.singular} not found!`,
+        'error',
+      );
     }
 
     if (expense.attachmentUrls?.length) {
@@ -48,7 +57,9 @@ export const actions = {
       );
     }
 
-    await db.delete(Expenses).where(eq(Expenses.id, form.data.id));
+    await db
+      .delete(Expenses)
+      .where(eq(Expenses.id, form.data.id));
 
     return sendMessage(form, `${title.singular} deleted!`);
   },

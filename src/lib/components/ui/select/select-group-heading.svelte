@@ -8,13 +8,18 @@
     class: className,
     children,
     ...restProps
-  }: ComponentProps<typeof SelectPrimitive.GroupHeading> = $props();
+  }: ComponentProps<
+    typeof SelectPrimitive.GroupHeading
+  > = $props();
 </script>
 
 <SelectPrimitive.GroupHeading
   bind:ref
   data-slot="select-group-heading"
-  class={cn('px-2 py-1.5 text-xs text-muted-foreground', className)}
+  class={cn(
+    'px-2 py-1.5 text-xs text-muted-foreground',
+    className,
+  )}
   {...restProps}
 >
   {@render children?.()}
