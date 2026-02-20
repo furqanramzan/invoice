@@ -1,62 +1,28 @@
 <script lang="ts" generics="T extends Record<string, unknown>">
-  import * as RadioGroup from '$lib/components/ui/radio-group';
-  import { titleCase } from 'text-case';
-  import { Label } from '$lib/components/ui/label';
   import {
     formFieldProxy,
     type SuperForm,
     type FormPathLeaves,
     type FormFieldProxy,
   } from 'sveltekit-superforms';
-  import type { Options } from '$lib/utils';
+  import RadioInput from '../input/radio-input.svelte';
+  import ErrorMessage from './error-message.svelte';
+  import type { RadioInputProps, RadioFieldType } from '../input/types';
 
-  type FieldType = string | number;
-  type Props = {
+  interface Props extends RadioInputProps {
     superform: SuperForm<T>;
-    field: FormPathLeaves<T, FieldType>;
-    options: Options;
-    label?: string;
-    disabled?: boolean;
-    onchange?: (value: FieldType) => void;
-  };
+    field: FormPathLeaves<T, RadioFieldType>;
+  }
 
-  let { superform, onchange, field, options, label, disabled }: Props =
-    $props();
+  let { superform, field, ...restProps }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   const { value, errors } = formFieldProxy(
     superform,
     field,
-  ) satisfies FormFieldProxy<FieldType>;
-
-  let labelText = $derived(label || titleCase(field));
-
-  $effect(() => {
-    if (!onchange) {
-      return;
-    }
-    onchange($value);
-  });
+  ) satisfies FormFieldProxy<RadioFieldType>;
 </script>
 
-<div class="space-y-1">
-  <Label id={field}>{labelText}</Label>
-  <RadioGroup.Root
-    name={field}
-    {disabled}
-    class="flex gap-2"
-    bind:value={$value}
-  >
-    {#each options as option, index (index)}
-      <div class="flex items-center space-x-2">
-        <RadioGroup.Item value={option.value} id={option.value.toString()} />
-        <Label for={option.value.toString()}>
-          {option.label || titleCase(option.value.toString())}
-        </Label>
-      </div>
-    {/each}
-  </RadioGroup.Root>
-  {#if $errors}
-    <p class="text-red-500">{$errors}</p>
-  {/if}
-</div>
+<RadioInput {...restProps} {field} bind:value={$value} errors={$errors}>
+  <ErrorMessage errors={$errors} />
+</RadioInput>

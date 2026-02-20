@@ -1,45 +1,30 @@
 <script lang="ts" generics="T extends Record<string, unknown>">
-  import { titleCase } from 'text-case';
-  import { Input } from '$lib/components/ui/input';
-  import { Label } from '$lib/components/ui/label';
   import {
     formFieldProxy,
     type SuperForm,
     type FormPathLeaves,
   } from 'sveltekit-superforms';
+  import PasswordInput from '../input/password-input.svelte';
+  import ErrorMessage from './error-message.svelte';
+  import type { PasswordInputProps } from '../input/types';
 
-  type Props = {
+  interface Props extends PasswordInputProps {
     superform: SuperForm<T>;
     field: FormPathLeaves<T>;
-    label?: string;
-    placeholder?: string;
-    password: 'current' | 'new';
-  };
+  }
 
-  let { superform, field, label, placeholder, password }: Props = $props();
+  let { superform, field, ...restProps }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   const { value, errors, constraints } = formFieldProxy(superform, field);
-
-  let labelText = $derived(label || titleCase(field));
-  let placeholderText = $derived(
-    placeholder || `Type ${titleCase(field).toLowerCase()} here `,
-  );
 </script>
 
-<div class="space-y-1">
-  <Label id={field}>{labelText}</Label>
-  <Input
-    id={field}
-    name={field}
-    placeholder={placeholderText}
-    type="password"
-    autocomplete="{password}-password"
-    aria-invalid={$errors ? 'true' : undefined}
-    bind:value={$value}
-    {...$constraints}
-  />
-  {#if $errors}
-    <p class="text-red-500">{$errors}</p>
-  {/if}
-</div>
+<PasswordInput
+  {...restProps}
+  {field}
+  errors={$errors}
+  bind:value={$value as string}
+  {...$constraints}
+>
+  <ErrorMessage errors={$errors} />
+</PasswordInput>

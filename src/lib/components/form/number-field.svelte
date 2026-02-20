@@ -1,90 +1,34 @@
 <script lang="ts" generics="T extends Record<string, unknown>">
-  import { titleCase } from 'text-case';
-  import { Input } from '$lib/components/ui/input';
-  import { Label } from '$lib/components/ui/label';
   import {
     formFieldProxy,
     type SuperForm,
     type FormPathLeaves,
     type FormFieldProxy,
   } from 'sveltekit-superforms';
+  import NumberInput from '../input/number-input.svelte';
+  import ErrorMessage from './error-message.svelte';
+  import type { NumberInputProps, NumberFieldType } from '../input/types';
 
-  type FieldType = number;
-  type Props = {
+  interface Props extends NumberInputProps {
     superform: SuperForm<T>;
-    field: FormPathLeaves<T, FieldType>;
-    label?: string;
-    hideLabel?: boolean;
-    disabled?: boolean;
-    placeholder?: string;
-    min?: number;
-    max?: number;
-    default?: number;
-    onchange?: (value: FieldType) => void;
-    onblur?: (value: FieldType) => void;
-  };
+    field: FormPathLeaves<T, NumberFieldType>;
+  }
 
-  let {
-    superform,
-    field,
-    label,
-    onchange,
-    onblur,
-    disabled,
-    hideLabel,
-    placeholder,
-    min,
-    max,
-    default: defaultValue,
-  }: Props = $props();
+  let { superform, field, ...restProps }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   const { value, errors, constraints } = formFieldProxy(
     superform,
     field,
-  ) satisfies FormFieldProxy<FieldType>;
-  // svelte-ignore state_referenced_locally
-  if (typeof defaultValue === 'number') {
-    $value = defaultValue;
-  }
-
-  let labelText = $derived(label || titleCase(field));
-  let placeholderText = $derived(
-    placeholder || `Type ${titleCase(field).toLowerCase()} here `,
-  );
+  ) satisfies FormFieldProxy<NumberFieldType>;
 </script>
 
-<div class="space-y-1">
-  {#if !hideLabel}
-    <Label id={field}>{labelText}</Label>
-  {/if}
-  <Input
-    class="no-spinner"
-    {disabled}
-    autocomplete="off"
-    id={field}
-    name={field}
-    {min}
-    {max}
-    placeholder={placeholderText}
-    type="number"
-    aria-invalid={$errors ? 'true' : undefined}
-    bind:value={$value}
-    {...$constraints}
-    onblur={() => {
-      if (!onblur) {
-        return;
-      }
-      onblur($value);
-    }}
-    oninput={() => {
-      if (!onchange) {
-        return;
-      }
-      onchange($value);
-    }}
-  />
-  {#if $errors}
-    <p class="text-red-500">{$errors}</p>
-  {/if}
-</div>
+<NumberInput
+  {...restProps}
+  {field}
+  errors={$errors}
+  bind:value={$value}
+  {...$constraints}
+>
+  <ErrorMessage errors={$errors} />
+</NumberInput>

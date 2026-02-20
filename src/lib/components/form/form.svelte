@@ -6,20 +6,47 @@
   type Props = {
     children: Snippet;
     superform: SuperForm<T>;
+    afterButton?: Snippet;
     buttonText?: string;
     action?: string;
     enctype?: 'multipart/form-data';
+    method?: 'post' | 'get';
+    class?: string;
   };
 
-  let { children, enctype, superform, buttonText, action }: Props = $props();
+  let {
+    action,
+    enctype,
+    children,
+    superform,
+    buttonText,
+    afterButton,
+    method = 'post',
+    class: className,
+  }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   let { enhance, submitting, tainted, isTainted } = superform;
 </script>
 
-<form {action} {enctype} class="space-y-4" method="POST" use:enhance>
-  {@render children()}
-  <Button disabled={$submitting || !isTainted($tainted)} type="submit">
-    {buttonText || 'Save'}
-  </Button>
-</form>
+{#snippet html()}
+  <div class={className ?? 'space-y-4'}>
+    {@render children()}
+  </div>
+  <div class="flex gap-2">
+    <Button type="submit" disabled={$submitting || !isTainted($tainted)}>
+      {buttonText || method === 'post' ? 'Save' : 'Apply'}
+    </Button>
+    {@render afterButton?.()}
+  </div>
+{/snippet}
+
+{#if method === 'post'}
+  <form {action} {enctype} {method} use:enhance>
+    {@render html()}
+  </form>
+{:else}
+  <form {action} {enctype} {method}>
+    {@render html()}
+  </form>
+{/if}
