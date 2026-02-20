@@ -4,13 +4,12 @@ import { and, count, desc, eq, gte, lte } from 'drizzle-orm';
 import { itemSchema } from '$lib/validations.js';
 import { getPaginationData, urlSearchParamsToJson } from '$lib/utils.js';
 import { initForm, sendMessage, validateAction } from '$lib/superforms';
-import { filterSchema, statusSchema, title } from './upsert/utils.js';
+import { filterSchema, title } from './upsert/utils.js';
 import { delFile } from '$lib/server/filesystem.js';
 
 export async function load(event) {
   const form = await initForm(filterSchema, urlSearchParamsToJson(event.url));
   const deleteForm = await initForm(itemSchema);
-  const statusForm = await initForm(statusSchema);
 
   const { page, offset, limit } = getPaginationData(event);
   const { data } = form;
@@ -56,7 +55,6 @@ export async function load(event) {
   return {
     form,
     deleteForm,
-    statusForm,
     invoices: allInvoices,
     currentPage: page,
     totalPages: Math.ceil(totalInvoices / limit),
@@ -86,23 +84,5 @@ export const actions = {
     await db.delete(Invoices).where(eq(Invoices.id, form.data.id));
 
     return sendMessage(form, `${title.plural} deleted!`);
-  },
-  async status(event) {
-    const form = await validateAction(event, statusSchema);
-    if (!form.valid) return form.error;
-
-    const id = Number(event.url.searchParams.get('id'));
-    if (!id) {
-      return sendMessage(form, `Missing invoice id!`, 'error');
-    }
-
-    await db
-      .update(Invoices)
-      .set({
-        status: form.data.status,
-      })
-      .where(eq(Invoices.id, id));
-
-    return sendMessage(form, `${title.plural} status updated!`);
   },
 };

@@ -57,10 +57,6 @@ export const filterSchema = z.object({
   endDateOfInvoice: z.date().optional().nullable(),
 });
 
-export const statusSchema = z.object({
-  status: invoiceStatus,
-});
-
 export const statuses = [
   { value: 'draft', color: 'purple' },
   { value: 'processing', color: 'yellow' },
