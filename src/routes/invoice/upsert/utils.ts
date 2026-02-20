@@ -20,16 +20,14 @@ export const lineItemSchema = z.object({
   salePrice: z.number().min(0),
   receivedPrice: z.number().min(0),
 });
-const invoiceStatus = z
-  .enum([
-    'draft',
-    'processing',
-    'delivered',
-    'delivery_acknowledged',
-    'disputed',
-    'paid',
-  ])
-  .default('draft');
+const invoiceStatus = z.enum([
+  'draft',
+  'processing',
+  'delivered',
+  'delivery_acknowledged',
+  'disputed',
+  'paid',
+]);
 export type InvoiceStatus = z.infer<typeof invoiceStatus>;
 export const invoiceSchema = z.object({
   id: z.number().positive().optional(), // Added and made optional for upsert
@@ -42,9 +40,21 @@ export const invoiceSchema = z.object({
   dateOfDelivery: z.date(),
   dateOfInvoice: z.date(),
   lineItems: z.array(lineItemSchema),
-  status: invoiceStatus,
+  status: invoiceStatus.default('draft'),
   attachmentUrls: multiUrlSchema,
   attachments: multiFileSchema,
+});
+
+export const filterSchema = z.object({
+  companyId: z.coerce.number().optional().nullable(),
+  clientId: z.coerce.number().optional().nullable(),
+  locationId: z.coerce.number().optional().nullable(),
+  status: invoiceStatus.optional().nullable(),
+  invoiceNumber: z.coerce.number().optional().nullable(),
+  startDateOfDelivery: z.date().optional().nullable(),
+  endDateOfDelivery: z.date().optional().nullable(),
+  startDateOfInvoice: z.date().optional().nullable(),
+  endDateOfInvoice: z.date().optional().nullable(),
 });
 
 export const statuses = [

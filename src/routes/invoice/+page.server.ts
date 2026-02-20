@@ -1,35 +1,64 @@
 import { db } from '$lib/server/db';
 import { Invoices } from '$lib/server/db/schema';
-import { count, desc, eq } from 'drizzle-orm';
+import { and, count, desc, eq, gte, lte } from 'drizzle-orm';
 import { itemSchema } from '$lib/validations.js';
-import { getPaginationData } from '$lib/utils.js';
+import { getPaginationData, urlSearchParamsToJson } from '$lib/utils.js';
 import { initForm, sendMessage, validateAction } from '$lib/superforms';
-import { title } from './upsert/utils.js';
+import { filterSchema, title } from './upsert/utils.js';
 import { delFile } from '$lib/server/filesystem.js';
 
 export async function load(event) {
-  const form = await initForm(itemSchema);
+  const form = await initForm(filterSchema, urlSearchParamsToJson(event.url));
+  const deleteForm = await initForm(itemSchema);
 
   const { page, offset, limit } = getPaginationData(event);
+  const { data } = form;
+
+  const where = and(
+    data.companyId ? eq(Invoices.companyId, data.companyId) : undefined,
+    data.clientId ? eq(Invoices.clientId, data.clientId) : undefined,
+    data.locationId ? eq(Invoices.locationId, data.locationId) : undefined,
+    data.status ? eq(Invoices.status, data.status) : undefined,
+    data.invoiceNumber
+      ? eq(Invoices.invoiceNumber, data.invoiceNumber)
+      : undefined,
+    data.status ? eq(Invoices.status, data.status) : undefined,
+    data.startDateOfDelivery
+      ? gte(Invoices.dateOfDelivery, data.startDateOfDelivery)
+      : undefined,
+    data.endDateOfDelivery
+      ? lte(Invoices.dateOfDelivery, data.endDateOfDelivery)
+      : undefined,
+    data.startDateOfInvoice
+      ? gte(Invoices.dateOfInvoice, data.startDateOfInvoice)
+      : undefined,
+    data.endDateOfInvoice
+      ? lte(Invoices.dateOfInvoice, data.endDateOfInvoice)
+      : undefined,
+  );
 
   const [allInvoices, [{ count: totalInvoices }]] = await Promise.all([
     db.query.Invoices.findMany({
       limit,
       offset,
       orderBy: desc(Invoices.dateOfInvoice),
+      where: where,
       with: {
         company: { columns: { name: true } },
         client: { columns: { name: true } },
+        location: { columns: { address: true } },
       },
     }),
-    db.select({ count: count() }).from(Invoices),
+    db.select({ count: count() }).from(Invoices).where(where),
   ]);
 
   return {
     form,
+    deleteForm,
     invoices: allInvoices,
     currentPage: page,
     totalPages: Math.ceil(totalInvoices / limit),
+    url: event.url,
   };
 }
 

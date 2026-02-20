@@ -2,11 +2,10 @@ import { db } from '$lib/server/db';
 import {
   Invoices,
   LineItems,
-  Locations,
   Products as productsSchema,
 } from '$lib/server/db/schema';
 import { invoiceSchema, route, title, type InvoiceStatus } from './utils';
-import { asc, eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { initForm, validateAction, redirectTo } from '$lib/superforms';
 import { delFile, putFile } from '$lib/server/filesystem.js';
 import { convertCents, convertToCents } from '$lib/utils.js';
@@ -32,12 +31,10 @@ export const load = async (event) => {
     }
   }
 
-  const companies = await db.query.Companies.findMany();
-  const clients = await db.query.Clients.findMany();
-  const locations = await db.query.Locations.findMany({
-    orderBy: asc(Locations.address),
-  });
-  const products = await db.query.Products.findMany();
+  const [{ clients, companies, locations }, products] = await Promise.all([
+    event.parent(),
+    db.query.Products.findMany(),
+  ]);
   const transactionIndex = products.findIndex(
     (x) => x.name === 'Transportation',
   );

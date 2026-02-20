@@ -6,17 +6,25 @@
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Pagination } from '$lib/components/ui/pagination';
   import { formatCents, formatDate } from '$lib/utils';
-  import { route, title } from './upsert/utils.js';
+  import { filterSchema, route, statuses, title } from './upsert/utils.js';
   import Heading from '$lib/components/heading.svelte';
   import ActionForm from '$lib/components/form/action-form.svelte';
   import { titleCase } from 'text-case';
   import { getSuperForm } from '$lib/superforms.js';
   import { emptySchema } from '$lib/validations.js';
+  import Form from '$lib/components/form/form.svelte';
+  import SelectField from '$lib/components/form/select-field.svelte';
+  import NumberField from '$lib/components/form/number-field.svelte';
+  import DateField from '$lib/components/form/date-field.svelte';
 
   const { data } = $props();
 
   // svelte-ignore state_referenced_locally
-  const superform = getSuperForm(emptySchema, data.form);
+  const superform = getSuperForm(filterSchema, data.form);
+  const { form } = superform;
+
+  // svelte-ignore state_referenced_locally
+  const deleteSuperform = getSuperForm(emptySchema, data.deleteForm);
 </script>
 
 <Heading
@@ -24,14 +32,70 @@
   link={{ route: route.upsert, title: `Add ${title.singular}` }}
 />
 
+<Form
+  {superform}
+  method="get"
+  class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3"
+>
+  <SelectField
+    {superform}
+    field="companyId"
+    label="Company"
+    options={data.companies.map((c) => ({ label: c.name, value: c.id }))}
+  />
+  <SelectField
+    {superform}
+    field="clientId"
+    label="Client"
+    options={data.clients.map((cl) => ({ label: cl.name, value: cl.id }))}
+  />
+  <SelectField
+    {superform}
+    field="locationId"
+    label="Location"
+    options={data.locations
+      .filter((x) => x.clientId === $form.clientId)
+      .map((l) => ({ label: l.address, value: l.id }))}
+  />
+  <DateField {superform} field="startDateOfDelivery" />
+  <DateField {superform} field="endDateOfDelivery" />
+  <DateField {superform} field="startDateOfInvoice" />
+  <DateField {superform} field="endDateOfInvoice" />
+  <SelectField allowClear {superform} field="status" options={statuses} />
+  <NumberField
+    {superform}
+    field="invoiceNumber"
+    label="{title.singular} Number"
+  />
+
+  {#snippet afterButton()}
+    <Button
+      href={route.list}
+      type="submit"
+      disabled={!$form.companyId &&
+        !$form.clientId &&
+        !$form.locationId &&
+        !$form.invoiceNumber &&
+        !$form.status &&
+        !$form.startDateOfDelivery &&
+        !$form.endDateOfDelivery &&
+        !$form.startDateOfInvoice &&
+        !$form.endDateOfInvoice}
+    >
+      Clear Filters
+    </Button>
+  {/snippet}
+</Form>
+
 {#if data.invoices.length === 0}
-  <p>No invoices yet. Create one!</p>
+  <p>No invoices!</p>
 {:else}
   <Table.Root class="border">
     <Table.Header>
       <Table.Row>
         <Table.Head class="p-4 text-nowrap">Company</Table.Head>
         <Table.Head class="p-4 text-nowrap">Client</Table.Head>
+        <Table.Head class="p-4 text-nowrap">Location</Table.Head>
         <Table.Head class="p-4 text-nowrap">Status</Table.Head>
         <Table.Head class="p-4 text-nowrap">Invoice #</Table.Head>
         <Table.Head class="p-4 text-nowrap">Delivery Date</Table.Head>
@@ -53,6 +117,9 @@
             {invoice.client?.name}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
+            {invoice.location?.address}
+          </Table.Cell>
+          <Table.Cell class="p-4 text-nowrap">
             {#if invoice.status === 'draft'}
               <Badge class="bg-purple-500">{titleCase(invoice.status)}</Badge>
             {:else if invoice.status === 'processing'}
@@ -60,7 +127,7 @@
             {:else if invoice.status === 'delivered'}
               <Badge class="bg-blue-500">{titleCase(invoice.status)}</Badge>
             {:else if invoice.status === 'delivery_acknowledged'}
-              <Badge class="bg-teal-500">{titleCase(invoice.status)}</Badge>
+              <Badge class="bg-teal-500">Acknowledged</Badge>
             {:else if invoice.status === 'disputed'}
               <Badge class="bg-red-500">{titleCase(invoice.status)}</Badge>
             {:else if invoice.status === 'paid'}
@@ -96,7 +163,11 @@
             >
               <Pencil class="h-4 w-4" />
             </Button>
-            <ActionForm {superform} field="id" value={invoice.id}>
+            <ActionForm
+              field="id"
+              value={invoice.id}
+              superform={deleteSuperform}
+            >
               <Trash class="h-4 w-4" />
             </ActionForm>
           </Table.Cell>
