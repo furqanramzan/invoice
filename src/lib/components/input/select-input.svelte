@@ -41,23 +41,26 @@
 <div class="space-y-1">
   <Label for={field}>{labelText}</Label>
   <Select.Root
-    id={field}
     name={field}
     {disabled}
-    bind:value
+    bind:value={value as string}
     type="single"
-    aria-invalid={errors?.length ? 'true' : undefined}
   >
     <Select.Trigger class="w-full">
       {triggerContent}
     </Select.Trigger>
     <Select.Content>
-      <Select.Group>
+      <Select.Group
+        id={field}
+        aria-invalid={errors?.length ? 'true' : undefined}
+      >
         {#if allowClear && value}
-          <Select.Item value={null} label="Clear">Clear</Select.Item>
+          <Select.Item value={null as unknown as string} label="Clear">
+            Clear
+          </Select.Item>
         {/if}
         {#each options as option (option.value)}
-          <Select.Item value={option.value} label={option.label}>
+          <Select.Item value={option.value as string} label={option.label}>
             {option.label || titleCase(option.value.toString())}
           </Select.Item>
         {/each}
