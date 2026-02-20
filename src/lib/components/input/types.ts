@@ -18,6 +18,7 @@ export type SelectFieldType = NumberString;
 export type SelectInputProps = BaseInputProps & {
   options: Options;
   allowClear?: boolean;
+  default?: SelectFieldType;
   onchange?: (value?: SelectFieldType) => void;
   value?: SelectFieldType;
 };

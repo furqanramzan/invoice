@@ -10,6 +10,7 @@
   import ActionForm from '$lib/components/form/action-form.svelte';
   import { getSuperForm } from '$lib/superforms.js';
   import { emptySchema } from '$lib/validations.js';
+  import Tooltip from '$lib/components/tooltip.svelte';
 
   const { data } = $props();
 
@@ -49,16 +50,20 @@
             >{expense.description || '-'}</Table.Cell
           >
           <Table.Cell class="flex shrink-0 space-x-2 p-4 text-nowrap">
-            <Button
-              href={route.upsert + `?id=${expense.id}`}
-              variant="outline"
-              size="icon"
-            >
-              <Pencil class="h-4 w-4" />
-            </Button>
-            <ActionForm {superform} field="id" value={expense.id}>
-              <Trash class="h-4 w-4" />
-            </ActionForm>
+            <Tooltip text="Edit">
+              <Button
+                href={route.upsert + `?id=${expense.id}`}
+                variant="outline"
+                size="icon"
+              >
+                <Pencil class="h-4 w-4" />
+              </Button>
+            </Tooltip>
+            <Tooltip text="Delete">
+              <ActionForm {superform} field="id" value={expense.id}>
+                <Trash class="h-4 w-4" />
+              </ActionForm>
+            </Tooltip>
           </Table.Cell>
         </Table.Row>
       {/each}

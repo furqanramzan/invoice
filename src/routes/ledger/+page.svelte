@@ -10,6 +10,7 @@
   import { CreditCard } from '@lucide/svelte';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
   import NumberField from '$lib/components/form/number-field.svelte';
+  import Tooltip from '$lib/components/tooltip.svelte';
 
   const { data } = $props();
 
@@ -64,55 +65,59 @@
             {invoice.receivedAmount ? formatCents(invoice.receivedAmount) : '-'}
           </Table.Cell>
           <Table.Cell class="flex shrink-0 space-x-2 p-4 text-nowrap">
-            <Button
-              href={route.invoiceUpsert + `?id=${invoice.id}`}
-              variant="outline"
-              size="icon"
-            >
-              <Pencil class="h-4 w-4" />
-            </Button>
-            <Dialog.Root>
-              <Dialog.Trigger
-                type="button"
-                class={buttonVariants({ variant: 'success', size: 'icon' })}
+            <Tooltip text="Edit">
+              <Button
+                href={route.invoiceUpsert + `?id=${invoice.id}`}
+                variant="outline"
+                size="icon"
               >
-                <CreditCard class="h-4 w-4" />
-              </Dialog.Trigger>
-              <Dialog.Content class="sm:max-w-xl">
-                <form
-                  method="post"
-                  action="?id={invoice.id}"
-                  use:enhance
-                  class="grid gap-4"
+                <Pencil class="h-4 w-4" />
+              </Button>
+            </Tooltip>
+            <Tooltip text="Mark as paid">
+              <Dialog.Root>
+                <Dialog.Trigger
+                  type="button"
+                  class={buttonVariants({ variant: 'success', size: 'icon' })}
                 >
-                  <Dialog.Header>
-                    <Dialog.Title>
-                      {invoice.company.name} - {invoice.client.name} - {invoice.invoiceNumber}
-                    </Dialog.Title>
-                  </Dialog.Header>
-                  <div class="grid gap-4">
-                    <NumberField
-                      {superform}
-                      default={invoice.receivedAmount
-                        ? invoice.receivedAmount / 100
-                        : 0}
-                      field="receivedAmount"
-                    />
-                  </div>
-                  <Dialog.Footer>
-                    <Dialog.Close
-                      type="button"
-                      class={buttonVariants({ variant: 'outline' })}
-                    >
-                      Cancel
-                    </Dialog.Close>
-                    <Button disabled={$submitting} type="submit">
-                      Mark as paid
-                    </Button>
-                  </Dialog.Footer>
-                </form>
-              </Dialog.Content>
-            </Dialog.Root>
+                  <CreditCard class="h-4 w-4" />
+                </Dialog.Trigger>
+                <Dialog.Content class="sm:max-w-xl">
+                  <form
+                    method="post"
+                    action="?id={invoice.id}"
+                    use:enhance
+                    class="grid gap-4"
+                  >
+                    <Dialog.Header>
+                      <Dialog.Title>
+                        {invoice.company.name} - {invoice.client.name} - {invoice.invoiceNumber}
+                      </Dialog.Title>
+                    </Dialog.Header>
+                    <div class="grid gap-4">
+                      <NumberField
+                        {superform}
+                        default={invoice.receivedAmount
+                          ? invoice.receivedAmount / 100
+                          : 0}
+                        field="receivedAmount"
+                      />
+                    </div>
+                    <Dialog.Footer>
+                      <Dialog.Close
+                        type="button"
+                        class={buttonVariants({ variant: 'outline' })}
+                      >
+                        Cancel
+                      </Dialog.Close>
+                      <Button disabled={$submitting} type="submit">
+                        Mark as paid
+                      </Button>
+                    </Dialog.Footer>
+                  </form>
+                </Dialog.Content>
+              </Dialog.Root>
+            </Tooltip>
           </Table.Cell>
         </Table.Row>
       {/each}

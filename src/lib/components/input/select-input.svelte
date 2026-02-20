@@ -14,6 +14,7 @@
     children,
     allowClear,
     value = $bindable(),
+    default: defaultValue,
   }: SelectInputProps = $props();
 
   const selectedOption = $derived(options.find((f) => f.value === value));
@@ -23,6 +24,11 @@
       `Select ${titleCase(label || field).toLowerCase()} here `,
   );
   let labelText = $derived(label || titleCase(field));
+
+  // svelte-ignore state_referenced_locally
+  if (defaultValue || typeof defaultValue === 'number') {
+    value = defaultValue;
+  }
 
   $effect(() => {
     if (!onchange) {

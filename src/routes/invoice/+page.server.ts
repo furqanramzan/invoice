@@ -63,7 +63,7 @@ export async function load(event) {
 }
 
 export const actions = {
-  async default(event) {
+  async delete(event) {
     const form = await validateAction(event, itemSchema);
     if (!form.valid) return form.error;
 

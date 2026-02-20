@@ -9,6 +9,7 @@
 
   type Props = {
     children: Snippet;
+    inputs?: Snippet;
     superform: SuperForm<T>;
     field?: FormPathLeaves<T>;
     value?: string | number;
@@ -17,11 +18,12 @@
   };
 
   let {
+    action,
+    value,
+    field,
+    inputs,
     children,
     superform,
-    action,
-    field,
-    value,
     variant = 'destructive',
   }: Props = $props();
 
@@ -46,6 +48,7 @@
         {#if field}
           <input type="hidden" name={field} {value} />
         {/if}
+        {@render inputs?.()}
         <AlertDialog.Action disabled={$submitting} type="submit">
           Continue
         </AlertDialog.Action>

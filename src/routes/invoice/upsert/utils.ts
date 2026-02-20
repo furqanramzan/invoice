@@ -62,6 +62,6 @@ export const statuses = [
   { value: 'processing', color: 'yellow' },
   { value: 'delivered', color: 'blue' },
   { value: 'delivery_acknowledged', color: 'teal' },
-  { value: 'disputed', color: 'red' },
   { value: 'paid', color: 'green' },
+  { value: 'disputed', color: 'red' },
 ];

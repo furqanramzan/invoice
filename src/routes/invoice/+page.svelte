@@ -16,6 +16,7 @@
   import SelectField from '$lib/components/form/select-field.svelte';
   import NumberField from '$lib/components/form/number-field.svelte';
   import DateField from '$lib/components/form/date-field.svelte';
+  import Tooltip from '$lib/components/tooltip.svelte';
 
   const { data } = $props();
 
@@ -156,20 +157,25 @@
             {invoice.receivedAmount ? formatCents(invoice.receivedAmount) : '-'}
           </Table.Cell>
           <Table.Cell class="flex shrink-0 space-x-2 p-4 text-nowrap">
-            <Button
-              href={route.upsert + `?id=${invoice.id}`}
-              variant="outline"
-              size="icon"
-            >
-              <Pencil class="h-4 w-4" />
-            </Button>
-            <ActionForm
-              field="id"
-              value={invoice.id}
-              superform={deleteSuperform}
-            >
-              <Trash class="h-4 w-4" />
-            </ActionForm>
+            <Tooltip text="Edit">
+              <Button
+                href={route.upsert + `?id=${invoice.id}`}
+                variant="outline"
+                size="icon"
+              >
+                <Pencil class="h-4 w-4" />
+              </Button>
+            </Tooltip>
+            <Tooltip text="Delete">
+              <ActionForm
+                field="id"
+                action="?/delete"
+                value={invoice.id}
+                superform={deleteSuperform}
+              >
+                <Trash class="h-4 w-4" />
+              </ActionForm>
+            </Tooltip>
           </Table.Cell>
         </Table.Row>
       {/each}
