@@ -1,26 +1,33 @@
 <script lang="ts">
   import { cn } from '$lib/utils.js';
   import { Button } from '$lib/components/ui/button';
+  import { page } from '$app/state';
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
 
   let {
     currentPage,
     totalPages,
-    basePath,
     class: className,
     ...rest
   } = $props<{
     currentPage: number;
     totalPages: number;
-    basePath: string;
     class?: string;
   }>();
 
+  // Helper to construct the href with existing search params
+  const getPageHref = (pageNumber: number | string) => {
+    const params = new SvelteURLSearchParams(page.url.searchParams);
+    params.set('page', pageNumber.toString());
+    return `${page.url.pathname}?${params.toString()}`;
+  };
+
   // Logic to determine which page numbers to show
   const getVisiblePages = (current: number, total: number) => {
-    const delta = 2; // How many pages to show on either side of current
+    const delta = 2;
     const range = [];
-    const rangeWithDots = [];
-    let l;
+    const rangeWithDots: (number | string)[] = [];
+    let l: number | undefined;
 
     for (let i = 1; i <= total; i++) {
       if (
@@ -31,19 +38,14 @@
         range.push(i);
       }
     }
-
     for (let i of range) {
       if (l) {
-        if (i - l === 2) {
-          rangeWithDots.push(l + 1);
-        } else if (i - l !== 1) {
-          rangeWithDots.push('...');
-        }
+        if (i - l === 2) rangeWithDots.push(l + 1);
+        else if (i - l !== 1) rangeWithDots.push('...');
       }
       rangeWithDots.push(i);
       l = i;
     }
-
     return rangeWithDots;
   };
 
@@ -55,22 +57,22 @@
     variant="outline"
     size="sm"
     disabled={currentPage <= 1}
-    href={currentPage > 1 ? `${basePath}?page=${currentPage - 1}` : undefined}
+    href={currentPage > 1 ? getPageHref(currentPage - 1) : undefined}
   >
     Previous
   </Button>
 
-  {#each pages as page, index (index)}
-    {#if page === '...'}
+  {#each pages as p, index (index)}
+    {#if p === '...'}
       <span class="px-2 text-muted-foreground">...</span>
     {:else}
       <Button
-        variant={currentPage === page ? 'default' : 'outline'}
+        variant={currentPage === p ? 'default' : 'outline'}
         size="icon"
         class="h-9 w-9"
-        href={`${basePath}?page=${page}`}
+        href={getPageHref(p)}
       >
-        {page}
+        {p}
       </Button>
     {/if}
   {/each}
@@ -79,9 +81,7 @@
     variant="outline"
     size="sm"
     disabled={currentPage >= totalPages}
-    href={currentPage < totalPages
-      ? `${basePath}?page=${currentPage + 1}`
-      : undefined}
+    href={currentPage < totalPages ? getPageHref(currentPage + 1) : undefined}
   >
     Next
   </Button>

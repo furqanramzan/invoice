@@ -55,6 +55,10 @@ export function getSuperForm<
       toast.loading('Processing...', { id });
     },
     onResult(event) {
+      if (event.result.type === 'failure' || event.result.type === 'error') {
+        console.log(event.result);
+      }
+
       if (event.result.type === 'redirect') {
         toast.dismiss(id);
         return;

@@ -87,3 +87,63 @@ export function randomInt(min = 1, max = 10000) {
 export function formatDate(date: Date) {
   return date.toDateString();
 }
+
+export function getUrlPathAndQuery(url: string | URL) {
+  const { pathname, search, hash } =
+    typeof url === 'string' ? new URL(url) : url;
+  return `${pathname}${search}${hash}`;
+}
+
+export function urlSearchParamsToJson(url: URL) {
+  const params = url.searchParams;
+  const result: Record<
+    string,
+    string | number | Date | Array<string | number | Date>
+  > = {};
+
+  const parseValue = (value: string) => {
+    const trimmed = value.trim();
+
+    // 1. Handle empty string
+    if (trimmed === '') {
+      return undefined;
+    }
+
+    // 2. Check if it's a number
+    if (!isNaN(Number(trimmed))) {
+      return Number(trimmed);
+    }
+
+    // 3. Check if it's a valid date string
+    const date = new Date(trimmed);
+    if (
+      !isNaN(date.getTime()) &&
+      trimmed.length > 5 &&
+      isNaN(Number(trimmed))
+    ) {
+      return date;
+    }
+
+    // 4. Fallback to string
+    return trimmed;
+  };
+
+  for (const [key, value] of params.entries()) {
+    const parsed = parseValue(value);
+
+    // Skip if undefined (optional: remove this check if you want to keep keys with empty values)
+    if (parsed === undefined) continue;
+
+    if (Object.prototype.hasOwnProperty.call(result, key)) {
+      if (!Array.isArray(result[key])) {
+        result[key] = [result[key], parsed];
+      } else {
+        result[key].push(parsed);
+      }
+    } else {
+      result[key] = parsed;
+    }
+  }
+
+  return result;
+}

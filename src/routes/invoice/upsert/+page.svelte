@@ -565,7 +565,9 @@
       {superform}
       field="locationId"
       label="Location"
-      options={locations.map((x) => ({ value: x.id, label: x.address }))}
+      options={locations
+        .filter((x) => x.clientId === $form.clientId)
+        .map((x) => ({ value: x.id, label: x.address }))}
     />
     <NumberField
       {superform}
@@ -603,7 +605,7 @@
     <h2 class="text-lg font-semibold">Products</h2>
   </div>
   <p>Drag and drop to reorder them.</p>
-  <Table.Root class="border">
+  <Table.Root yVisible class="max-w-full overflow-x-scroll border">
     <Table.Header>
       <Table.Row>
         <Table.Head class="py-4 text-nowrap"></Table.Head>

@@ -67,10 +67,6 @@
   </Table.Root>
 
   {#if data.totalPages > 1}
-    <Pagination
-      currentPage={data.currentPage}
-      totalPages={data.totalPages}
-      basePath="/product"
-    />
+    <Pagination currentPage={data.currentPage} totalPages={data.totalPages} />
   {/if}
 {/if}
