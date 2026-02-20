@@ -136,3 +136,7 @@ button {
     -moz-appearance: textfield;
   }
 }
+
+.drag-over {
+  @apply bg-blue-100 dark:bg-blue-900;
+}

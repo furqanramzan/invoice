@@ -41,7 +41,58 @@
     data.locations.filter((x) => x.clientId === $form.clientId),
   );
 
-  function addProduct() {
+  let draggedItemIndex = $state<number | null>(null);
+
+  function handleDragStart(event: DragEvent, index: number) {
+    draggedItemIndex = index;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', index.toString());
+    }
+  }
+
+  function handleDragOver(event: DragEvent, index: number) {
+    event.preventDefault();
+    if (draggedItemIndex !== null && draggedItemIndex !== index) {
+      // Add a visual indicator for drag-over target
+      const targetRow = event.currentTarget as HTMLElement;
+      targetRow.classList.add('drag-over');
+    }
+  }
+
+  function handleDragLeave(event: DragEvent) {
+    (event.currentTarget as HTMLElement).classList.remove('drag-over');
+  }
+
+  function handleDrop(event: DragEvent, index: number) {
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).classList.remove('drag-over');
+    if (draggedItemIndex === null) return;
+
+    const draggedIndex = draggedItemIndex;
+    const droppedIndex = index;
+
+    if (draggedIndex === droppedIndex) {
+      draggedItemIndex = null;
+      return;
+    }
+
+    const newLineItems = [...$form.lineItems];
+    const [removed] = newLineItems.splice(draggedIndex, 1);
+    newLineItems.splice(droppedIndex, 0, removed);
+    $form.lineItems = newLineItems;
+    draggedItemIndex = null;
+  }
+
+  function handleDragEnd() {
+    draggedItemIndex = null;
+    // Remove drag-over class from all rows in case dragEnd fires without drop
+    document
+      .querySelectorAll('.drag-over')
+      .forEach((el) => el.classList.remove('drag-over'));
+  }
+
+  function addLineItem() {
     $form.lineItems = [
       ...$form.lineItems,
       {
@@ -61,7 +112,7 @@
     );
   }
 
-  function removeProduct(index: number) {
+  function removeLineItem(index: number) {
     $form.lineItems = $form.lineItems.filter((_, i) => i !== index);
   }
 
@@ -545,12 +596,13 @@
     <div>Quoted Profit: {totalQuotedProfit}%</div>
   </div>
 
-  <div class="flex items-center gap-2">
-    <Button type="button" onclick={addProduct}>
+  <div class="mb-1 flex items-center gap-2">
+    <Button size="icon-sm" type="button" onclick={addLineItem}>
       <Plus />
     </Button>
     <h2 class="text-lg font-semibold">Products</h2>
   </div>
+  <p>Drag and drop to reorder them.</p>
   <Table.Root class="border">
     <Table.Header>
       <Table.Row>
@@ -567,14 +619,21 @@
       </Table.Row>
     </Table.Header>
     <Table.Body>
-      {#each $form.lineItems as product, index (product.id)}
-        <Table.Row>
+      {#each $form.lineItems as lineItem, index (lineItem.id)}
+        <Table.Row
+          draggable="true"
+          ondragstart={(event) => handleDragStart(event, index)}
+          ondragover={(event) => handleDragOver(event, index)}
+          ondragleave={handleDragLeave}
+          ondrop={(event) => handleDrop(event, index)}
+          ondragend={handleDragEnd}
+        >
           <Table.Cell class="py-2 text-nowrap">
             <Button
               variant="destructive"
               size="icon-sm"
               type="button"
-              onclick={() => removeProduct(index)}
+              onclick={() => removeLineItem(index)}
             >
               <Trash class="h-4 w-4" />
             </Button>
@@ -583,7 +642,7 @@
                 type="button"
                 class={buttonVariants({ variant: 'outline', size: 'icon-sm' })}
               >
-                {#if product.remarks}
+                {#if lineItem.remarks}
                   <NotebookPen class="h-4 w-4" />
                 {:else}
                   <Pencil class="h-4 w-4" />
@@ -591,7 +650,7 @@
               </Dialog.Trigger>
               <Dialog.Content class="sm:max-w-xl">
                 <Dialog.Header>
-                  <Dialog.Title>{product.name}</Dialog.Title>
+                  <Dialog.Title>{lineItem.name}</Dialog.Title>
                 </Dialog.Header>
                 <div class="grid gap-4">
                   <TextAreaField
@@ -620,7 +679,7 @@
                   onkeydown={(e) => handleKeydown(index, e)}
                   onblur={() => (suggestions = [])}
                   autocomplete="off"
-                  disabled={!!product.productId}
+                  disabled={!!lineItem.productId}
                 />
                 {#if $errors.lineItems?.[index]?.name}
                   <p class="text-red-500">{$errors.lineItems[index].name}</p>
@@ -659,10 +718,9 @@
                   </ul>
                 {/if}
               </div>
-              <!-- productId is hidden but part of the form submission -->
               <input
                 type="hidden"
-                name="products[{index}].productId"
+                name="lineItem[{index}].productId"
                 bind:value={$form.lineItems[index].productId}
               />
             </div>
@@ -740,10 +798,10 @@
             />
           </Table.Cell>
           <Table.Cell class="w-16 py-2 text-nowrap">
-            {#if product.quotedPrice > 0}
+            {#if lineItem.quotedPrice > 0}
               {Math.floor(
-                ((product.salePrice - product.actualPrice) /
-                  product.actualPrice) *
+                ((lineItem.salePrice - lineItem.actualPrice) /
+                  lineItem.actualPrice) *
                   100,
               )}%
             {:else}
@@ -751,7 +809,7 @@
             {/if}
           </Table.Cell>
           <Table.Cell class="w-36 py-2 text-nowrap">
-            {formatAmount(product.quantity * product.salePrice)}
+            {formatAmount(lineItem.quantity * lineItem.salePrice)}
           </Table.Cell>
         </Table.Row>
       {/each}
