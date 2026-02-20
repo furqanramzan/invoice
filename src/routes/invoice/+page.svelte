@@ -1,7 +1,8 @@
 <script lang="ts">
   import * as Table from '$lib/components/ui/table';
-  import { Button } from '$lib/components/ui/button';
+  import { Button, buttonVariants } from '$lib/components/ui/button';
   import Trash from '@lucide/svelte/icons/trash';
+  import * as Dialog from '$lib/components/ui/dialog/index.js';
   import Pencil from '@lucide/svelte/icons/pencil';
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Pagination } from '$lib/components/ui/pagination';
@@ -17,6 +18,7 @@
   import NumberField from '$lib/components/form/number-field.svelte';
   import DateField from '$lib/components/form/date-field.svelte';
   import Tooltip from '$lib/components/tooltip.svelte';
+  import { SquareStack } from '@lucide/svelte';
 
   const { data } = $props();
 
@@ -26,6 +28,14 @@
 
   // svelte-ignore state_referenced_locally
   const deleteSuperform = getSuperForm(emptySchema, data.deleteForm);
+  // svelte-ignore state_referenced_locally
+  const statusSuperform = getSuperForm(emptySchema, data.statusForm);
+  const { enhance, submitting } = statusSuperform;
+
+  function getStatusUpdate(status: string) {
+    const index = statuses.findIndex((x) => x.value === status);
+    return statuses.at(index + 1)?.value;
+  }
 </script>
 
 <Heading
@@ -176,6 +186,53 @@
                 <Trash class="h-4 w-4" />
               </ActionForm>
             </Tooltip>
+            {#if invoice.status !== 'paid'}
+              <Tooltip text="Update status">
+                <Dialog.Root>
+                  <Dialog.Trigger
+                    type="button"
+                    class={buttonVariants({ variant: 'success', size: 'icon' })}
+                  >
+                    <SquareStack class="h-4 w-4" />
+                  </Dialog.Trigger>
+                  <Dialog.Content class="sm:max-w-xl">
+                    <form
+                      method="post"
+                      action="?/status&id={invoice.id}"
+                      use:enhance
+                      class="grid gap-4"
+                    >
+                      <Dialog.Header>
+                        <Dialog.Title>
+                          {invoice.company.name} - {invoice.client.name} - {invoice.invoiceNumber}
+                        </Dialog.Title>
+                      </Dialog.Header>
+                      <div class="grid gap-4">
+                        <SelectField
+                          field="status"
+                          superform={statusSuperform}
+                          options={statuses.filter(
+                            (x) => x.value !== invoice.status,
+                          )}
+                          default={getStatusUpdate(invoice.status)}
+                        />
+                      </div>
+                      <Dialog.Footer>
+                        <Dialog.Close
+                          type="button"
+                          class={buttonVariants({ variant: 'outline' })}
+                        >
+                          Cancel
+                        </Dialog.Close>
+                        <Button disabled={$submitting} type="submit">
+                          Update status
+                        </Button>
+                      </Dialog.Footer>
+                    </form>
+                  </Dialog.Content>
+                </Dialog.Root>
+              </Tooltip>
+            {/if}
           </Table.Cell>
         </Table.Row>
       {/each}
