@@ -51,6 +51,9 @@ export function getSuperForm<
   const id = crypto.randomUUID();
 
   return superForm<T, M, In>(params[0], {
+    warnings: {
+      duplicateId: false,
+    },
     onSubmit() {
       toast.loading('Processing...', { id });
     },
