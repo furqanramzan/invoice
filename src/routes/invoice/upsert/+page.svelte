@@ -270,12 +270,6 @@
   }
 
   async function exportData() {
-    if (isTainted($tainted)) {
-      alert(
-        'Please save the form before exporting, or try again after it saves.',
-      );
-      return;
-    }
     await exportPDF($form, company, client);
   }
 </script>
@@ -634,10 +628,8 @@
         ? `Update ${title.singular}`
         : `Create ${title.singular}`}
     </Button>
-    <Button
-      type="button"
-      onclick={() => exportData()}
-      disabled={isTainted($tainted)}>Export to PDF</Button
-    >
+    <Button type="button" onclick={() => exportData()}>
+      Export to PDF
+    </Button>
   </div>
 </form>
