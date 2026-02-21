@@ -100,6 +100,10 @@ export async function exportPDF(
     formatAmount(lineItem.salePrice * lineItem.quantity),
   ]);
   const invoiceNumber = `${client.invoiceNumberInitial}-${invoice.invoiceNumber}`;
+  const total = invoice.lineItems.reduce(
+    (acc, p) => acc + p.quantity * p.salePrice,
+    0,
+  );
   const fileName = `${invoiceNumber} ${invoice.dateOfInvoice.toDateString().replaceAll(' ', '-')} ${company.name} ${invoice.lineItems
     .sort(
       (a, b) =>
@@ -108,10 +112,6 @@ export async function exportPDF(
     .splice(0, 2)
     .map((x) => x.name)
     .join(', ')}.pdf`;
-  const total = invoice.lineItems.reduce(
-    (acc, p) => acc + p.quantity * p.salePrice,
-    0,
-  );
 
   if (company.printLayout === 'B') {
     const doc = new jsPDF({

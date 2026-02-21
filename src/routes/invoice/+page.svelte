@@ -7,7 +7,9 @@
   import { Pagination } from '$lib/components/ui/pagination';
   import { formatCents, formatDate } from '$lib/utils';
   import {
+    exportPDF,
     filterSchema,
+    invoiceSchema,
     route,
     statuses,
     title,
@@ -22,6 +24,10 @@
   import NumberField from '$lib/components/form/number-field.svelte';
   import DateField from '$lib/components/form/date-field.svelte';
   import Tooltip from '$lib/components/tooltip.svelte';
+  import { trpc } from '$lib/trpc.js';
+  import { toast } from 'svelte-sonner';
+  import { validate } from '$lib/validate.js';
+  import { Printer } from '@lucide/svelte';
 
   const { data } = $props();
 
@@ -34,6 +40,22 @@
     emptySchema,
     data.deleteForm,
   );
+
+  async function exportData(id: number) {
+    const response = await trpc().invoice.item.query({ id });
+
+    const data = await validate(response, invoiceSchema);
+    if (!data.validated) {
+      toast.error('Error fetching invoice!');
+      return;
+    }
+
+    await exportPDF(
+      data.data,
+      response.company,
+      response.client,
+    );
+  }
 </script>
 
 <Heading
@@ -204,6 +226,15 @@
           <Table.Cell
             class="flex shrink-0 space-x-2 p-4 text-nowrap"
           >
+            <Tooltip text="Export to PDF">
+              <Button
+                size="icon"
+                variant="success"
+                onclick={() => exportData(invoice.id)}
+              >
+                <Printer class="h-4 w-4" />
+              </Button>
+            </Tooltip>
             <Tooltip text="Edit">
               <Button
                 href={route.upsert + `?id=${invoice.id}`}
