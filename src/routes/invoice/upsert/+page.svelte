@@ -29,10 +29,13 @@
   import SelectField from '$lib/components/form/select-field.svelte';
   import { NotebookPen, Pencil, Trash } from '@lucide/svelte';
   import TextAreaField from '$lib/components/form/text-area-field.svelte';
+  import TextField from '$lib/components/form/text-field.svelte';
 
   let { data } = $props();
   const allProducts = $derived(data.products);
   const isEditing = $derived(!!data.currentInvoice);
+
+  let productNameDialog = $state(false);
 
   // svelte-ignore state_referenced_locally
   const superform = getSuperForm(invoiceSchema, data.form, {
@@ -122,13 +125,6 @@
         receivedPrice: 0,
       },
     ];
-    setTimeout(
-      () =>
-        document
-          .getElementById(`name-${$form.lineItems.length - 1}`)
-          ?.focus(),
-      50,
-    );
   }
 
   function removeLineItem(index: number) {
@@ -217,7 +213,18 @@
     $form.lineItems[index].productId = product.id;
     searchTerm[index] = '';
     suggestions[index] = [];
-    activeSuggestionIndex[index] = -1; // Reset active index
+    activeSuggestionIndex[index] = -1;
+    productNameDialog = false;
+
+    setTimeout(
+      () =>
+        document
+          .getElementById(
+            `lineItems[${$form.lineItems.length - 1}].quantity`,
+          )
+          ?.focus(),
+      50,
+    );
   }
 
   // Reactive block to reset search state when products array changes (e.g., product added/removed)
@@ -291,7 +298,9 @@
     <HiddenField {superform} field="id" />
   {/if}
 
-  <div class="grid grid-cols-3 gap-4">
+  <div
+    class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+  >
     <SelectField
       {superform}
       field="companyId"
@@ -339,7 +348,9 @@
     <SelectField {superform} field="status" options={statuses} />
     <TextAreaField {superform} label="Remarks" field="remarks" />
   </div>
-  <div class="grid grid-cols-3 text-lg font-bold">
+  <div
+    class="grid grid-cols-1 gap-2 text-lg font-bold md:grid-cols-3"
+  >
     <div>
       Actual Price: {formatAmount(actualPrice)}
     </div>
@@ -354,43 +365,104 @@
   </div>
 
   <div class="mb-1 flex items-center gap-2">
-    <Button size="icon-sm" type="button" onclick={addLineItem}>
-      <Plus />
-    </Button>
+    <Dialog.Root bind:open={productNameDialog}>
+      <Dialog.Trigger
+        type="button"
+        class={buttonVariants({
+          size: 'icon-sm',
+        })}
+        onclick={addLineItem}
+      >
+        <Plus class="h-4 w-4" />
+      </Dialog.Trigger>
+      <Dialog.Content class="sm:max-w-xl">
+        {@const index = $form.lineItems.length - 1}
+        <Dialog.Header>
+          <Dialog.Title>Product # {index + 1}</Dialog.Title>
+        </Dialog.Header>
+        <div class="relative">
+          <Input
+            id="product-name-{index}"
+            name="products[{index}].name"
+            bind:value={$form.lineItems[index].name}
+            oninput={(e) =>
+              handleInput(
+                index,
+                (e.target as HTMLInputElement).value,
+              )}
+            onfocus={(e) =>
+              handleInput(
+                index,
+                (e.target as HTMLInputElement).value,
+              )}
+            onkeydown={(e) => handleKeydown(index, e)}
+            onblur={() => (suggestions = [])}
+            autocomplete="off"
+          />
+          {#if $errors.lineItems?.[index]?.name}
+            <p class="text-red-500">
+              {$errors.lineItems[index].name}
+            </p>
+          {/if}
+
+          {#if suggestions[index]?.length > 0}
+            <ul
+              class="
+    absolute z-10 max-h-48 w-full overflow-y-auto rounded-md border
+    border-gray-300 bg-white shadow-lg
+    dark:border-zinc-700 dark:bg-zinc-900
+  "
+            >
+              {#each suggestions[index] as suggestion, sIndex (sIndex)}
+                <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+                <li
+                  class="
+        cursor-pointer px-4 py-2
+        text-gray-900 hover:bg-gray-100
+        dark:text-zinc-100 dark:hover:bg-zinc-800
+      "
+                  class:bg-gray-200={sIndex ===
+                    activeSuggestionIndex[index]}
+                  class:dark:bg-zinc-800={sIndex ===
+                    activeSuggestionIndex[index]}
+                  onmousedown={() =>
+                    selectSuggestion(index, suggestion)}
+                >
+                  {suggestion.name}
+                  <span
+                    class="text-sm text-gray-500 dark:text-zinc-400"
+                  >
+                    ({formatCents(suggestion.actualPrice)}) ({formatCents(
+                      suggestion.salePrice,
+                    )})
+                  </span>
+                </li>
+              {/each}
+            </ul>
+          {/if}
+        </div>
+      </Dialog.Content>
+    </Dialog.Root>
     <h2 class="text-lg font-semibold">Products</h2>
   </div>
-  <p>Drag and drop to reorder them.</p>
-  <Table.Root
-    yVisible
-    class="max-w-full overflow-x-scroll border"
-  >
+  <p>Drag and drop to reorder.</p>
+  <Table.Root class="max-w-full border">
     <Table.Header>
       <Table.Row>
-        <Table.Head class="py-4 text-nowrap"></Table.Head>
-        <Table.Head class="py-4 text-nowrap">#</Table.Head>
-        <Table.Head class="w-2/5 py-4 text-nowrap"
-          >Name</Table.Head
-        >
-        <Table.Head class="py-4 text-nowrap">Quantity</Table.Head
-        >
-        <Table.Head class="py-4 text-nowrap"
-          >Actual cost</Table.Head
-        >
-        <Table.Head class="py-4 text-nowrap"
-          >Quoted cost</Table.Head
-        >
-        <Table.Head class="py-4 text-nowrap"
-          >Sale price</Table.Head
-        >
-        <Table.Head class="py-4 text-nowrap"
-          >Received amount</Table.Head
-        >
-        <Table.Head class="py-4 text-nowrap">Profit</Table.Head>
-        <Table.Head class="py-4 text-nowrap">Total</Table.Head>
+        <Table.Head class="py-4"></Table.Head>
+        <Table.Head class="py-4">#</Table.Head>
+        <Table.Head class="w-2/5 py-4">Name</Table.Head>
+        <Table.Head class="py-4">Quantity</Table.Head>
+        <Table.Head class="py-4">Actual cost</Table.Head>
+        <Table.Head class="py-4">Quoted cost</Table.Head>
+        <Table.Head class="py-4">Sale price</Table.Head>
+        <Table.Head class="py-4">Received amount</Table.Head>
+        <Table.Head class="py-4">Profit</Table.Head>
+        <Table.Head class="py-4">Total</Table.Head>
       </Table.Row>
     </Table.Header>
     <Table.Body>
-      {#each $form.lineItems as lineItem, index (lineItem.id)}
+      {#each $form.lineItems as lineItem, index (index)}
         <Table.Row
           draggable="true"
           ondragstart={(event) => handleDragStart(event, index)}
@@ -399,7 +471,7 @@
           ondrop={(event) => handleDrop(event, index)}
           ondragend={handleDragEnd}
         >
-          <Table.Cell class="py-2 text-nowrap">
+          <Table.Cell class="py-2">
             <Button
               variant="destructive"
               size="icon-sm"
@@ -436,80 +508,23 @@
               </Dialog.Content>
             </Dialog.Root>
           </Table.Cell>
-          <Table.Cell class="py-2 text-nowrap">
+          <Table.Cell class="py-2">
             {index + 1}
           </Table.Cell>
-          <Table.Cell class="py-2 text-nowrap">
-            <div class="product-item">
-              <div class="relative">
-                <Input
-                  id="name-{index}"
-                  name="products[{index}].name"
-                  bind:value={$form.lineItems[index].name}
-                  oninput={(e) =>
-                    handleInput(
-                      index,
-                      (e.target as HTMLInputElement).value,
-                    )}
-                  onfocus={(e) =>
-                    handleInput(
-                      index,
-                      (e.target as HTMLInputElement).value,
-                    )}
-                  onkeydown={(e) => handleKeydown(index, e)}
-                  onblur={() => (suggestions = [])}
-                  autocomplete="off"
-                  disabled={!!lineItem.productId}
-                />
-                {#if $errors.lineItems?.[index]?.name}
-                  <p class="text-red-500">
-                    {$errors.lineItems[index].name}
-                  </p>
-                {/if}
-
-                {#if suggestions[index]?.length > 0}
-                  <ul
-                    class="
-    absolute z-10 max-h-48 w-full overflow-y-auto rounded-md border
-    border-gray-300 bg-white shadow-lg
-    dark:border-zinc-700 dark:bg-zinc-900
-  "
-                  >
-                    {#each suggestions[index] as suggestion, sIndex (sIndex)}
-                      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-                      <li
-                        class="
-        cursor-pointer px-4 py-2
-        text-gray-900 hover:bg-gray-100
-        dark:text-zinc-100 dark:hover:bg-zinc-800
-      "
-                        class:bg-gray-200={sIndex ===
-                          activeSuggestionIndex[index]}
-                        class:dark:bg-zinc-800={sIndex ===
-                          activeSuggestionIndex[index]}
-                        onmousedown={() =>
-                          selectSuggestion(index, suggestion)}
-                      >
-                        {suggestion.name}
-                        <span
-                          class="text-sm text-gray-500 dark:text-zinc-400"
-                        >
-                          ({formatCents(suggestion.actualPrice)})
-                          ({formatCents(suggestion.salePrice)})
-                        </span>
-                      </li>
-                    {/each}
-                  </ul>
-                {/if}
-              </div>
-              <input
-                type="hidden"
-                name="lineItem[{index}].productId"
-                bind:value={$form.lineItems[index].productId}
-              />
-            </div>
+          <Table.Cell class="py-2">
+            <TextField
+              hideLabel
+              {superform}
+              field="lineItems[{index}].name"
+              disabled={Boolean(lineItem.productId)}
+            />
+            <input
+              type="hidden"
+              name="lineItem[{index}].productId"
+              bind:value={$form.lineItems[index].productId}
+            />
           </Table.Cell>
-          <Table.Cell class="py-2 text-nowrap">
+          <Table.Cell class="py-2">
             <NumberField
               {superform}
               field="lineItems[{index}].quantity"
@@ -521,7 +536,7 @@
               }}
             />
           </Table.Cell>
-          <Table.Cell class="py-2 text-nowrap">
+          <Table.Cell class="py-2">
             <NumberField
               {superform}
               field="lineItems[{index}].actualPrice"
@@ -537,7 +552,7 @@
               }}
             />
           </Table.Cell>
-          <Table.Cell class="py-2 text-nowrap">
+          <Table.Cell class="py-2">
             <NumberField
               {superform}
               field="lineItems[{index}].quotedPrice"
@@ -549,7 +564,7 @@
               }}
             />
           </Table.Cell>
-          <Table.Cell class="py-2 text-nowrap">
+          <Table.Cell class="py-2">
             <NumberField
               {superform}
               field="lineItems[{index}].salePrice"
@@ -561,7 +576,7 @@
               }}
             />
           </Table.Cell>
-          <Table.Cell class="py-2 text-nowrap">
+          <Table.Cell class="py-2">
             <NumberField
               {superform}
               field="lineItems[{index}].receivedPrice"
@@ -583,7 +598,7 @@
               }}
             />
           </Table.Cell>
-          <Table.Cell class="w-16 py-2 text-nowrap">
+          <Table.Cell class="w-16 py-2">
             {#if lineItem.quotedPrice > 0}
               {Math.floor(
                 ((lineItem.salePrice - lineItem.actualPrice) /
@@ -594,7 +609,7 @@
               0.00%
             {/if}
           </Table.Cell>
-          <Table.Cell class="w-36 py-2 text-nowrap">
+          <Table.Cell class="w-36 py-2">
             {formatAmount(
               lineItem.quantity * lineItem.salePrice,
             )}

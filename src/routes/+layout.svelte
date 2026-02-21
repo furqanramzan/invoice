@@ -13,6 +13,7 @@
   const flash = getFlash(page);
 
   let { children } = $props();
+  let showNav = $state(false);
 
   $effect(() => {
     if ($flash?.type === 'success') {
@@ -34,15 +35,41 @@
   closeButton
 />
 
-<nav class="flex bg-gray-100 p-4 dark:bg-gray-900">
-  <div class="mx-auto max-w-7xl min-w-7xl">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center space-x-4">
-        <a href={resolve('/')} class="text-lg font-bold"
-          >Invoice App</a
+<nav class="bg-gray-100 p-4 dark:bg-gray-900">
+  <div class="mx-auto max-w-7xl">
+    <div
+      class="flex flex-col items-center justify-between space-y-4 sm:flex-row sm:space-y-0"
+    >
+      <div class="flex items-center justify-between space-x-4">
+        <a href={resolve('/')} class="text-lg font-bold">
+          Invoice App
+        </a>
+        <button
+          class="block rounded-md p-2 focus:ring-2 focus:ring-white focus:outline-none focus:ring-inset sm:hidden"
+          onclick={() => (showNav = !showNav)}
+          aria-label="Show hide navbar"
         >
+          <svg
+            class="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            ></path>
+          </svg>
+        </button>
       </div>
-      <div class="flex items-center space-x-4">
+
+      <div
+        class="flex w-full flex-col items-center space-y-2 sm:w-auto sm:flex-row sm:space-y-0 sm:space-x-4
+        {showNav ? 'flex' : 'hidden'} sm:flex"
+      >
         <a href={resolve('/invoice')} class="text-sm">Invoices</a
         >
         <a href={resolve('/invoice/upsert')} class="text-sm"
@@ -71,6 +98,6 @@
   </div>
 </nav>
 
-<div class="mx-auto my-5 max-w-7xl min-w-7xl space-y-4">
+<div class="mx-auto my-5 max-w-7xl space-y-4 max-sm:px-3">
   {@render children()}
 </div>

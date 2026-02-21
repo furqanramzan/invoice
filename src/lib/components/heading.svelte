@@ -10,7 +10,7 @@
   let { title, link }: Props = $props();
 </script>
 
-<div class="flex items-center justify-between">
+<div class="flex flex-wrap items-center justify-between gap-2">
   <h1
     class="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance"
   >

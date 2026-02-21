@@ -60,7 +60,7 @@
     <div class="space-y-2" id="locations">
       {#each $form.locations as location, index (index)}
         {#if !location.deleted}
-          <div class="flex gap-2">
+          <div class="flex flex-wrap gap-2 sm:flex-nowrap">
             <TextField
               hideLabel
               {superform}
