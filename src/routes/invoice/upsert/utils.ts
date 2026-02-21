@@ -55,6 +55,7 @@ export const invoiceSchema = z.object({
   attachmentUrls: multiUrlSchema,
   attachments: multiFileSchema,
 });
+export type InvoiceSchema = z.infer<typeof invoiceSchema>;
 
 export const filterSchema = z.object({
   companyId: z.coerce.number().optional().nullable(),

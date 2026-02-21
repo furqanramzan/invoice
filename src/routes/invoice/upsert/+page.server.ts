@@ -8,6 +8,7 @@ import {
   invoiceSchema,
   route,
   title,
+  type InvoiceSchema,
   type InvoiceStatus,
 } from './utils';
 import { eq, sql } from 'drizzle-orm';
@@ -49,13 +50,20 @@ export const load = async (event) => {
       event.parent(),
       db.query.Products.findMany(),
     ]);
-  const transactionIndex = products.findIndex(
+  const transaction = products.find(
     (x) => x.name === 'Transportation',
   );
-  const transaction = products[transactionIndex];
+  const lineItems: InvoiceSchema['lineItems'] = [];
   if (transaction) {
-    products.splice(transactionIndex, 1);
-    products.unshift(transaction);
+    lineItems.push({
+      quantity: 1,
+      receivedPrice: 0,
+      name: transaction.name,
+      productId: transaction.id,
+      actualPrice: convertCents(transaction.actualPrice),
+      quotedPrice: convertCents(transaction.quotedPrice),
+      salePrice: convertCents(transaction.salePrice),
+    });
   }
 
   const invoiceNumbers = await db
@@ -76,8 +84,7 @@ export const load = async (event) => {
     currentInvoice
       ? {
           ...currentInvoice,
-          status:
-            currentInvoice.status as unknown as InvoiceStatus,
+          status: currentInvoice.status as InvoiceStatus,
           receivedAmount: currentInvoice.receivedAmount
             ? convertCents(currentInvoice.receivedAmount)
             : undefined,
@@ -96,6 +103,7 @@ export const load = async (event) => {
           ),
         }
       : {
+          lineItems,
           invoiceNumber,
           companyId: companies.at(0)?.id,
           clientId: clients.at(0)?.id,
