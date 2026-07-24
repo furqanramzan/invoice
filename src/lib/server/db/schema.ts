@@ -37,6 +37,7 @@ export const Products = sqliteTable('products', {
   actualPrice: integer('actual_price').notNull(),
   quotedPrice: integer('quoted_price').notNull(),
   salePrice: integer('sale_price').notNull(),
+  stock: integer('stock').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .default(sql`(unixepoch())`)
     .notNull(),

@@ -143,6 +143,7 @@ export async function POST() {
             actualPrice: item.actualPrice,
             quotedPrice: item.quotedPrice,
             salePrice: item.salePrice,
+            stock: 0,
             companyId: 1,
             createdAt: new Date(),
           };

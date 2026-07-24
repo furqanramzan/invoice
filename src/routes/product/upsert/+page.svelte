@@ -47,4 +47,5 @@
   <NumberField {superform} field="actualPrice" />
   <NumberField {superform} field="quotedPrice" />
   <NumberField {superform} field="salePrice" />
+  <NumberField {superform} field="stock" />
 </Form>

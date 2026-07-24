@@ -80,6 +80,7 @@
         <Table.Head class="p-4 text-nowrap"
           >Sale Price</Table.Head
         >
+        <Table.Head class="p-4 text-nowrap">Stock</Table.Head>
         <Table.Head class="p-4 text-nowrap">Actions</Table.Head>
       </Table.Row>
     </Table.Header>
@@ -100,6 +101,9 @@
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
             {formatCents(product.salePrice)}
+          </Table.Cell>
+          <Table.Cell class="p-4 text-nowrap">
+            {product.stock}
           </Table.Cell>
           <Table.Cell
             class="flex shrink-0 space-x-2 p-4 text-nowrap"

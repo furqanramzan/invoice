@@ -24,4 +24,5 @@ export const productSchema = z.object({
   salePrice: z
     .number()
     .min(0, { message: 'Sale price cannot be negative' }),
+  stock: z.number().min(0, { message: 'Stock cannot be negative' }),
 });
