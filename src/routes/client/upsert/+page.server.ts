@@ -32,12 +32,16 @@ export const load = async (event) => {
     }
   }
 
+  const { companies } = await event.parent();
+
   const form = await initForm(
     clientSchema,
-    currentClient ?? { locations: [{ address: '' }] },
+    currentClient
+      ? { ...currentClient, companyId: currentClient.companyId }
+      : { locations: [{ address: '' }], companyId: companies.at(0)?.id },
   );
 
-  return { form, currentClient };
+  return { form, currentClient, companies };
 };
 
 export const actions = {

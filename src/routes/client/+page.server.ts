@@ -15,14 +15,22 @@ export async function load(event) {
 
   const { page, offset, limit } = getPaginationData(event);
 
+  const companyId = Number(event.url.searchParams.get('companyId'));
+
+  const where = companyId
+    ? eq(Clients.companyId, companyId)
+    : undefined;
+
   const [allClients, [{ count: totalClients }]] =
     await Promise.all([
       db.query.Clients.findMany({
         limit,
         offset,
         orderBy: desc(Clients.createdAt),
+        where,
+        with: { company: { columns: { name: true } } },
       }),
-      db.select({ count: count() }).from(Clients),
+      db.select({ count: count() }).from(Clients).where(where),
     ]);
 
   return {
@@ -30,6 +38,7 @@ export async function load(event) {
     clients: allClients,
     currentPage: page,
     totalPages: Math.ceil(totalClients / limit),
+    selectedCompanyId: companyId,
   };
 }
 

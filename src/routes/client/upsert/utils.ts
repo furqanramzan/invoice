@@ -13,6 +13,7 @@ export const route = {
 
 export const clientSchema = z.object({
   id: z.number().positive().optional(),
+  companyId: z.coerce.number().positive(),
   name: z.string().min(1, { message: 'Name is required' }),
   locations: z
     .object({

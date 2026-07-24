@@ -151,6 +151,10 @@ export const Companies = sqliteTable('companies', {
 
 export const Clients = sqliteTable('clients', {
   id: integer('id', { mode: 'number' }).primaryKey(),
+  companyId: integer('company_id', { mode: 'number' })
+    .notNull()
+    .default(1)
+    .references(() => Companies.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   invoiceNumberInitial: text('inoive_number_initial').notNull(),
   attention: text('attention'),
@@ -169,10 +173,21 @@ export const Locations = sqliteTable('locations', {
     .references(() => Clients.id, { onDelete: 'cascade' }),
 });
 
+export const CompaniesRelations = relations(
+  Companies,
+  ({ many }) => ({
+    clients: many(Clients),
+  }),
+);
+
 export const ClientsRelations = relations(
   Clients,
-  ({ many }) => ({
+  ({ many, one }) => ({
     locations: many(Locations),
+    company: one(Companies, {
+      fields: [Clients.companyId],
+      references: [Companies.id],
+    }),
   }),
 );
 
