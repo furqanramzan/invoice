@@ -35,6 +35,12 @@
   const superform = getSuperForm(filterSchema, data.form);
   const { form } = superform;
 
+  let filteredClients = $derived(
+    $form.companyId
+      ? data.clients.filter((x) => x.companyId === $form.companyId)
+      : data.clients,
+  );
+
   // svelte-ignore state_referenced_locally
   const deleteSuperform = getSuperForm(
     emptySchema,
@@ -84,7 +90,7 @@
     {superform}
     field="clientId"
     label="Client"
-    options={data.clients.map((cl) => ({
+    options={filteredClients.map((cl) => ({
       label: cl.name,
       value: cl.id,
     }))}
