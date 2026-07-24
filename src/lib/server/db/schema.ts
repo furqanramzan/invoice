@@ -46,6 +46,7 @@ export const ProductsRelations = relations(
   Products,
   ({ many, one }) => ({
     lineItems: many(LineItems),
+    purchaseItems: many(PurchaseItems),
     company: one(Companies, {
       fields: [Products.companyId],
       references: [Companies.id],
@@ -187,6 +188,8 @@ export const CompaniesRelations = relations(
     clients: many(Clients),
     products: many(Products),
     expenses: many(Expenses),
+    suppliers: many(Suppliers),
+    purchases: many(Purchases),
   }),
 );
 
@@ -241,6 +244,108 @@ export const ExpensesRelations = relations(
   }),
 );
 
+export const Suppliers = sqliteTable('suppliers', {
+  id: integer('id', { mode: 'number' }).primaryKey(),
+  companyId: integer('company_id', { mode: 'number' })
+    .notNull()
+    .default(1)
+    .references(() => Companies.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  email: text('email'),
+  phone: text('phone'),
+  address: text('address'),
+  openingBalance: integer('opening_balance').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
+    .notNull(),
+});
+
+export const SuppliersRelations = relations(Suppliers, ({ many, one }) => ({
+  company: one(Companies, {
+    fields: [Suppliers.companyId],
+    references: [Companies.id],
+  }),
+  purchases: many(Purchases),
+}));
+
+export const Purchases = sqliteTable('purchases', {
+  id: integer('id', { mode: 'number' }).primaryKey(),
+  companyId: integer('company_id', { mode: 'number' })
+    .notNull()
+    .references(() => Companies.id, { onDelete: 'cascade' }),
+  supplierId: integer('supplier_id', { mode: 'number' })
+    .notNull()
+    .references(() => Suppliers.id, { onDelete: 'cascade' }),
+  purchaseNumber: integer('purchase_number').notNull(),
+  date: integer('date', { mode: 'timestamp' }).notNull(),
+  status: text('status').notNull().default('pending'),
+  notes: text('notes'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
+    .notNull(),
+});
+
+export const PurchasesRelations = relations(Purchases, ({ many, one }) => ({
+  company: one(Companies, {
+    fields: [Purchases.companyId],
+    references: [Companies.id],
+  }),
+  supplier: one(Suppliers, {
+    fields: [Purchases.supplierId],
+    references: [Suppliers.id],
+  }),
+  items: many(PurchaseItems),
+  payments: many(PurchasePayments),
+}));
+
+export const PurchaseItems = sqliteTable('purchase_items', {
+  id: integer('id', { mode: 'number' }).primaryKey(),
+  purchaseId: integer('purchase_id', { mode: 'number' })
+    .notNull()
+    .references(() => Purchases.id, { onDelete: 'cascade' }),
+  productId: integer('product_id', { mode: 'number' })
+    .notNull()
+    .references(() => Products.id, { onDelete: 'cascade' }),
+  quantity: integer('quantity').notNull(),
+  unitPrice: integer('unit_price').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
+    .notNull(),
+});
+
+export const PurchaseItemsRelations = relations(PurchaseItems, ({ one }) => ({
+  purchase: one(Purchases, {
+    fields: [PurchaseItems.purchaseId],
+    references: [Purchases.id],
+  }),
+  product: one(Products, {
+    fields: [PurchaseItems.productId],
+    references: [Products.id],
+  }),
+}));
+
+export const PurchasePayments = sqliteTable('purchase_payments', {
+  id: integer('id', { mode: 'number' }).primaryKey(),
+  purchaseId: integer('purchase_id', { mode: 'number' })
+    .notNull()
+    .references(() => Purchases.id, { onDelete: 'cascade' }),
+  amount: integer('amount').notNull(),
+  date: integer('date', { mode: 'timestamp' }).notNull(),
+  method: text('method'),
+  reference: text('reference'),
+  notes: text('notes'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
+    .notNull(),
+});
+
+export const PurchasePaymentsRelations = relations(PurchasePayments, ({ one }) => ({
+  purchase: one(Purchases, {
+    fields: [PurchasePayments.purchaseId],
+    references: [Purchases.id],
+  }),
+}));
+
 export type Sessions = typeof Sessions.$inferSelect;
 export type Users = typeof Users.$inferSelect;
 export type Product = typeof Products.$inferSelect;
@@ -248,3 +353,11 @@ export type ProductInsert = typeof Products.$inferInsert;
 export type Company = typeof Companies.$inferSelect;
 export type Client = typeof Clients.$inferSelect;
 export type Expense = typeof Expenses.$inferSelect;
+export type Supplier = typeof Suppliers.$inferSelect;
+export type SupplierInsert = typeof Suppliers.$inferInsert;
+export type Purchase = typeof Purchases.$inferSelect;
+export type PurchaseInsert = typeof Purchases.$inferInsert;
+export type PurchaseItem = typeof PurchaseItems.$inferSelect;
+export type PurchaseItemInsert = typeof PurchaseItems.$inferInsert;
+export type PurchasePayment = typeof PurchasePayments.$inferSelect;
+export type PurchasePaymentInsert = typeof PurchasePayments.$inferInsert;
