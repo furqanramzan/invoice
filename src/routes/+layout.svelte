@@ -84,6 +84,8 @@
           >Companies</a
         >
         <a href={resolve('/client')} class="text-sm">Clients</a>
+        <a href={resolve('/supplier')} class="text-sm">Suppliers</a>
+        <a href={resolve('/purchase')} class="text-sm">Purchases</a>
         <form
           method="post"
           action="/logout"
