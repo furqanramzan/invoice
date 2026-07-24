@@ -29,6 +29,10 @@ export const Sessions = sqliteTable('sessions', {
 
 export const Products = sqliteTable('products', {
   id: integer('id', { mode: 'number' }).primaryKey(),
+  companyId: integer('company_id', { mode: 'number' })
+    .notNull()
+    .default(1)
+    .references(() => Companies.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   actualPrice: integer('actual_price').notNull(),
   quotedPrice: integer('quoted_price').notNull(),
@@ -40,8 +44,12 @@ export const Products = sqliteTable('products', {
 
 export const ProductsRelations = relations(
   Products,
-  ({ many }) => ({
+  ({ many, one }) => ({
     lineItems: many(LineItems),
+    company: one(Companies, {
+      fields: [Products.companyId],
+      references: [Companies.id],
+    }),
   }),
 );
 
@@ -177,6 +185,7 @@ export const CompaniesRelations = relations(
   Companies,
   ({ many }) => ({
     clients: many(Clients),
+    products: many(Products),
   }),
 );
 

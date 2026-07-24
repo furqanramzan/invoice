@@ -27,6 +27,8 @@ export const load = async (event) => {
     }
   }
 
+  const { companies } = await event.parent();
+
   const form = await initForm(
     productSchema,
     currentProduct
@@ -36,10 +38,10 @@ export const load = async (event) => {
           quotedPrice: convertCents(currentProduct.quotedPrice),
           salePrice: convertCents(currentProduct.salePrice),
         }
-      : undefined,
+      : { companyId: companies.at(0)?.id },
   );
 
-  return { form, currentProduct };
+  return { form, currentProduct, companies };
 };
 
 export const actions = {

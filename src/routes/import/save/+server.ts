@@ -129,6 +129,7 @@ export async function POST() {
               actualPrice: item.actualPrice,
               quotedPrice: item.quotedPrice,
               salePrice: item.salePrice,
+              companyId: 1,
               createdAt: new Date(),
             })
             .returning({ id: Products.id });
@@ -142,6 +143,7 @@ export async function POST() {
             actualPrice: item.actualPrice,
             quotedPrice: item.quotedPrice,
             salePrice: item.salePrice,
+            companyId: 1,
             createdAt: new Date(),
           };
           currentProduct = tempProduct;

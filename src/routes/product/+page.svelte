@@ -12,8 +12,21 @@
   import { getSuperForm } from '$lib/superforms.js';
   import { emptySchema } from '$lib/validations.js';
   import Tooltip from '$lib/components/tooltip.svelte';
+  import Label from '$lib/components/ui/label/label.svelte';
 
   const { data } = $props();
+
+  function onCompanyChange(e: Event) {
+    const target = e.target as HTMLSelectElement;
+    const value = target.value;
+    const url = new URL(window.location.href);
+    if (value) {
+      url.searchParams.set('companyId', value);
+    } else {
+      url.searchParams.delete('companyId');
+    }
+    window.location.href = url.toString();
+  }
 
   // svelte-ignore state_referenced_locally
   const superform = getSuperForm(emptySchema, data.form);
@@ -27,6 +40,25 @@
   }}
 />
 
+<div class="mb-4 flex items-center gap-2">
+  <Label for="company-filter">Company</Label>
+  <select
+    id="company-filter"
+    class="block w-64 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+    onchange={onCompanyChange}
+  >
+    <option value="">All Companies</option>
+    {#each data.companies as company (company.id)}
+      <option
+        value={company.id}
+        selected={data.selectedCompanyId === company.id}
+      >
+        {company.name}
+      </option>
+    {/each}
+  </select>
+</div>
+
 {#if data.products.length === 0}
   <p>No products yet. Create one!</p>
 {:else}
@@ -38,6 +70,7 @@
         <Table.Head class="p-4 text-nowrap"
           >Product Name</Table.Head
         >
+        <Table.Head class="p-4 text-nowrap">Company</Table.Head>
         <Table.Head class="p-4 text-nowrap"
           >Actual Price</Table.Head
         >
@@ -55,6 +88,9 @@
         <Table.Row>
           <Table.Cell class="p-4 text-nowrap"
             >{product.name}</Table.Cell
+          >
+          <Table.Cell class="p-4 text-nowrap"
+            >{product.company?.name ?? '-'}</Table.Cell
           >
           <Table.Cell class="p-4 text-nowrap">
             {formatCents(product.actualPrice)}
