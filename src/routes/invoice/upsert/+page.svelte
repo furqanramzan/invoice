@@ -32,7 +32,6 @@
   import TextField from '$lib/components/form/text-field.svelte';
 
   let { data } = $props();
-  const allProducts = $derived(data.products);
   const isEditing = $derived(!!data.currentInvoice);
 
   let productNameDialog = $state(false);
@@ -50,6 +49,12 @@
     submitting,
   } = superform;
 
+  let filteredClients = $derived(
+    data.clients.filter((x) => x.companyId === $form.companyId),
+  );
+  let companyProducts = $derived(
+    data.products.filter((x) => x.companyId === $form.companyId),
+  );
   let locations = $derived(
     data.locations.filter((x) => x.clientId === $form.clientId),
   );
@@ -171,7 +176,7 @@
     data.companies.find((x) => x.id === $form.companyId),
   );
   let client = $derived(
-    data.clients.find((x) => x.id === $form.clientId),
+    filteredClients.find((x) => x.id === $form.clientId),
   );
   let invoiceNumber = $derived(
     (data.invoiceNumbers.find(
@@ -192,14 +197,14 @@
   function handleInput(index: number, value: string) {
     searchTerm[index] = value;
     if (value.length > 0) {
-      suggestions[index] = allProducts.filter((p) =>
+      suggestions[index] = companyProducts.filter((p) =>
         p.name.toLowerCase().includes(value.toLowerCase()),
       );
-      activeSuggestionIndex[index] = -1; // Reset active index when input changes
+      activeSuggestionIndex[index] = -1;
     } else {
-      suggestions[index] = allProducts;
+      suggestions[index] = companyProducts;
     }
-    activeSuggestionIndex[index] = -1; // Reset active index when input changes
+    activeSuggestionIndex[index] = -1;
   }
 
   function selectSuggestion(index: number, product: Product) {
@@ -314,7 +319,7 @@
       {superform}
       field="clientId"
       label="Client"
-      options={data.clients.map((x) => ({
+      options={filteredClients.map((x) => ({
         label: x.name,
         value: x.id,
       }))}

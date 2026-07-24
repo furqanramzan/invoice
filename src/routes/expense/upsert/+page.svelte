@@ -5,6 +5,7 @@
   import DateField from '$lib/components/form/date-field.svelte';
   import TextAreaField from '$lib/components/form/text-area-field.svelte';
   import HiddenField from '$lib/components/form/hidden-field.svelte';
+  import SelectField from '$lib/components/form/select-field.svelte';
   import Form from '$lib/components/form/form.svelte';
   import Heading from '$lib/components/heading.svelte';
   import { getSuperForm } from '$lib/superforms.js';
@@ -37,6 +38,16 @@
   {#if isEditing}
     <HiddenField {superform} field="id" />
   {/if}
+
+  <SelectField
+    {superform}
+    field="companyId"
+    label="Company"
+    options={data.companies.map((x) => ({
+      label: x.name,
+      value: x.id,
+    }))}
+  />
 
   <TextField {superform} field="title" />
   <NumberField {superform} field="amount" />

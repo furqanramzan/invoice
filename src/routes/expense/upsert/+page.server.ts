@@ -28,6 +28,8 @@ export const load = async (event) => {
     }
   }
 
+  const { companies } = await event.parent();
+
   const form = await initForm(
     expenseSchema,
     currentExpense
@@ -35,10 +37,10 @@ export const load = async (event) => {
           ...currentExpense,
           amount: convertCents(currentExpense.amount),
         }
-      : { date: new Date(), attachmentUrls: [] },
+      : { date: new Date(), attachmentUrls: [], companyId: companies.at(0)?.id },
   );
 
-  return { form, currentExpense };
+  return { form, currentExpense, companies };
 };
 
 export const actions = {

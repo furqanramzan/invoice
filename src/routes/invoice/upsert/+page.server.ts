@@ -50,8 +50,13 @@ export const load = async (event) => {
       event.parent(),
       db.query.Products.findMany(),
     ]);
+
+  const defaultCompanyId = companies.at(0)?.id;
+
   const transaction = products.find(
-    (x) => x.name === 'Transportation',
+    (x) =>
+      x.name === 'Transportation' &&
+      x.companyId === defaultCompanyId,
   );
   const lineItems: InvoiceSchema['lineItems'] = [];
   if (transaction) {
@@ -76,8 +81,12 @@ export const load = async (event) => {
     .groupBy(Invoices.companyId, Invoices.clientId);
   const invoiceNumber =
     (invoiceNumbers.find(
-      (x) => x.companyId === companies.at(0)?.id,
+      (x) => x.companyId === defaultCompanyId,
     )?.invoiceNumber || 0) + 1;
+
+  const defaultClient = clients.find(
+    (x) => x.companyId === defaultCompanyId,
+  );
 
   const form = await initForm(
     invoiceSchema,
@@ -105,10 +114,10 @@ export const load = async (event) => {
       : {
           lineItems,
           invoiceNumber,
-          companyId: companies.at(0)?.id,
-          clientId: clients.at(0)?.id,
+          companyId: defaultCompanyId,
+          clientId: defaultClient?.id,
           locationId: locations.find(
-            (x) => x.clientId === clients.at(0)?.id,
+            (x) => x.clientId === defaultClient?.id,
           )?.id,
           dateOfDelivery: new Date(),
           dateOfInvoice: new Date(),
@@ -155,6 +164,7 @@ export const actions = {
             .values({
               id: p.productId,
               ...productData,
+              companyId: invoiceData.companyId,
             })
             .onConflictDoUpdate({
               target: productsSchema.id,

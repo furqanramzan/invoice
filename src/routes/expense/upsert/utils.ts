@@ -17,6 +17,7 @@ export const route = {
 
 export const expenseSchema = z.object({
   id: z.number().positive().optional(),
+  companyId: z.coerce.number().positive(),
   title: z.string().min(1, { message: 'Title is required' }),
   amount: z
     .number()

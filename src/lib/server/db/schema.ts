@@ -186,6 +186,7 @@ export const CompaniesRelations = relations(
   ({ many }) => ({
     clients: many(Clients),
     products: many(Products),
+    expenses: many(Expenses),
   }),
 );
 
@@ -212,6 +213,10 @@ export const LocationsRelations = relations(
 
 export const Expenses = sqliteTable('expenses', {
   id: integer('id', { mode: 'number' }).primaryKey(),
+  companyId: integer('company_id', { mode: 'number' })
+    .notNull()
+    .default(1)
+    .references(() => Companies.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   amount: integer('amount').notNull(),
   date: integer('date', { mode: 'timestamp' }).notNull(),
@@ -225,6 +230,16 @@ export const Expenses = sqliteTable('expenses', {
     .default(sql`(unixepoch())`)
     .notNull(),
 });
+
+export const ExpensesRelations = relations(
+  Expenses,
+  ({ one }) => ({
+    company: one(Companies, {
+      fields: [Expenses.companyId],
+      references: [Companies.id],
+    }),
+  }),
+);
 
 export type Sessions = typeof Sessions.$inferSelect;
 export type Users = typeof Users.$inferSelect;
