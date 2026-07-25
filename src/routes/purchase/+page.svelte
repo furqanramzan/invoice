@@ -7,6 +7,8 @@
   import { resolve } from '$app/paths';
   import { Pagination } from '$lib/components/ui/pagination';
   import { cn, formatAmount } from '$lib/utils';
+  import { Badge } from '$lib/components/ui/badge/index.js';
+  import { titleCase } from 'text-case';
   import Heading from '$lib/components/heading.svelte';
   import { route, title } from './upsert/utils.js';
   import ActionForm from '$lib/components/form/action-form.svelte';
@@ -93,7 +95,23 @@
             {formatAmount(purchase.totalAmount)}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap">
-            {purchase.status}
+            {#if purchase.status === 'pending'}
+              <Badge class="bg-yellow-500"
+                >{titleCase(purchase.status)}</Badge
+              >
+            {:else if purchase.status === 'partial'}
+              <Badge class="bg-blue-500"
+                >{titleCase(purchase.status)}</Badge
+              >
+            {:else if purchase.status === 'paid'}
+              <Badge class="bg-green-500"
+                >{titleCase(purchase.status)}</Badge
+              >
+            {:else if purchase.status === 'cancelled'}
+              <Badge class="bg-red-500"
+                >{titleCase(purchase.status)}</Badge
+              >
+            {/if}
           </Table.Cell>
           <Table.Cell class="p-4 text-nowrap"
             >{purchase.company?.name ?? '-'}</Table.Cell

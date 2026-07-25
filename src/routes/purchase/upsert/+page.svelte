@@ -12,7 +12,8 @@
   import Heading from '$lib/components/heading.svelte';
   import { getSuperForm } from '$lib/superforms.js';
   import HiddenField from '$lib/components/form/hidden-field.svelte';
-  import { formatAmount, randomInt } from '$lib/utils.js';
+  import * as Dialog from '$lib/components/ui/dialog/index.js';
+  import { formatAmount, formatCents, randomInt } from '$lib/utils.js';
   import DateField from '$lib/components/form/date-field.svelte';
   import NumberField from '$lib/components/form/number-field.svelte';
   import SelectField from '$lib/components/form/select-field.svelte';
@@ -22,6 +23,8 @@
 
   let { data } = $props();
   const isEditing = $derived(!!data.currentPurchase);
+
+  let purchaseItemDialog = $state(false);
 
   // svelte-ignore state_referenced_locally
   const superform = getSuperForm(purchaseSchema, data.form, {
@@ -89,6 +92,17 @@
     searchTerm[index] = '';
     suggestions[index] = [];
     activeSuggestionIndex[index] = -1;
+    purchaseItemDialog = false;
+
+    setTimeout(
+      () =>
+        document
+          .getElementById(
+            `items[${$form.items.length - 1}].quantity`,
+          )
+          ?.focus(),
+      50,
+    );
   }
 
   $effect(() => {
@@ -181,15 +195,72 @@
     <TextAreaField {superform} label="Notes" field="notes" />
   </div>
 
-  <div class="flex items-center gap-2">
-    <Button
-      type="button"
-      variant="outline"
-      size="icon-sm"
-      onclick={addItem}
-    >
-      <Plus class="h-4 w-4" />
-    </Button>
+  <div class="mb-1 flex items-center gap-2">
+    <Dialog.Root bind:open={purchaseItemDialog}>
+      <Dialog.Trigger
+        type="button"
+        class={buttonVariants({ size: 'icon-sm' })}
+        onclick={addItem}
+      >
+        <Plus class="h-4 w-4" />
+      </Dialog.Trigger>
+      <Dialog.Content class="sm:max-w-xl">
+        {@const index = $form.items.length - 1}
+        <Dialog.Header>
+          <Dialog.Title>Item # {index + 1}</Dialog.Title>
+        </Dialog.Header>
+        <div class="relative">
+          <Input
+            id="item-name-{index}"
+            name="items[{index}].name"
+            bind:value={$form.items[index].name}
+            oninput={(e) =>
+              handleInput(
+                index,
+                (e.target as HTMLInputElement).value,
+              )}
+            onfocus={(e) =>
+              handleInput(
+                index,
+                (e.target as HTMLInputElement).value,
+              )}
+            onkeydown={(e) => handleKeydown(index, e)}
+            onblur={() => (suggestions = [])}
+            autocomplete="off"
+          />
+          {#if $errors.items?.[index]?.name}
+            <p class="text-red-500">
+              {$errors.items[index].name}
+            </p>
+          {/if}
+          {#if suggestions[index]?.length > 0}
+            <ul
+              class="absolute z-10 max-h-48 w-full overflow-y-auto rounded-md border border-input bg-background shadow-lg"
+            >
+              {#each suggestions[index] as suggestion, sIndex (sIndex)}
+                <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+                <li
+                  class="cursor-pointer px-4 py-2 hover:bg-accent hover:text-accent-foreground"
+                  class:bg-accent={sIndex ===
+                    activeSuggestionIndex[index]}
+                  class:text-accent-foreground={sIndex ===
+                    activeSuggestionIndex[index]}
+                  onmousedown={() =>
+                    selectSuggestion(index, suggestion)}
+                >
+                  {suggestion.name}
+                  <span
+                    class="text-sm text-muted-foreground"
+                  >
+                    ({formatCents(suggestion.salePrice)})
+                  </span>
+                </li>
+              {/each}
+            </ul>
+          {/if}
+        </div>
+      </Dialog.Content>
+    </Dialog.Root>
     <h2 class="text-lg font-semibold">Items</h2>
   </div>
 
@@ -209,61 +280,17 @@
         <Table.Row>
           <Table.Cell class="py-2">{index + 1}</Table.Cell>
           <Table.Cell class="py-2">
-            <div class="relative">
-              <Input
-                name="items[{index}].name"
-                bind:value={$form.items[index].name}
-                placeholder="Search product..."
-                autocomplete="off"
-                oninput={(e) =>
-                  handleInput(
-                    index,
-                    (e.target as HTMLInputElement).value,
-                  )}
-                onfocus={(e) =>
-                  handleInput(
-                    index,
-                    (e.target as HTMLInputElement).value,
-                  )}
-                onkeydown={(e) => handleKeydown(index, e)}
-                onblur={() => {
-                  setTimeout(
-                    () => (suggestions[index] = []),
-                    200,
-                  );
-                }}
-              />
-              <input
-                type="hidden"
-                name="items[{index}].productId"
-                bind:value={$form.items[index].productId}
-              />
-              {#if $errors.items?.[index]?.name}
-                <p class="text-red-500 text-xs">
-                  {$errors.items[index].name}
-                </p>
-              {/if}
-              {#if suggestions[index]?.length > 0}
-                <ul
-                  class="absolute z-10 max-h-48 w-full overflow-y-auto rounded-md border border-input bg-background shadow-lg"
-                >
-                  {#each suggestions[index] as suggestion, sIndex (sIndex)}
-                    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-                    <li
-                      class="cursor-pointer px-4 py-2 hover:bg-accent hover:text-accent-foreground"
-                      class:bg-accent={sIndex ===
-                        activeSuggestionIndex[index]}
-                      class:text-accent-foreground={sIndex ===
-                        activeSuggestionIndex[index]}
-                      onmousedown={() =>
-                        selectSuggestion(index, suggestion)}
-                    >
-                      {suggestion.name}
-                    </li>
-                  {/each}
-                </ul>
-              {/if}
-            </div>
+            <TextField
+              {superform}
+              field="items[{index}].name"
+              disabled={$form.items[index].productId > 0}
+              hideLabel
+            />
+            <input
+              type="hidden"
+              name="items[{index}].productId"
+              bind:value={$form.items[index].productId}
+            />
           </Table.Cell>
           <Table.Cell class="py-2">
             <NumberField

@@ -18,10 +18,26 @@ export const statuses = [
   { value: 'cancelled', color: 'red' },
 ];
 
+export const paymentMethods = [
+  { value: 'Cash', color: 'green' },
+  { value: 'Bank Transfer', color: 'blue' },
+  { value: 'Check', color: 'yellow' },
+  { value: 'Credit Card', color: 'purple' },
+  { value: 'Other', color: 'gray' },
+];
+
+const paymentMethod = z.enum([
+  'Cash',
+  'Bank Transfer',
+  'Check',
+  'Credit Card',
+  'Other',
+]);
+
 export const paymentSchema = z.object({
   amount: z.coerce.number().min(0, 'Amount is required'),
   date: z.date(),
-  method: z.string().optional().nullable(),
+  method: paymentMethod.optional().nullable(),
   reference: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
 });

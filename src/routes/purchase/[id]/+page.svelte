@@ -3,12 +3,13 @@
   import { Button } from '$lib/components/ui/button';
   import * as Table from '$lib/components/ui/table';
   import { Badge } from '$lib/components/ui/badge';
-  import { statuses, route, title, paymentSchema } from './utils.js';
+  import { statuses, route, title, paymentSchema, paymentMethods } from './utils.js';
   import { formatCents, cn } from '$lib/utils.js';
   import { getSuperForm } from '$lib/superforms.js';
   import Form from '$lib/components/form/form.svelte';
   import NumberField from '$lib/components/form/number-field.svelte';
   import DateField from '$lib/components/form/date-field.svelte';
+  import SelectField from '$lib/components/form/select-field.svelte';
   import TextField from '$lib/components/form/text-field.svelte';
 
   const { data } = $props();
@@ -225,11 +226,14 @@
               superform={paymentSuperform}
               field="date"
             />
-            <TextField
+            <SelectField
               superform={paymentSuperform}
               field="method"
               label="Method"
-              placeholder="e.g. Cash, Bank Transfer"
+              options={paymentMethods.map((x) => ({
+                label: x.value,
+                value: x.value,
+              }))}
             />
             <TextField
               superform={paymentSuperform}
