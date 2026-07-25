@@ -70,6 +70,9 @@
         class="flex w-full flex-col items-center space-y-2 sm:w-auto sm:flex-row sm:space-y-0 sm:space-x-4
         {showNav ? 'flex' : 'hidden'} sm:flex"
       >
+        <a href={resolve('/dashboard')} class="text-sm"
+          >Dashboard</a
+        >
         <a href={resolve('/invoice')} class="text-sm">Invoices</a
         >
         <a href={resolve('/invoice/upsert')} class="text-sm"

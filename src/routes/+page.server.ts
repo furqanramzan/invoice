@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   // To prevent already logged in user from accessing login page
   if (locals.user) {
-    redirect(302, resolve('/invoice'));
+    redirect(302, resolve('/dashboard'));
   }
   const form = await superValidate(zod4(loginSchema));
   return { form };
@@ -69,6 +69,6 @@ export const actions: Actions = {
 
     await createSessionToken(event, existingUser.id);
 
-    return redirect(302, resolve('/invoice'));
+    return redirect(302, resolve('/dashboard'));
   },
 };
