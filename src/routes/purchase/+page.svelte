@@ -3,6 +3,7 @@
   import { Button } from '$lib/components/ui/button';
   import Trash from '@lucide/svelte/icons/trash';
   import Pencil from '@lucide/svelte/icons/pencil';
+  import Eye from '@lucide/svelte/icons/eye';
   import { resolve } from '$app/paths';
   import { Pagination } from '$lib/components/ui/pagination';
   import { cn, formatAmount } from '$lib/utils';
@@ -100,6 +101,15 @@
           <Table.Cell
             class="flex shrink-0 space-x-2 p-4 text-nowrap"
           >
+            <Tooltip text="View">
+              <Button
+                href={resolve(`/purchase/${purchase.id}`)}
+                variant="outline"
+                size="icon"
+              >
+                <Eye class="h-4 w-4" />
+              </Button>
+            </Tooltip>
             <Tooltip text="Edit">
               <Button
                 href={resolve(`/purchase/upsert`) +

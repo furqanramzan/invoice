@@ -6,6 +6,7 @@ import {
 } from '$lib/server/db/schema';
 import { purchaseSchema, route, title } from './utils';
 import { eq, sql } from 'drizzle-orm';
+import { convertToCents } from '$lib/utils.js';
 import {
   initForm,
   redirectTo,
@@ -129,7 +130,7 @@ export const actions = {
             purchaseId: form.data.id!,
             productId: item.productId,
             quantity: item.quantity,
-            unitPrice: Math.round(item.unitPrice * 100),
+            unitPrice: convertToCents(item.unitPrice),
           })),
         );
 
