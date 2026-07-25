@@ -1,6 +1,10 @@
 import { db } from '$lib/server/db';
-import { Invoices } from '$lib/server/db/schema';
-import { and, count, desc, eq, gte, lte } from 'drizzle-orm';
+import {
+  Invoices,
+  LineItems,
+  Products,
+} from '$lib/server/db/schema';
+import { and, count, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import { itemSchema } from '$lib/validations.js';
 import {
   getPaginationData,
@@ -86,7 +90,12 @@ export const actions = {
 
     const invoice = await db.query.Invoices.findFirst({
       where: eq(Invoices.id, form.data.id),
-      columns: { attachmentUrls: true },
+      columns: { status: true, attachmentUrls: true },
+      with: {
+        lineItems: {
+          columns: { productId: true, quantity: true },
+        },
+      },
     });
     if (!invoice) {
       return sendMessage(
@@ -94,6 +103,20 @@ export const actions = {
         `${title.singular} not found!`,
         'error',
       );
+    }
+
+    if (
+      invoice.status !== 'draft' &&
+      invoice.lineItems?.length
+    ) {
+      for (const item of invoice.lineItems) {
+        await db
+          .update(Products)
+          .set({
+            stock: sql`${Products.stock} + ${item.quantity}`,
+          })
+          .where(eq(Products.id, item.productId));
+      }
     }
 
     if (invoice.attachmentUrls?.length) {

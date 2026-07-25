@@ -16,6 +16,7 @@ import {
   initForm,
   validateAction,
   redirectTo,
+  sendMessage,
 } from '$lib/superforms';
 import { delFile, putFile } from '$lib/server/filesystem.js';
 import { convertCents, convertToCents } from '$lib/utils.js';
@@ -149,6 +150,29 @@ export const actions = {
       ...invoiceData
     } = form.data;
 
+    const isNonDraft = invoiceData.status !== 'draft';
+
+    if (isNonDraft) {
+      for (const item of products) {
+        if (item.productId) {
+          const product = await db.query.Products.findFirst({
+            where: eq(productsSchema.id, item.productId),
+            columns: { stock: true },
+          });
+          if (
+            !product ||
+            (product.stock ?? 0) < item.quantity
+          ) {
+            return sendMessage(
+              form,
+              `Insufficient stock for "${item.name}". Available: ${product?.stock ?? 0}, needed: ${item.quantity}`,
+              'error',
+            );
+          }
+        }
+      }
+    }
+
     await db.transaction(async (tx) => {
       const processedProducts = await Promise.all(
         products.map(async (p) => {
@@ -245,12 +269,33 @@ export const actions = {
       };
 
       if (id) {
+        const oldInvoice = await tx.query.Invoices.findFirst({
+          where: eq(Invoices.id, id),
+          columns: { status: true },
+        });
+
+        if (oldInvoice && oldInvoice.status !== 'draft') {
+          const oldLineItems =
+            await tx.query.LineItems.findMany({
+              where: eq(LineItems.invoiceId, id),
+            });
+          for (const oldItem of oldLineItems) {
+            await tx
+              .update(productsSchema)
+              .set({
+                stock: sql`${productsSchema.stock} + ${oldItem.quantity}`,
+              })
+              .where(
+                eq(productsSchema.id, oldItem.productId),
+              );
+          }
+        }
+
         await tx
           .update(Invoices)
           .set(data)
           .where(eq(Invoices.id, id));
 
-        // Delete existing line items for this invoice
         await tx
           .delete(LineItems)
           .where(eq(LineItems.invoiceId, id));
@@ -259,7 +304,7 @@ export const actions = {
           .insert(Invoices)
           .values(data)
           .returning({ id: Invoices.id });
-        form.data.id = newInvoice.id; // Assign new ID to form data for line items
+        form.data.id = newInvoice.id;
       }
 
       if (products.length) {
@@ -275,6 +320,24 @@ export const actions = {
             receivedPrice: convertToCents(p.receivedPrice),
           })),
         );
+      }
+
+      if (isNonDraft) {
+        const existingProductIds = new Set(
+          products.filter((p) => p.productId).map((p) => p.productId),
+        );
+        for (const item of processedProducts) {
+          if (existingProductIds.has(item.productId)) {
+            await tx
+              .update(productsSchema)
+              .set({
+                stock: sql`${productsSchema.stock} - ${item.quantity}`,
+              })
+              .where(
+                eq(productsSchema.id, item.productId),
+              );
+          }
+        }
       }
     });
 
