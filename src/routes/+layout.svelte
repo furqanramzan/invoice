@@ -80,6 +80,9 @@
         <a href={resolve('/ledger')} class="text-sm">Ledger</a>
         <a href={resolve('/product')} class="text-sm">Products</a
         >
+        <a href={resolve('/inventory')} class="text-sm"
+          >Inventory</a
+        >
         <a href={resolve('/company')} class="text-sm"
           >Companies</a
         >
