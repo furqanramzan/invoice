@@ -150,24 +150,44 @@ export const actions = {
       ...invoiceData
     } = form.data;
 
+    let oldLineItems: Array<{ productId: number; quantity: number }> = [];
+    if (id) {
+      const oldInvoice = await db.query.Invoices.findFirst({
+        where: eq(Invoices.id, id),
+        columns: { status: true },
+      });
+      if (oldInvoice && oldInvoice.status !== 'draft') {
+        oldLineItems = await db.query.LineItems.findMany({
+          where: eq(LineItems.invoiceId, id),
+          columns: { productId: true, quantity: true },
+        });
+      }
+    }
+
+    const oldQtyMap = new Map<number, number>();
+    for (const item of oldLineItems) {
+      oldQtyMap.set(item.productId, (oldQtyMap.get(item.productId) ?? 0) + item.quantity);
+    }
+
     const isNonDraft = invoiceData.status !== 'draft';
 
     if (isNonDraft) {
       for (const item of products) {
         if (item.productId) {
-          const product = await db.query.Products.findFirst({
-            where: eq(productsSchema.id, item.productId),
-            columns: { stock: true },
-          });
-          if (
-            !product ||
-            (product.stock ?? 0) < item.quantity
-          ) {
-            return sendMessage(
-              form,
-              `Insufficient stock for "${item.name}". Available: ${product?.stock ?? 0}, needed: ${item.quantity}`,
-              'error',
-            );
+          const oldQty = oldQtyMap.get(item.productId) ?? 0;
+          const delta = item.quantity - oldQty;
+          if (delta > 0) {
+            const product = await db.query.Products.findFirst({
+              where: eq(productsSchema.id, item.productId),
+              columns: { stock: true },
+            });
+            if (!product || (product.stock ?? 0) < delta) {
+              return sendMessage(
+                form,
+                `Insufficient stock for "${item.name}". Available: ${product?.stock ?? 0}, needed ${delta} more`,
+                'error',
+              );
+            }
           }
         }
       }
@@ -269,28 +289,6 @@ export const actions = {
       };
 
       if (id) {
-        const oldInvoice = await tx.query.Invoices.findFirst({
-          where: eq(Invoices.id, id),
-          columns: { status: true },
-        });
-
-        if (oldInvoice && oldInvoice.status !== 'draft') {
-          const oldLineItems =
-            await tx.query.LineItems.findMany({
-              where: eq(LineItems.invoiceId, id),
-            });
-          for (const oldItem of oldLineItems) {
-            await tx
-              .update(productsSchema)
-              .set({
-                stock: sql`${productsSchema.stock} + ${oldItem.quantity}`,
-              })
-              .where(
-                eq(productsSchema.id, oldItem.productId),
-              );
-          }
-        }
-
         await tx
           .update(Invoices)
           .set(data)
@@ -323,19 +321,19 @@ export const actions = {
       }
 
       if (isNonDraft) {
-        const existingProductIds = new Set(
-          products.filter((p) => p.productId).map((p) => p.productId),
-        );
-        for (const item of processedProducts) {
-          if (existingProductIds.has(item.productId)) {
+        const allProductIds = new Set([
+          ...oldQtyMap.keys(),
+          ...processedProducts.filter((p) => p.productId).map((p) => p.productId!),
+        ]);
+        for (const productId of allProductIds) {
+          const oldQty = oldQtyMap.get(productId) ?? 0;
+          const newQty = processedProducts.find((p) => p.productId === productId)?.quantity ?? 0;
+          const delta = newQty - oldQty;
+          if (delta !== 0) {
             await tx
               .update(productsSchema)
-              .set({
-                stock: sql`${productsSchema.stock} - ${item.quantity}`,
-              })
-              .where(
-                eq(productsSchema.id, item.productId),
-              );
+              .set({ stock: sql`${productsSchema.stock} - ${delta}` })
+              .where(eq(productsSchema.id, productId));
           }
         }
       }
