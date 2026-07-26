@@ -36,6 +36,6 @@ export const actions: Actions = {
 
     await createSessionToken(event, user.id);
 
-    return redirectTo('/invoice');
+    return redirectTo('/dashboard');
   },
 };
