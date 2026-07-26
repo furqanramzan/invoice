@@ -17,12 +17,14 @@
   import LogOut from '@lucide/svelte/icons/log-out';
   import Menu from '@lucide/svelte/icons/menu';
   import X from '@lucide/svelte/icons/x';
+  import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
 
   let expanded = $state(false);
   let mobileOpen = $state(false);
 
   const links = [
     { href: '/dashboard', routeId: '/(app)/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { href: '/reports/revenue', routeId: '/(app)/reports', icon: BarChart3, label: 'Reports' },
     { href: '/invoice', routeId: '/(app)/invoice', icon: FileText, label: 'Invoices' },
     { href: '/invoice/upsert', routeId: '/(app)/invoice/upsert', icon: PlusCircle, label: 'Create Invoice' },
     { href: '/expense', routeId: '/(app)/expense', icon: Wallet, label: 'Expenses' },
@@ -38,6 +40,7 @@
   function isActive(link: typeof links[number]) {
     if (link.href === '/invoice/upsert') return page.route.id === link.routeId;
     if (link.href === '/invoice') return page.route.id?.startsWith('/(app)/invoice') && page.route.id !== '/(app)/invoice/upsert';
+    if (link.href === '/reports/revenue') return page.route.id?.startsWith('/(app)/reports');
     return page.route.id === link.routeId;
   }
 </script>
