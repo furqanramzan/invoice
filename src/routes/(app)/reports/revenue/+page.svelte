@@ -1,48 +1,41 @@
 <script lang="ts">
+  import KpiCard from '$lib/components/report-kpi-card.svelte';
+  import ReportBarChart from '$lib/components/report-bar-chart.svelte';
   import * as Card from '$lib/components/ui/card/index.js';
   import * as Table from '$lib/components/ui/table';
   import { formatCents } from '$lib/utils.js';
 
   const { data } = $props();
 
-  const maxMonthly = $derived(Math.max(...data.monthlyRevenue.map((r: { revenue: number }) => r.revenue), 1));
-  const maxYearly = $derived(Math.max(...data.yearlyRevenue.map((r: { revenue: number }) => r.revenue), 1));
-
   const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  const monthlyBars = $derived(
+    data.monthlyRevenue.map((r: { year: number; month: number; revenue: number; count: number }) => ({
+      key: `${r.year}-${r.month}`,
+      value: r.revenue,
+      label: monthLabels[r.month - 1],
+      tooltip: `${monthLabels[r.month - 1]} ${r.year}: ${formatCents(r.revenue)} (${r.count} invoices)`,
+    })),
+  );
+
+  const yearlyBars = $derived(
+    data.yearlyRevenue.map((r: { year: number; revenue: number; count: number }) => ({
+      key: String(r.year),
+      value: r.revenue,
+      label: String(r.year),
+      tooltip: `${r.year}: ${formatCents(r.revenue)} (${r.count} invoices)`,
+    })),
+  );
 </script>
 
 <div class="space-y-8">
   <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-    <Card.Root>
-      <Card.Header>
-        <Card.Title class="text-sm text-muted-foreground">All-Time Revenue</Card.Title>
-      </Card.Header>
-      <Card.Content>
-        <p class="text-3xl font-bold text-green-600">
-          {formatCents(data.totalRevenue)}
-        </p>
-      </Card.Content>
-    </Card.Root>
-    <Card.Root>
-      <Card.Header>
-        <Card.Title class="text-sm text-muted-foreground">Total Invoices (Paid)</Card.Title>
-      </Card.Header>
-      <Card.Content>
-        <p class="text-3xl font-bold">
-          {data.yearlyRevenue.reduce((s: number, r: { count: number }) => s + r.count, 0)}
-        </p>
-      </Card.Content>
-    </Card.Root>
-    <Card.Root>
-      <Card.Header>
-        <Card.Title class="text-sm text-muted-foreground">Avg Invoice Value</Card.Title>
-      </Card.Header>
-      <Card.Content>
-        <p class="text-3xl font-bold text-blue-600">
-          {formatCents(Math.round(data.avgInvoiceValue))}
-        </p>
-      </Card.Content>
-    </Card.Root>
+    <KpiCard title="All-Time Revenue" value={formatCents(data.totalRevenue)} color="text-green-600" />
+    <KpiCard
+      title="Total Invoices (Paid)"
+      value={String(data.yearlyRevenue.reduce((s: number, r: { count: number }) => s + r.count, 0))}
+    />
+    <KpiCard title="Avg Invoice Value" value={formatCents(Math.round(data.avgInvoiceValue))} color="text-blue-600" />
   </div>
 
   <Card.Root>
@@ -53,24 +46,7 @@
       {#if data.monthlyRevenue.length === 0}
         <p class="text-sm text-muted-foreground">No revenue data available.</p>
       {:else}
-        <div class="flex items-end gap-2">
-          {#each data.monthlyRevenue as row (row.year + '-' + row.month)}
-            {@const barHeight = (row.revenue / maxMonthly) * 200}
-            <div class="group relative flex flex-1 flex-col items-center">
-              <div
-                class="w-full rounded-t bg-green-500 transition-all hover:bg-green-600"
-                style="height: {Math.max(barHeight, 2)}px"
-              >
-                <div class="absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-popover px-2 py-1 text-xs text-popover-foreground shadow-sm group-hover:block">
-                  {monthLabels[row.month - 1]} {row.year}: {formatCents(row.revenue)} ({row.count} invoices)
-                </div>
-              </div>
-              <span class="mt-1 text-[10px] text-muted-foreground">
-                {monthLabels[row.month - 1]}
-              </span>
-            </div>
-          {/each}
-        </div>
+        <ReportBarChart bars={monthlyBars} color="bg-green-500" />
       {/if}
     </Card.Content>
   </Card.Root>
@@ -83,22 +59,7 @@
       {#if data.yearlyRevenue.length === 0}
         <p class="text-sm text-muted-foreground">No yearly data available.</p>
       {:else}
-        <div class="flex items-end gap-4">
-          {#each data.yearlyRevenue as row (row.year)}
-            {@const barHeight = (row.revenue / maxYearly) * 200}
-            <div class="group relative flex flex-1 flex-col items-center">
-              <div
-                class="w-full rounded-t bg-blue-500 transition-all hover:bg-blue-600"
-                style="height: {Math.max(barHeight, 2)}px"
-              >
-                <div class="absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-popover px-2 py-1 text-xs text-popover-foreground shadow-sm group-hover:block">
-                  {row.year}: {formatCents(row.revenue)} ({row.count} invoices)
-                </div>
-              </div>
-              <span class="mt-1 text-xs text-muted-foreground">{row.year}</span>
-            </div>
-          {/each}
-        </div>
+        <ReportBarChart bars={yearlyBars} color="bg-blue-500" />
       {/if}
     </Card.Content>
   </Card.Root>

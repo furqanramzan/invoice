@@ -1,14 +1,7 @@
 import { db } from '$lib/server/db';
 import { Invoices, LineItems, Products } from '$lib/server/db/schema';
 import { and, desc, eq, gte, sql, ne } from 'drizzle-orm';
-
-function getStartOfMonth(monthsAgo: number): Date {
-  const d = new Date();
-  d.setDate(1);
-  d.setHours(0, 0, 0, 0);
-  d.setMonth(d.getMonth() - monthsAgo);
-  return d;
-}
+import { getStartOfMonth, sqlYear, sqlMonth, sqlYearMonth } from '../helpers';
 
 export async function load() {
   const monthsBack = 12;
@@ -16,8 +9,8 @@ export async function load() {
 
   const profitByPeriod = await db
     .select({
-      year: sql<number>`CAST(strftime('%Y', ${Invoices.dateOfInvoice} / 1000, 'unixepoch') AS INTEGER)`,
-      month: sql<number>`CAST(strftime('%m', ${Invoices.dateOfInvoice} / 1000, 'unixepoch') AS INTEGER)`,
+      year: sqlYear(Invoices.dateOfInvoice),
+      month: sqlMonth(Invoices.dateOfInvoice),
       revenue: sql<number>`COALESCE(SUM(${LineItems.salePrice} * ${LineItems.quantity}), 0)`,
       cost: sql<number>`COALESCE(SUM(${LineItems.actualPrice} * ${LineItems.quantity}), 0)`,
       count: sql<number>`COUNT(DISTINCT ${Invoices.id})`,
@@ -30,12 +23,8 @@ export async function load() {
         gte(Invoices.dateOfInvoice, startDate),
       ),
     )
-    .groupBy(
-      sql`strftime('%Y-%m', ${Invoices.dateOfInvoice} / 1000, 'unixepoch')`,
-    )
-    .orderBy(
-      sql`strftime('%Y-%m', ${Invoices.dateOfInvoice} / 1000, 'unixepoch')`,
-    );
+    .groupBy(sqlYearMonth(Invoices.dateOfInvoice))
+    .orderBy(sqlYearMonth(Invoices.dateOfInvoice));
 
   const productProfit = await db
     .select({
