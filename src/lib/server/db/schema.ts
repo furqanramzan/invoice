@@ -37,7 +37,7 @@ export const Products = sqliteTable('products', {
   actualPrice: integer('actual_price').notNull(),
   quotedPrice: integer('quoted_price').notNull(),
   salePrice: integer('sale_price').notNull(),
-  stock: integer('stock').notNull().default(0),
+  stock: integer('stock').default(0),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .default(sql`(unixepoch())`)
     .notNull(),
@@ -261,13 +261,16 @@ export const Suppliers = sqliteTable('suppliers', {
     .notNull(),
 });
 
-export const SuppliersRelations = relations(Suppliers, ({ many, one }) => ({
-  company: one(Companies, {
-    fields: [Suppliers.companyId],
-    references: [Companies.id],
+export const SuppliersRelations = relations(
+  Suppliers,
+  ({ many, one }) => ({
+    company: one(Companies, {
+      fields: [Suppliers.companyId],
+      references: [Companies.id],
+    }),
+    purchases: many(Purchases),
   }),
-  purchases: many(Purchases),
-}));
+);
 
 export const Purchases = sqliteTable('purchases', {
   id: integer('id', { mode: 'number' }).primaryKey(),
@@ -286,18 +289,21 @@ export const Purchases = sqliteTable('purchases', {
     .notNull(),
 });
 
-export const PurchasesRelations = relations(Purchases, ({ many, one }) => ({
-  company: one(Companies, {
-    fields: [Purchases.companyId],
-    references: [Companies.id],
+export const PurchasesRelations = relations(
+  Purchases,
+  ({ many, one }) => ({
+    company: one(Companies, {
+      fields: [Purchases.companyId],
+      references: [Companies.id],
+    }),
+    supplier: one(Suppliers, {
+      fields: [Purchases.supplierId],
+      references: [Suppliers.id],
+    }),
+    items: many(PurchaseItems),
+    payments: many(PurchasePayments),
   }),
-  supplier: one(Suppliers, {
-    fields: [Purchases.supplierId],
-    references: [Suppliers.id],
-  }),
-  items: many(PurchaseItems),
-  payments: many(PurchasePayments),
-}));
+);
 
 export const PurchaseItems = sqliteTable('purchase_items', {
   id: integer('id', { mode: 'number' }).primaryKey(),
@@ -314,38 +320,47 @@ export const PurchaseItems = sqliteTable('purchase_items', {
     .notNull(),
 });
 
-export const PurchaseItemsRelations = relations(PurchaseItems, ({ one }) => ({
-  purchase: one(Purchases, {
-    fields: [PurchaseItems.purchaseId],
-    references: [Purchases.id],
+export const PurchaseItemsRelations = relations(
+  PurchaseItems,
+  ({ one }) => ({
+    purchase: one(Purchases, {
+      fields: [PurchaseItems.purchaseId],
+      references: [Purchases.id],
+    }),
+    product: one(Products, {
+      fields: [PurchaseItems.productId],
+      references: [Products.id],
+    }),
   }),
-  product: one(Products, {
-    fields: [PurchaseItems.productId],
-    references: [Products.id],
-  }),
-}));
+);
 
-export const PurchasePayments = sqliteTable('purchase_payments', {
-  id: integer('id', { mode: 'number' }).primaryKey(),
-  purchaseId: integer('purchase_id', { mode: 'number' })
-    .notNull()
-    .references(() => Purchases.id, { onDelete: 'cascade' }),
-  amount: integer('amount').notNull(),
-  date: integer('date', { mode: 'timestamp' }).notNull(),
-  method: text('method'),
-  reference: text('reference'),
-  notes: text('notes'),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .default(sql`(unixepoch())`)
-    .notNull(),
-});
+export const PurchasePayments = sqliteTable(
+  'purchase_payments',
+  {
+    id: integer('id', { mode: 'number' }).primaryKey(),
+    purchaseId: integer('purchase_id', { mode: 'number' })
+      .notNull()
+      .references(() => Purchases.id, { onDelete: 'cascade' }),
+    amount: integer('amount').notNull(),
+    date: integer('date', { mode: 'timestamp' }).notNull(),
+    method: text('method'),
+    reference: text('reference'),
+    notes: text('notes'),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .default(sql`(unixepoch())`)
+      .notNull(),
+  },
+);
 
-export const PurchasePaymentsRelations = relations(PurchasePayments, ({ one }) => ({
-  purchase: one(Purchases, {
-    fields: [PurchasePayments.purchaseId],
-    references: [Purchases.id],
+export const PurchasePaymentsRelations = relations(
+  PurchasePayments,
+  ({ one }) => ({
+    purchase: one(Purchases, {
+      fields: [PurchasePayments.purchaseId],
+      references: [Purchases.id],
+    }),
   }),
-}));
+);
 
 export type Sessions = typeof Sessions.$inferSelect;
 export type Users = typeof Users.$inferSelect;
@@ -359,6 +374,9 @@ export type SupplierInsert = typeof Suppliers.$inferInsert;
 export type Purchase = typeof Purchases.$inferSelect;
 export type PurchaseInsert = typeof Purchases.$inferInsert;
 export type PurchaseItem = typeof PurchaseItems.$inferSelect;
-export type PurchaseItemInsert = typeof PurchaseItems.$inferInsert;
-export type PurchasePayment = typeof PurchasePayments.$inferSelect;
-export type PurchasePaymentInsert = typeof PurchasePayments.$inferInsert;
+export type PurchaseItemInsert =
+  typeof PurchaseItems.$inferInsert;
+export type PurchasePayment =
+  typeof PurchasePayments.$inferSelect;
+export type PurchasePaymentInsert =
+  typeof PurchasePayments.$inferInsert;
